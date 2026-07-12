@@ -17,7 +17,7 @@ npm install
 npm run dev
 ```
 
-Then open http://localhost:5173 or go to ananysoni2007.github.io/kiln.--Task-Studio
+Then open http://localhost:5173 or go to https://ananysoni2007.github.io/kiln.--Task-Studio/
 
 > Node.js lives at `~/.local/opt/node` (portable install). If `npm` isn't found, run:
 > `export PATH="$HOME/.local/opt/node/bin:$PATH"` (add it to `~/.bashrc` to make it permanent).
