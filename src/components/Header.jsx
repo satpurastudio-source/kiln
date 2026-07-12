@@ -14,7 +14,7 @@ export default function Header({ query, setQuery, searchRef, openPalette }) {
   if (view.type === 'today') {
     title = (
       <>
-        {greeting()}, Anany<em>.</em>
+        {greeting()}, Captain<em>.</em>
       </>
     )
   } else if (view.type === 'upcoming')
