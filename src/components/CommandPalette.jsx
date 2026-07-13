@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useStore, toast } from '../store'
+import { supabase } from '../supabase'
 import {
   SunIcon,
   MoonIcon,
@@ -11,6 +12,7 @@ import {
   BellOffIcon,
   SearchIcon,
   BroomIcon,
+  XIcon,
 } from './Icons'
 
 export default function CommandPalette({ onClose, onNewProject }) {
@@ -57,6 +59,15 @@ export default function CommandPalette({ onClose, onNewProject }) {
           const n = state.tasks.filter((t) => t.done).length
           dispatch({ type: 'CLEAR_COMPLETED' })
           toast(n > 0 ? `Cleared ${n} completed task${n === 1 ? '' : 's'}` : 'Nothing to clear', '🧹')
+        },
+      },
+      {
+        icon: <XIcon size={14} />,
+        label: 'Sign out',
+        hint: 'Account',
+        fn: () => {
+          supabase.auth.signOut()
+          dispatch({ type: 'SIGN_OUT' })
         },
       },
     ]

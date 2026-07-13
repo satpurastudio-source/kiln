@@ -36,6 +36,7 @@
   --scrollbar: rgba(244, 239, 230, 0.14);
   --dot-color: rgba(244, 239, 230, 0.045);
   --grain-op: 0.028;
+  --scrim: rgba(0, 0, 0, 0.55);
 }
 
 :root[data-theme='light'] {
@@ -56,6 +57,7 @@
   --scrollbar: rgba(42, 38, 32, 0.2);
   --dot-color: rgba(42, 38, 32, 0.055);
   --grain-op: 0.038;
+  --scrim: rgba(42, 38, 32, 0.4);
 }
 
 /* Smooth theme switch — only active during the toggle so it never
@@ -111,6 +113,39 @@ label,
 input,
 textarea {
   cursor: none;
+}
+
+/* touch: no double-tap-zoom delay on controls, no grey tap flash */
+button,
+a,
+input,
+select,
+textarea,
+.task-row,
+.nav-item,
+.checkbox {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+@media (pointer: coarse) {
+  /* fat-finger friendly checkbox: ~45px invisible hit area so a near-miss
+     ticks the task instead of opening the editor */
+  .checkbox::before {
+    content: '';
+    position: absolute;
+    inset: -12px;
+  }
+  /* hover-gated controls don't exist on touch — keep them reachable */
+  .task-actions {
+    opacity: 1;
+  }
+  .grip {
+    opacity: 0.45;
+  }
+  .nav-item .edit-project {
+    opacity: 0.55;
+  }
 }
 
 /* ============================== custom cursor ============================== */
@@ -404,6 +439,7 @@ button {
   background: var(--panel-hover);
   border-radius: 99px;
   padding: 1.5px 8px;
+  transform: translateY(-1px);
 }
 
 .section-label {
@@ -443,12 +479,20 @@ button {
   box-shadow: 0 0 10px -1px currentColor;
 }
 
+/* optical alignment: text's visual center sits ~1px above its box center
+   (descender space), so right-side icons get nudged up to match */
 .nav-item .ring {
   margin-left: auto;
+  transform: translateY(-1px);
 }
 
 .nav-item .edit-project {
   opacity: 0;
+  transform: translateY(-1px);
+}
+
+.nav-item .icon .project-dot {
+  transform: translateY(-0.5px);
 }
 
 .nav-item:hover .edit-project {
@@ -1362,23 +1406,197 @@ kbd,
   flex-shrink: 0;
 }
 
+/* ================================== login ================================== */
+
+.login-screen {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.login-card {
+  width: min(400px, 100%);
+  padding: 40px 36px 32px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: var(--panel-strong);
+  backdrop-filter: blur(30px);
+  box-shadow: var(--shadow-lift);
+  text-align: center;
+}
+
+.login-mark {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  margin: 0 auto 20px;
+  display: grid;
+  place-items: center;
+}
+
+.login-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 56px;
+  line-height: 1;
+  letter-spacing: 0.02em;
+}
+
+.login-title .dot {
+  color: var(--accent);
+}
+
+.login-sub {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--text-3);
+  margin: 10px 0 30px;
+  letter-spacing: 0.04em;
+}
+
+.login-label {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--text-3);
+  margin-bottom: 10px;
+  text-align: left;
+}
+
+.login-input {
+  width: 100%;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--panel);
+  padding: 0 14px;
+  font-size: 14.5px;
+  text-align: center;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.login-input:focus {
+  border-color: rgba(216, 90, 48, 0.55);
+  box-shadow: 0 0 0 3px rgba(216, 90, 48, 0.14);
+}
+
+.login-btn {
+  width: 100%;
+  margin-top: 12px;
+  height: 42px;
+}
+
+.login-note {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--text-3);
+  line-height: 1.7;
+  margin-top: 18px;
+}
+
+.login-input + .login-input {
+  margin-top: 10px;
+}
+
+.login-error {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--danger, #a03c1c);
+  margin-top: 10px;
+}
+
+.login-alt {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 16px;
+}
+
+.login-link {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+  padding: 4px;
+  transition: color 0.15s ease;
+}
+
+.login-link:hover {
+  color: var(--text);
+}
+
+.login-link b {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+.login-sent-icon {
+  font-size: 34px;
+  margin-bottom: 10px;
+}
+
+.login-sent-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  margin-bottom: 4px;
+}
+
+.verified-badge {
+  width: 72px;
+  height: 72px;
+  margin: 0 auto 18px;
+}
+
+.verified-badge svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
 /* ================================ responsive ================================ */
+
+.mobile-backdrop {
+  display: none;
+}
 
 @media (max-width: 860px) {
   .sidebar {
     position: fixed;
     inset: 0 auto 0 0;
     height: 100%;
-    box-shadow: var(--shadow-lift);
-    background: var(--panel-strong);
-    transform: translateX(-100%);
+    width: min(320px, 84vw);
+    z-index: 48;
+    /* clear the fixed menu button so the brand isn't covered */
+    padding-top: 68px;
+    box-shadow: none;
+    background: var(--bg-raise);
+    transform: translateX(-105%);
     transition: transform 0.35s var(--ease-out);
   }
   .sidebar.mobile-open {
     transform: translateX(0);
+    box-shadow: var(--shadow-lift);
   }
   .mobile-menu-btn {
     display: grid !important;
+    z-index: 49;
+  }
+  .mobile-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 47;
+    background: var(--scrim);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+  }
+  /* push the greeting below the fixed menu button */
+  .header {
+    padding-top: 72px;
   }
 }
 
@@ -1387,7 +1605,7 @@ kbd,
   position: fixed;
   top: 14px;
   left: 14px;
-  z-index: 40;
+  z-index: 49; /* above the mobile sidebar (48), below modals (50+) */
   width: 38px;
   height: 38px;
   place-items: center;
