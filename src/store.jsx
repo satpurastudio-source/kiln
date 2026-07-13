@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useReducer, useRef } from 'react'
 import { uid, todayStr, addDaysStr, isOverdue, isToday, priorityRank } from './utils'
 import { setSoundEnabled } from './sound'
+import { supabase, pullCloud, pushCloud } from './supabase'
 
 const STORAGE_KEY = 'zenith-v1'
 const StoreCtx = createContext(null)
@@ -36,16 +37,22 @@ function seed() {
       t(p1.id, 'Press N to add a task, / to search', { due: addDaysStr(1) }),
       t(p1.id, 'Open the command palette with Ctrl + K', { due: addDaysStr(1), priority: 'low' }),
       t(p1.id, 'Finish every task in a project for a surprise 🎉', { due: addDaysStr(2) }),
-      t(p2.id, 'Review quarterly roadmap', { due: addDaysStr(3), priority: 'high' }),
-      t(p2.id, 'Ship the design system update', { due: addDaysStr(5), priority: 'medium' }),
-      t(p3.id, 'Book weekend trip', { priority: 'low' }),
-      t(p3.id, 'Call home', { due: todayStr() }),
     ],
     theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
     sound: true,
     view: { type: 'today', projectId: null },
+    profile: null,
+    seedV: 2,
   }
 }
+
+// Demo tasks removed from the seed in v2 — cleaned out of existing data once.
+const RETIRED_SEED_TASKS = new Set([
+  'Review quarterly roadmap',
+  'Ship the design system update',
+  'Book weekend trip',
+  'Call home',
+])
 
 // Colors from the old violet theme → warm portfolio palette
 const COLOR_MIGRATION = {
@@ -146,6 +153,15 @@ function reducer(state, action) {
     }
     case 'SET_VIEW':
       return { ...state, view: action.view }
+    case 'SET_PROFILE':
+      return { ...state, profile: action.profile }
+    case 'SIGN_OUT':
+      return { ...state, profile: null }
+    case 'HYDRATE': {
+      // replace local projects/tasks with the cloud copy
+      if (!Array.isArray(action.data?.projects) || !Array.isArray(action.data?.tasks)) return state
+      return { ...state, projects: action.data.projects, tasks: action.data.tasks }
+    }
     case 'SET_THEME':
       return { ...state, theme: action.theme }
     case 'SET_SOUND':
@@ -163,12 +179,16 @@ function load() {
     if (!raw) return seed()
     const data = JSON.parse(raw)
     if (!Array.isArray(data.projects) || !Array.isArray(data.tasks)) return seed()
+    const seedV = data.seedV ?? 1
     return {
       ...data,
       projects: data.projects.map((p) => ({
         ...p,
         color: COLOR_MIGRATION[p.color] ?? p.color,
       })),
+      tasks: seedV < 2 ? data.tasks.filter((t) => !RETIRED_SEED_TASKS.has(t.title)) : data.tasks,
+      seedV: 2,
+      profile: data.profile ?? null,
       view: data.view?.type ? data.view : { type: 'today', projectId: null },
     }
   } catch {
@@ -180,8 +200,11 @@ export function StoreProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, null, load)
 
   useEffect(() => {
-    const { projects, tasks, theme, sound, view } = state
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({ projects, tasks, theme, sound, view }))
+    const { projects, tasks, theme, sound, view, profile, seedV } = state
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ projects, tasks, theme, sound, view, profile, seedV })
+    )
   }, [state])
 
   // Smooth theme switch: briefly turn on transitions for every element,
@@ -205,6 +228,63 @@ export function StoreProvider({ children }) {
   useEffect(() => {
     setSoundEnabled(state.sound)
   }, [state.sound])
+
+  /* ------------------------- cloud auth + sync ------------------------- */
+
+  // Always-fresh snapshot of what should be synced, without re-running effects.
+  const snapshotRef = useRef(null)
+  snapshotRef.current = { projects: state.projects, tasks: state.tasks }
+
+  useEffect(() => {
+    let alive = true
+
+    const applySession = async (session) => {
+      const u = session?.user
+      if (!u) return
+      const name = u.user_metadata?.name || u.email?.split('@')[0] || 'there'
+      dispatch({
+        type: 'SET_PROFILE',
+        profile: { name, email: u.email, userId: u.id, cloud: true },
+      })
+      try {
+        const cloud = await pullCloud(u.id)
+        if (!alive) return
+        if (cloud) {
+          dispatch({ type: 'HYDRATE', data: cloud })
+        } else {
+          // first sign-in on this account: adopt whatever is on this device
+          await pushCloud(u.id, snapshotRef.current)
+        }
+      } catch (e) {
+        console.warn('[kiln] cloud sync unavailable:', e.message)
+        toast('Cloud sync unavailable — working locally', '⚠')
+      }
+    }
+
+    supabase.auth.getSession().then(({ data }) => applySession(data.session))
+    const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_IN') applySession(session)
+      if (event === 'SIGNED_OUT') dispatch({ type: 'SIGN_OUT' })
+    })
+    return () => {
+      alive = false
+      sub.subscription.unsubscribe()
+    }
+  }, [])
+
+  // Debounced push: any task/project change lands in the cloud ~1s later.
+  const pushTimer = useRef(null)
+  useEffect(() => {
+    const p = state.profile
+    if (!p?.cloud || !p.userId) return
+    clearTimeout(pushTimer.current)
+    pushTimer.current = setTimeout(() => {
+      pushCloud(p.userId, snapshotRef.current).catch((e) =>
+        console.warn('[kiln] sync push failed:', e.message)
+      )
+    }, 1200)
+    return () => clearTimeout(pushTimer.current)
+  }, [state.projects, state.tasks, state.profile])
 
   return <StoreCtx.Provider value={{ state, dispatch }}>{children}</StoreCtx.Provider>
 }

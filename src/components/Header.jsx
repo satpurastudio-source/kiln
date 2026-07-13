@@ -10,11 +10,14 @@ export default function Header({ query, setQuery, searchRef, openPalette }) {
   const activeCount = selectActive(state).length
   const prog = project ? projectProgress(state, project.id) : null
 
+  const firstName = state.profile?.name?.trim().split(/\s+/)[0] || 'Capt'
+
   let title
   if (view.type === 'today') {
     title = (
       <>
-        {greeting()}, Captain<em>.</em>
+        {greeting()}, {firstName}
+        <em>.</em>
       </>
     )
   } else if (view.type === 'upcoming')
@@ -59,7 +62,15 @@ export default function Header({ query, setQuery, searchRef, openPalette }) {
                   transition={{ duration: 0.85, ease: [0.16, 1, 0.3, 1] }}
                 >
                   {project && (
-                    <span style={{ color: project.color, marginRight: 12, fontSize: '0.72em' }}>
+                    <span
+                      style={{
+                        color: project.color,
+                        marginRight: 12,
+                        fontSize: '0.72em',
+                        display: 'inline-block',
+                        transform: 'translateY(-0.15em)',
+                      }}
+                    >
                       {project.icon}
                     </span>
                   )}
