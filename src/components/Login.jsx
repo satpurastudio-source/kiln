@@ -53,7 +53,8 @@ export default function Login() {
       password,
       options: {
         data: { name: name.trim() },
-        emailRedirectTo: `${window.location.origin}/?verified=1`,
+        // origin + pathname so it works on subpath hosting (GitHub Pages)
+        emailRedirectTo: `${window.location.origin}${window.location.pathname}?verified=1`,
       },
     })
     setBusy(false)
