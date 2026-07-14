@@ -2,10 +2,10 @@ import { forwardRef, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, Reorder, useDragControls } from 'framer-motion'
 import confetti from 'canvas-confetti'
 import Checkbox from './Checkbox'
-import { useStore, toast } from '../store'
+import { useStore, toast, startFocus } from '../store'
 import { fmtDue, isOverdue, isToday, priorityColor, PRIORITIES } from '../utils'
 import { playComplete, playPop, playFanfare } from '../sound'
-import { GripIcon, NoteIcon, FlagIcon, XIcon } from './Icons'
+import { GripIcon, NoteIcon, FlagIcon, XIcon, PlayIcon, FlameIcon } from './Icons'
 
 const springIn = (index) => ({
   initial: { opacity: 0, y: 16, scale: 0.98 },
@@ -138,6 +138,11 @@ const TaskItem = forwardRef(function TaskItem(
                   <NoteIcon size={11} /> note
                 </span>
               )}
+              {task.pomos > 0 && (
+                <span className="pomos" title={`${task.pomos} pomodoro${task.pomos === 1 ? '' : 's'}`}>
+                  <FlameIcon size={10} style={{ color: 'var(--accent)' }} /> ×{task.pomos}
+                </span>
+              )}
               {showProject && project && (
                 <span className="proj-chip">
                   <span className="project-dot" style={{ background: project.color }} />
@@ -148,6 +153,18 @@ const TaskItem = forwardRef(function TaskItem(
           )}
         </div>
         <span className="task-actions">
+          {!task.done && (
+            <button
+              className="icon-btn row-focus"
+              title="Focus on this task"
+              onClick={(e) => {
+                e.stopPropagation()
+                startFocus(task.id)
+              }}
+            >
+              <PlayIcon size={11} />
+            </button>
+          )}
           <button
             className="icon-btn row-del"
             title="Delete task"

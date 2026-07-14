@@ -1406,6 +1406,406 @@ kbd,
   flex-shrink: 0;
 }
 
+/* ================================= calendar ================================= */
+
+.calendar {
+  padding-top: 4px;
+}
+
+.cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.cal-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  letter-spacing: 0.03em;
+}
+
+.cal-title b {
+  color: var(--text-3);
+  font-weight: 400;
+}
+
+.cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-bottom: 6px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-3);
+  text-align: center;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.cal-cell {
+  position: relative;
+  aspect-ratio: 1.15;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.cal-cell.blank {
+  border: none;
+  background: transparent;
+  pointer-events: none;
+}
+
+.cal-cell:hover {
+  border-color: var(--border-strong);
+  background: var(--panel-hover);
+  transform: translateY(-1px);
+}
+
+.cal-cell.today .cal-daynum {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.cal-cell.today {
+  border-color: rgba(216, 90, 48, 0.45);
+}
+
+.cal-cell.selected {
+  background: rgba(216, 90, 48, 0.1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), var(--glow);
+}
+
+.cal-cell.past .cal-daynum {
+  opacity: 0.45;
+}
+
+.cal-daynum {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+.cal-dots {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 6px;
+}
+
+.cal-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.cal-more {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  color: var(--text-3);
+}
+
+.cal-done-mark {
+  font-size: 9px;
+  color: var(--text-3);
+  line-height: 1;
+}
+
+.cal-add-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--panel);
+  backdrop-filter: blur(14px);
+  transition: border-color 0.2s ease;
+}
+
+.cal-add-row:focus-within {
+  border-color: rgba(216, 90, 48, 0.5);
+}
+
+.cal-add-row input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 13.5px;
+  color: var(--text);
+  min-width: 0;
+}
+
+.cal-add-row input::placeholder {
+  color: var(--text-3);
+}
+
+@media (max-width: 640px) {
+  .cal-cell {
+    aspect-ratio: 1;
+  }
+  .cal-add-row .select {
+    display: none;
+  }
+}
+
+/* ================================== focus ================================== */
+
+.focus-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  display: grid;
+  place-items: center;
+  background: rgba(4, 3, 2, 0.6);
+  backdrop-filter: blur(10px);
+  padding: 20px;
+}
+
+:root[data-theme='light'] .focus-overlay {
+  background: rgba(244, 239, 230, 0.65);
+}
+
+.focus-card {
+  width: min(380px, 100%);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-strong);
+  background: var(--panel-strong);
+  backdrop-filter: blur(30px);
+  box-shadow: var(--shadow-lift), var(--glow);
+  padding: 20px 24px 26px;
+  text-align: center;
+}
+
+.focus-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.focus-phase {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 4px 10px;
+  border-radius: 99px;
+}
+
+.focus-phase.work {
+  color: var(--accent);
+  background: rgba(216, 90, 48, 0.12);
+}
+
+.focus-phase.brk {
+  color: #7c8a4d;
+  background: rgba(124, 138, 77, 0.14);
+}
+
+.focus-modes {
+  display: flex;
+  gap: 5px;
+}
+
+.focus-ring {
+  position: relative;
+  width: 210px;
+  margin: 6px auto;
+}
+
+.focus-ring svg {
+  width: 100%;
+  overflow: visible;
+}
+
+.focus-time {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 30px;
+}
+
+.focus-clock {
+  font-family: var(--font-mono);
+  font-size: 44px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.focus-task-name {
+  font-size: 12px;
+  color: var(--text-3);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.focus-pomos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin: 4px 0 14px;
+}
+
+.focus-count {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-3);
+  margin-left: 6px;
+}
+
+.focus-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+.focus-main-btn {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--accent), #a03c1c);
+  color: #f4efe6;
+  box-shadow: 0 8px 24px -8px rgba(216, 90, 48, 0.7);
+  transition: box-shadow 0.2s ease;
+}
+
+.focus-main-btn:hover {
+  box-shadow: 0 10px 30px -8px rgba(216, 90, 48, 0.9);
+}
+
+.focus-ctl {
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+}
+
+.focus-complete {
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+  padding: 8px 14px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  transition: all 0.15s ease;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.focus-complete:hover {
+  color: var(--accent);
+  border-color: rgba(216, 90, 48, 0.45);
+  background: rgba(216, 90, 48, 0.07);
+}
+
+.focus-pill {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 16px;
+  border-radius: 99px;
+  border: 1px solid var(--border-strong);
+  background: var(--panel-strong);
+  backdrop-filter: blur(24px);
+  box-shadow: var(--shadow-lift);
+}
+
+.focus-pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.focus-pill-dot.work {
+  background: var(--accent);
+}
+
+.focus-pill-dot.brk {
+  background: #7c8a4d;
+}
+
+.focus-pill-dot.running {
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(216, 90, 48, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(216, 90, 48, 0);
+  }
+}
+
+.focus-pill-time {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.focus-pill-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-3);
+}
+
+.pomos {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.row-focus:hover {
+  color: var(--accent);
+  background: rgba(216, 90, 48, 0.09);
+  border-color: rgba(216, 90, 48, 0.3);
+}
+
+.row-focus {
+  width: 26px;
+  height: 26px;
+}
+
 /* ================================== login ================================== */
 
 .login-screen {

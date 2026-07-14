@@ -6,6 +6,8 @@ import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import QuickAdd from './components/QuickAdd'
 import TaskList from './components/TaskList'
+import Calendar from './components/Calendar'
+import Focus from './components/Focus'
 import ProjectModal from './components/ProjectModal'
 import CommandPalette from './components/CommandPalette'
 import Toasts from './components/Toasts'
@@ -141,8 +143,14 @@ export default function App() {
               exit={{ opacity: 0, y: -14 }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             >
-              <QuickAdd ref={quickAddRef} />
-              <TaskList query={query} />
+              {state.view.type === 'calendar' ? (
+                <Calendar />
+              ) : (
+                <>
+                  <QuickAdd ref={quickAddRef} />
+                  <TaskList query={query} />
+                </>
+              )}
             </motion.div>
           </AnimatePresence>
         </div>
@@ -167,6 +175,7 @@ export default function App() {
         )}
       </AnimatePresence>
 
+              <Focus />
             </>
           )}
           <Toasts />

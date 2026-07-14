@@ -132,6 +132,33 @@ export const FlameIcon = (p) => (
   </I>
 )
 
+export const ClockIcon = (p) => (
+  <I {...p}>
+    <circle cx="12" cy="12" r="9.5" />
+    <path d="M12 7v5l3.2 2" />
+  </I>
+)
+
+export const PlayIcon = (p) => (
+  <I {...p} fill="currentColor" sw={0}>
+    <path d="M7 4.8c0-1 1.1-1.6 2-1.1l11 6.4c.9.5.9 1.8 0 2.3L9 18.8c-.9.5-2-.1-2-1.1V4.8z" />
+  </I>
+)
+
+export const PauseIcon = (p) => (
+  <I {...p} fill="currentColor" sw={0}>
+    <rect x="6" y="4" width="4" height="16" rx="1.4" />
+    <rect x="14" y="4" width="4" height="16" rx="1.4" />
+  </I>
+)
+
+export const SkipIcon = (p) => (
+  <I {...p}>
+    <path d="M5 5l8 7-8 7V5z" fill="currentColor" strokeWidth="0" />
+    <path d="M18 5v14" />
+  </I>
+)
+
 export const XIcon = (p) => (
   <I {...p}>
     <path d="M6 6l12 12M18 6L6 18" />

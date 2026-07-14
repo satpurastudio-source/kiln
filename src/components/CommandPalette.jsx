@@ -6,6 +6,7 @@ import {
   SunIcon,
   MoonIcon,
   CalendarIcon,
+  ClockIcon,
   LayersIcon,
   PlusIcon,
   BellIcon,
@@ -30,7 +31,8 @@ export default function CommandPalette({ onClose, onNewProject }) {
     const go = (view) => () => dispatch({ type: 'SET_VIEW', view })
     const base = [
       { icon: <SunIcon size={14} />, label: 'Go to Today', hint: 'View', fn: go({ type: 'today', projectId: null }) },
-      { icon: <CalendarIcon size={14} />, label: 'Go to Upcoming', hint: 'View', fn: go({ type: 'upcoming', projectId: null }) },
+      { icon: <ClockIcon size={14} />, label: 'Go to Upcoming', hint: 'View', fn: go({ type: 'upcoming', projectId: null }) },
+      { icon: <CalendarIcon size={14} />, label: 'Go to Calendar', hint: 'View', fn: go({ type: 'calendar', projectId: null }) },
       { icon: <LayersIcon size={14} />, label: 'Go to All Tasks', hint: 'View', fn: go({ type: 'all', projectId: null }) },
       ...state.projects.map((p) => ({
         icon: <span style={{ color: p.color }}>{p.icon}</span>,

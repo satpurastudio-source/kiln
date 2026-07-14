@@ -424,6 +424,7 @@ export function taskInView(task, view) {
     case 'today':
       return isToday(task.due) || isOverdue(task.due)
     case 'upcoming':
+    case 'calendar':
       return !!task.due
     case 'all':
       return true
@@ -505,4 +506,18 @@ export function toast(message, icon = '✓', action = null) {
 export function onToast(fn) {
   listeners.add(fn)
   return () => listeners.delete(fn)
+}
+
+/* ------------------------------- focus bus -------------------------------- */
+// Lets any task row start a pomodoro session without prop drilling.
+
+const focusListeners = new Set()
+
+export function startFocus(taskId) {
+  focusListeners.forEach((fn) => fn(taskId))
+}
+
+export function onFocusRequest(fn) {
+  focusListeners.add(fn)
+  return () => focusListeners.delete(fn)
 }

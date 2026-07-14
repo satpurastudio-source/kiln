@@ -26,6 +26,12 @@ export default function Header({ query, setQuery, searchRef, openPalette }) {
         Upcoming<em>.</em>
       </>
     )
+  else if (view.type === 'calendar')
+    title = (
+      <>
+        Calendar<em>.</em>
+      </>
+    )
   else if (view.type === 'all')
     title = (
       <>
@@ -45,7 +51,9 @@ export default function Header({ query, setQuery, searchRef, openPalette }) {
       ? `${fmtLongDate()} — ${activeCount === 0 ? 'all clear' : `${activeCount} task${activeCount === 1 ? '' : 's'} to go`}`
       : view.type === 'project' && prog
         ? `${prog.done} of ${prog.total} complete`
-        : `${activeCount} open task${activeCount === 1 ? '' : 's'}`
+        : view.type === 'calendar'
+          ? `${activeCount} scheduled task${activeCount === 1 ? '' : 's'}`
+          : `${activeCount} open task${activeCount === 1 ? '' : 's'}`
 
   const viewKey = `${view.type}-${view.projectId ?? ''}`
 
