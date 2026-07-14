@@ -2,10 +2,12 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useStore, toast } from '../store'
 import { supabase } from '../supabase'
+import { remindersOptedIn, enableReminders, disableReminders } from '../reminders'
 import {
   SunIcon,
   MoonIcon,
   CalendarIcon,
+  ClockIcon,
   LayersIcon,
   PlusIcon,
   BellIcon,
@@ -13,6 +15,7 @@ import {
   SearchIcon,
   BroomIcon,
   XIcon,
+  DownloadIcon,
 } from './Icons'
 
 export default function CommandPalette({ onClose, onNewProject }) {
@@ -30,7 +33,8 @@ export default function CommandPalette({ onClose, onNewProject }) {
     const go = (view) => () => dispatch({ type: 'SET_VIEW', view })
     const base = [
       { icon: <SunIcon size={14} />, label: 'Go to Today', hint: 'View', fn: go({ type: 'today', projectId: null }) },
-      { icon: <CalendarIcon size={14} />, label: 'Go to Upcoming', hint: 'View', fn: go({ type: 'upcoming', projectId: null }) },
+      { icon: <ClockIcon size={14} />, label: 'Go to Upcoming', hint: 'View', fn: go({ type: 'upcoming', projectId: null }) },
+      { icon: <CalendarIcon size={14} />, label: 'Go to Calendar', hint: 'View', fn: go({ type: 'calendar', projectId: null }) },
       { icon: <LayersIcon size={14} />, label: 'Go to All Tasks', hint: 'View', fn: go({ type: 'all', projectId: null }) },
       ...state.projects.map((p) => ({
         icon: <span style={{ color: p.color }}>{p.icon}</span>,
@@ -59,6 +63,37 @@ export default function CommandPalette({ onClose, onNewProject }) {
           const n = state.tasks.filter((t) => t.done).length
           dispatch({ type: 'CLEAR_COMPLETED' })
           toast(n > 0 ? `Cleared ${n} completed task${n === 1 ? '' : 's'}` : 'Nothing to clear', '🧹')
+        },
+      },
+      {
+        icon: <DownloadIcon size={14} />,
+        label: 'Export my data (JSON)',
+        hint: 'Account',
+        fn: () => {
+          const blob = new Blob(
+            [JSON.stringify({ projects: state.projects, tasks: state.tasks }, null, 2)],
+            { type: 'application/json' }
+          )
+          const a = document.createElement('a')
+          a.href = URL.createObjectURL(blob)
+          a.download = `kiln-export-${new Date().toISOString().slice(0, 10)}.json`
+          a.click()
+          URL.revokeObjectURL(a.href)
+          toast('Data exported', '⬇')
+        },
+      },
+      {
+        icon: <BellIcon size={14} />,
+        label: remindersOptedIn() ? 'Disable daily reminders' : 'Enable daily reminders',
+        hint: 'Action',
+        fn: async () => {
+          if (remindersOptedIn()) {
+            disableReminders()
+            toast('Reminders off', '🔕')
+          } else {
+            const ok = await enableReminders()
+            toast(ok ? 'Reminders on — you’ll get a nudge when tasks are due' : 'Notifications blocked by the browser', ok ? '🔔' : '⚠')
+          }
         },
       },
       {

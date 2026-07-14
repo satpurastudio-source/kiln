@@ -1,5 +1,5 @@
 import { createContext, useContext, useEffect, useReducer, useRef } from 'react'
-import { uid, todayStr, addDaysStr, isOverdue, isToday, priorityRank } from './utils'
+import { uid, todayStr, addDaysStr, isOverdue, isToday, priorityRank, nextDue } from './utils'
 import { setSoundEnabled } from './sound'
 import { supabase, pullCloud, pushCloud } from './supabase'
 
@@ -37,7 +37,7 @@ function seed() {
       t(p1.id, 'Open the command palette with Ctrl + K', { priority: 'low' }),
       t(p1.id, 'Finish every task in a project for a surprise 🎉'),
     ],
-    theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
+    theme: 'light', // light is the default face of kiln; dark is one toggle away
     sound: true,
     view: { type: 'today', projectId: null },
     profile: null,
@@ -111,14 +111,37 @@ function reducer(state, action) {
       return { ...state, tasks: [task, ...state.tasks] }
     }
     case 'TOGGLE_TASK': {
-      return {
-        ...state,
-        tasks: state.tasks.map((t) =>
-          t.id === action.id
-            ? { ...t, done: !t.done, doneAt: !t.done ? Date.now() : null }
-            : t
-        ),
+      const target = state.tasks.find((t) => t.id === action.id)
+      if (!target) return state
+      const completing = !target.done
+      let tasks = state.tasks.map((t) =>
+        t.id === action.id
+          ? {
+              ...t,
+              done: completing,
+              doneAt: completing ? Date.now() : null,
+              // completed copy stops repeating so un-toggling can't double-spawn
+              repeat: completing ? 'none' : t.repeat,
+            }
+          : t
+      )
+      // repeating task: completing it forges the next occurrence
+      if (completing && target.repeat && target.repeat !== 'none') {
+        tasks = [
+          {
+            ...target,
+            id: uid(),
+            done: false,
+            doneAt: null,
+            createdAt: Date.now(),
+            due: nextDue(target.due, target.repeat),
+            pomos: 0,
+            subs: (target.subs ?? []).map((s) => ({ ...s, done: false })),
+          },
+          ...tasks,
+        ]
       }
+      return { ...state, tasks }
     }
     case 'UPDATE_TASK': {
       return {
@@ -424,6 +447,7 @@ export function taskInView(task, view) {
     case 'today':
       return isToday(task.due) || isOverdue(task.due)
     case 'upcoming':
+    case 'calendar':
       return !!task.due
     case 'all':
       return true
@@ -505,4 +529,32 @@ export function toast(message, icon = '✓', action = null) {
 export function onToast(fn) {
   listeners.add(fn)
   return () => listeners.delete(fn)
+}
+
+/* ------------------------------- focus bus -------------------------------- */
+// Lets any task row start a pomodoro session without prop drilling.
+
+const focusListeners = new Set()
+
+export function startFocus(taskId) {
+  focusListeners.forEach((fn) => fn(taskId))
+}
+
+export function onFocusRequest(fn) {
+  focusListeners.add(fn)
+  return () => focusListeners.delete(fn)
+}
+
+/* -------------------------------- drag bus --------------------------------- */
+// Task rows broadcast drag lifecycle so the drop-to-complete zone can react.
+
+const dragListeners = new Set()
+
+export function emitDrag(evt) {
+  dragListeners.forEach((fn) => fn(evt))
+}
+
+export function onDrag(fn) {
+  dragListeners.add(fn)
+  return () => dragListeners.delete(fn)
 }

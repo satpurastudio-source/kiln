@@ -6,6 +6,7 @@ import {
   SunIcon,
   MoonIcon,
   CalendarIcon,
+  ClockIcon,
   LayersIcon,
   PlusIcon,
   PencilIcon,
@@ -92,12 +93,19 @@ export default function Sidebar({ onNewProject, onEditProject, mobileOpen, close
         order={1}
         active={view.type === 'upcoming'}
         onClick={() => go({ type: 'upcoming', projectId: null })}
-        icon={<CalendarIcon size={15} />}
+        icon={<ClockIcon size={15} />}
         label="Upcoming"
         right={counts.upcoming > 0 && <span className="count">{counts.upcoming}</span>}
       />
       <NavItem
         order={2}
+        active={view.type === 'calendar'}
+        onClick={() => go({ type: 'calendar', projectId: null })}
+        icon={<CalendarIcon size={15} />}
+        label="Calendar"
+      />
+      <NavItem
+        order={3}
         active={view.type === 'all'}
         onClick={() => go({ type: 'all', projectId: null })}
         icon={<LayersIcon size={15} />}
@@ -124,7 +132,7 @@ export default function Sidebar({ onNewProject, onEditProject, mobileOpen, close
           return (
             <NavItem
               key={p.id}
-              order={3 + i}
+              order={4 + i}
               active={view.type === 'project' && view.projectId === p.id}
               onClick={() => go({ type: 'project', projectId: p.id })}
               icon={<span className="project-dot" style={{ background: p.color, color: p.color }} />}

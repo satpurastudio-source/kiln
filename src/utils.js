@@ -76,3 +76,18 @@ export const PROJECT_COLORS = [
 ]
 
 export const PROJECT_ICONS = ['✦', '◆', '❋', '●', '▲', '♦', '✳', '★', '☾', '⬡']
+
+export const REPEATS = [
+  { id: 'none', label: 'No repeat' },
+  { id: 'daily', label: 'Daily' },
+  { id: 'weekly', label: 'Weekly' },
+  { id: 'monthly', label: 'Monthly' },
+]
+
+export function nextDue(due, repeat) {
+  const base = due ? parseDateStr(due) : new Date()
+  if (repeat === 'daily') base.setDate(base.getDate() + 1)
+  else if (repeat === 'weekly') base.setDate(base.getDate() + 7)
+  else if (repeat === 'monthly') base.setMonth(base.getMonth() + 1)
+  return toDateStr(base)
+}

@@ -827,7 +827,11 @@ kbd,
   font-weight: 480;
   line-height: 1.35;
   position: relative;
-  display: inline-block;
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   transition: color 0.3s ease;
 }
 
@@ -913,6 +917,7 @@ kbd,
   display: flex;
   align-items: center;
   gap: 2px;
+  flex-shrink: 0;
   opacity: 0;
   transition: opacity 0.15s ease;
 }
@@ -1404,6 +1409,727 @@ kbd,
   background: linear-gradient(135deg, var(--accent), var(--accent-2));
   color: #fff;
   flex-shrink: 0;
+}
+
+/* ================================= calendar ================================= */
+
+.calendar {
+  padding-top: 4px;
+}
+
+.cal-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.cal-title {
+  font-family: var(--font-display);
+  font-size: 24px;
+  letter-spacing: 0.03em;
+}
+
+.cal-title b {
+  color: var(--text-3);
+  font-weight: 400;
+}
+
+.cal-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+  margin-bottom: 6px;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-3);
+  text-align: center;
+}
+
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+
+.cal-cell {
+  position: relative;
+  aspect-ratio: 1.15;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  background: var(--panel);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  transition: border-color 0.15s ease, background 0.15s ease, transform 0.15s ease;
+}
+
+.cal-cell.blank {
+  border: none;
+  background: transparent;
+  pointer-events: none;
+}
+
+.cal-cell:hover {
+  border-color: var(--border-strong);
+  background: var(--panel-hover);
+  transform: translateY(-1px);
+}
+
+.cal-cell.today .cal-daynum {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+.cal-cell.today {
+  border-color: rgba(216, 90, 48, 0.45);
+}
+
+.cal-cell.selected {
+  background: rgba(216, 90, 48, 0.1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent), var(--glow);
+}
+
+.cal-cell.past .cal-daynum {
+  opacity: 0.45;
+}
+
+.cal-daynum {
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  color: var(--text-2);
+}
+
+.cal-dots {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  height: 6px;
+}
+
+.cal-dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.cal-more {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  color: var(--text-3);
+}
+
+.cal-done-mark {
+  font-size: 9px;
+  color: var(--text-3);
+  line-height: 1;
+}
+
+.cal-add-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--panel);
+  backdrop-filter: blur(14px);
+  transition: border-color 0.2s ease;
+}
+
+.cal-add-row:focus-within {
+  border-color: rgba(216, 90, 48, 0.5);
+}
+
+.cal-add-row input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 13.5px;
+  color: var(--text);
+  min-width: 0;
+}
+
+.cal-add-row input::placeholder {
+  color: var(--text-3);
+}
+
+@media (max-width: 640px) {
+  .cal-cell {
+    aspect-ratio: 1;
+  }
+  .cal-add-row .select {
+    display: none;
+  }
+}
+
+/* ================================== focus ================================== */
+
+.focus-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 55;
+  display: grid;
+  place-items: center;
+  background: rgba(4, 3, 2, 0.6);
+  backdrop-filter: blur(10px);
+  padding: 20px;
+}
+
+:root[data-theme='light'] .focus-overlay {
+  background: rgba(244, 239, 230, 0.65);
+}
+
+.focus-card {
+  width: min(380px, 100%);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-strong);
+  background: var(--panel-strong);
+  backdrop-filter: blur(30px);
+  box-shadow: var(--shadow-lift), var(--glow);
+  padding: 20px 24px 26px;
+  text-align: center;
+}
+
+.focus-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.focus-phase {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  padding: 4px 10px;
+  border-radius: 99px;
+}
+
+.focus-phase.work {
+  color: var(--accent);
+  background: rgba(216, 90, 48, 0.12);
+}
+
+.focus-phase.brk {
+  color: #7c8a4d;
+  background: rgba(124, 138, 77, 0.14);
+}
+
+.focus-modes {
+  display: flex;
+  gap: 5px;
+}
+
+.focus-ring {
+  position: relative;
+  width: 210px;
+  margin: 6px auto;
+}
+
+.focus-ring svg {
+  width: 100%;
+  overflow: visible;
+}
+
+.focus-time {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 30px;
+}
+
+.focus-clock {
+  font-family: var(--font-mono);
+  font-size: 44px;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.focus-task-name {
+  font-size: 12px;
+  color: var(--text-3);
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.focus-pomos {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin: 4px 0 14px;
+}
+
+.focus-count {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-3);
+  margin-left: 6px;
+}
+
+.focus-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+.focus-main-btn {
+  width: 58px;
+  height: 58px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--accent), #a03c1c);
+  color: #f4efe6;
+  box-shadow: 0 8px 24px -8px rgba(216, 90, 48, 0.7);
+  transition: box-shadow 0.2s ease;
+}
+
+.focus-main-btn:hover {
+  box-shadow: 0 10px 30px -8px rgba(216, 90, 48, 0.9);
+}
+
+.focus-ctl {
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+}
+
+.focus-complete {
+  margin-top: 16px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-3);
+  padding: 8px 14px;
+  border-radius: 99px;
+  border: 1px solid var(--border);
+  transition: all 0.15s ease;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.focus-complete:hover {
+  color: var(--accent);
+  border-color: rgba(216, 90, 48, 0.45);
+  background: rgba(216, 90, 48, 0.07);
+}
+
+.focus-pill {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 10px 16px;
+  border-radius: 99px;
+  border: 1px solid var(--border-strong);
+  background: var(--panel-strong);
+  backdrop-filter: blur(24px);
+  box-shadow: var(--shadow-lift);
+}
+
+.focus-pill-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.focus-pill-dot.work {
+  background: var(--accent);
+}
+
+.focus-pill-dot.brk {
+  background: #7c8a4d;
+}
+
+.focus-pill-dot.running {
+  animation: pulse-dot 1.6s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(216, 90, 48, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 0 5px rgba(216, 90, 48, 0);
+  }
+}
+
+.focus-pill-time {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+
+.focus-pill-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-3);
+}
+
+.pomos {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.row-focus:hover {
+  color: var(--accent);
+  background: rgba(216, 90, 48, 0.09);
+  border-color: rgba(216, 90, 48, 0.3);
+}
+
+.row-focus {
+  width: 26px;
+  height: 26px;
+}
+
+/* ============================ drop-to-complete zone ============================ */
+
+.complete-zone {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 130px;
+  z-index: 44;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(216, 90, 48, 0.14), transparent);
+}
+
+.complete-zone-inner {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 34px;
+  border-radius: var(--radius-lg);
+  border: 2px dashed rgba(216, 90, 48, 0.5);
+  background: var(--panel-strong);
+  backdrop-filter: blur(20px);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  color: var(--text-2);
+  box-shadow: var(--shadow-lift);
+  transition: border-color 0.2s ease, color 0.2s ease, background 0.2s ease;
+}
+
+.complete-zone.hot .complete-zone-inner {
+  border-color: var(--accent);
+  border-style: solid;
+  color: var(--accent);
+  background: rgba(216, 90, 48, 0.12);
+  box-shadow: var(--shadow-lift), var(--glow);
+}
+
+.cz-flame {
+  display: grid;
+  place-items: center;
+  color: var(--accent);
+}
+
+/* the shell keeps drag transforms; the dangle wrapper adds grab-point rotation */
+.task-shell {
+  list-style: none;
+  position: relative;
+}
+
+.task-shell:active {
+  z-index: 30;
+}
+
+/* ================================ mini calendar ================================ */
+
+.minical-launcher {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 42;
+  width: 46px;
+  height: 46px;
+  border-radius: 15px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border-strong);
+  background: var(--panel-strong);
+  backdrop-filter: blur(24px);
+  box-shadow: var(--shadow-lift);
+  color: var(--text-2);
+  transition: color 0.15s ease, transform 0.15s ease;
+}
+
+.minical-launcher:hover {
+  color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.minical-daynum-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 7px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--accent), #a03c1c);
+  color: #f4efe6;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 500;
+}
+
+.minical-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 41;
+}
+
+.minical {
+  position: fixed;
+  right: 22px;
+  bottom: 78px;
+  z-index: 42;
+  width: 250px;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-strong);
+  background: var(--panel-strong);
+  backdrop-filter: blur(30px);
+  box-shadow: var(--shadow-lift), var(--glow);
+  transform-origin: bottom right;
+}
+
+.minical-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.minical-head .icon-btn {
+  width: 24px;
+  height: 24px;
+}
+
+.minical-title {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.minical-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.minical-wd {
+  font-family: var(--font-mono);
+  font-size: 8.5px;
+  color: var(--text-3);
+  text-align: center;
+  padding-bottom: 4px;
+  text-transform: uppercase;
+}
+
+.minical-day {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 7px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-2);
+  display: grid;
+  place-items: center;
+  transition: background 0.12s ease, color 0.12s ease;
+}
+
+.minical-day:hover {
+  background: var(--panel-hover);
+  color: var(--text);
+}
+
+.minical-day.today {
+  color: var(--accent);
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px rgba(216, 90, 48, 0.5);
+}
+
+.minical-day.has::after {
+  content: '';
+  position: absolute;
+  bottom: 2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 3.5px;
+  height: 3.5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+.minical-open {
+  width: 100%;
+  margin-top: 8px;
+  padding: 7px;
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--text-3);
+  border: 1px solid var(--border);
+  transition: all 0.15s ease;
+}
+
+.minical-open:hover {
+  color: var(--accent);
+  border-color: rgba(216, 90, 48, 0.4);
+}
+
+/* stack the focus pill above the mini calendar launcher */
+.focus-pill {
+  bottom: 80px;
+}
+
+/* ================================= subtasks ================================= */
+
+.subs {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sub-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 2px;
+  border-radius: 8px;
+}
+
+.sub-row:hover {
+  background: var(--panel);
+}
+
+.sub-check {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+  border-radius: 6px;
+  border: 1.5px solid var(--border-strong);
+  display: grid;
+  place-items: center;
+  font-size: 9px;
+  color: #fff;
+  transition: all 0.15s ease;
+}
+
+.sub-check.on {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.sub-text {
+  flex: 1;
+  font-size: 12.5px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sub-text.done {
+  color: var(--text-3);
+  text-decoration: line-through;
+}
+
+.sub-del {
+  width: 20px;
+  height: 20px;
+  opacity: 0;
+}
+
+.sub-row:hover .sub-del {
+  opacity: 1;
+}
+
+.sub-add {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 2px 4px;
+}
+
+.sub-add input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 12.5px;
+  color: var(--text);
+  padding: 4px 0;
+}
+
+.sub-add input::placeholder {
+  color: var(--text-3);
+}
+
+.task-editor textarea.editor-title {
+  width: 100%;
+  min-height: 0;
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 14px;
+  font-weight: 550;
+  font-family: var(--font-ui);
+  color: var(--text);
+  resize: none;
+  overflow: hidden;
+  line-height: 1.4;
+  padding: 0;
+}
+
+/* =============================== accessibility =============================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 /* ================================== login ================================== */

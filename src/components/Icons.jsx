@@ -132,6 +132,59 @@ export const FlameIcon = (p) => (
   </I>
 )
 
+export const RepeatIcon = (p) => (
+  <I {...p}>
+    <path d="M17 2l4 4-4 4" />
+    <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
+    <path d="M7 22l-4-4 4-4" />
+    <path d="M21 13v1a4 4 0 0 1-4 4H3" />
+  </I>
+)
+
+export const ChecklistIcon = (p) => (
+  <I {...p}>
+    <path d="M3.5 5.5l1.5 1.5 3-3.5" />
+    <path d="M11 6h9.5" />
+    <path d="M3.5 12.5l1.5 1.5 3-3.5" />
+    <path d="M11 13h9.5" />
+    <path d="M11 20h9.5" />
+  </I>
+)
+
+export const DownloadIcon = (p) => (
+  <I {...p}>
+    <path d="M12 3v12M7 10l5 5 5-5" />
+    <path d="M4 20h16" />
+  </I>
+)
+
+export const ClockIcon = (p) => (
+  <I {...p}>
+    <circle cx="12" cy="12" r="9.5" />
+    <path d="M12 7v5l3.2 2" />
+  </I>
+)
+
+export const PlayIcon = (p) => (
+  <I {...p} fill="currentColor" sw={0}>
+    <path d="M7 4.8c0-1 1.1-1.6 2-1.1l11 6.4c.9.5.9 1.8 0 2.3L9 18.8c-.9.5-2-.1-2-1.1V4.8z" />
+  </I>
+)
+
+export const PauseIcon = (p) => (
+  <I {...p} fill="currentColor" sw={0}>
+    <rect x="6" y="4" width="4" height="16" rx="1.4" />
+    <rect x="14" y="4" width="4" height="16" rx="1.4" />
+  </I>
+)
+
+export const SkipIcon = (p) => (
+  <I {...p}>
+    <path d="M5 5l8 7-8 7V5z" fill="currentColor" strokeWidth="0" />
+    <path d="M18 5v14" />
+  </I>
+)
+
 export const XIcon = (p) => (
   <I {...p}>
     <path d="M6 6l12 12M18 6L6 18" />
