@@ -43,7 +43,7 @@ export default function Header({ query, setQuery, searchRef, openPalette }) {
   const sub =
     view.type === 'today'
       ? `${fmtLongDate()} — ${activeCount === 0 ? 'all clear' : `${activeCount} task${activeCount === 1 ? '' : 's'} to go`}`
-      : view.type === 'project'
+      : view.type === 'project' && prog
         ? `${prog.done} of ${prog.total} complete`
         : `${activeCount} open task${activeCount === 1 ? '' : 's'}`
 

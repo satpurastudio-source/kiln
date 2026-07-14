@@ -160,7 +160,14 @@ function reducer(state, action) {
     case 'HYDRATE': {
       // replace local projects/tasks with the cloud copy
       if (!Array.isArray(action.data?.projects) || !Array.isArray(action.data?.tasks)) return state
-      return { ...state, projects: action.data.projects, tasks: action.data.tasks }
+      return {
+        ...state,
+        projects: action.data.projects,
+        tasks: action.data.tasks,
+        // the current view may point at a project that doesn't exist in the
+        // cloud copy (different device, different ids) — fall back to Today
+        view: sanitizeView(state.view, action.data.projects),
+      }
     }
     case 'SET_THEME':
       return { ...state, theme: action.theme }
@@ -172,6 +179,14 @@ function reducer(state, action) {
 }
 
 /* -------------------------------- provider -------------------------------- */
+
+// A view is only valid if the project it points at actually exists.
+function sanitizeView(view, projects) {
+  if (view?.type === 'project' && !projects.some((p) => p.id === view.projectId)) {
+    return { type: 'today', projectId: null }
+  }
+  return view?.type ? view : { type: 'today', projectId: null }
+}
 
 function load() {
   try {
@@ -189,7 +204,7 @@ function load() {
       tasks: seedV < 2 ? data.tasks.filter((t) => !RETIRED_SEED_TASKS.has(t.title)) : data.tasks,
       seedV: 2,
       profile: data.profile ?? null,
-      view: data.view?.type ? data.view : { type: 'today', projectId: null },
+      view: sanitizeView(data.view, data.projects),
     }
   } catch {
     return seed()
@@ -263,8 +278,12 @@ export function StoreProvider({ children }) {
 
     supabase.auth.getSession().then(({ data }) => applySession(data.session))
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN') applySession(session)
-      if (event === 'SIGNED_OUT') dispatch({ type: 'SIGN_OUT' })
+      // deferred: calling other supabase APIs synchronously inside this
+      // callback can deadlock the client's internal auth lock
+      setTimeout(() => {
+        if (event === 'SIGNED_IN') applySession(session)
+        if (event === 'SIGNED_OUT') dispatch({ type: 'SIGN_OUT' })
+      }, 0)
     })
     return () => {
       alive = false
