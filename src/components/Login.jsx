@@ -26,6 +26,18 @@ export default function Login() {
     setError('')
   }
 
+  const forgot = async () => {
+    if (!email.includes('@')) return setError('Enter your account email first.')
+    setBusy(true)
+    setError('')
+    const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}${window.location.pathname}?reset=1`,
+    })
+    setBusy(false)
+    if (err) return setError(err.message)
+    setMode('sent-reset')
+  }
+
   const signIn = async () => {
     if (!email.includes('@') || !password) return setError('Enter your email and password.')
     setBusy(true)
@@ -112,13 +124,22 @@ export default function Login() {
         </motion.p>
 
         <AnimatePresence mode="wait" initial={false}>
-          {mode === 'sent' ? (
+          {mode === 'sent' || mode === 'sent-reset' ? (
             <motion.div key="sent" {...fade}>
               <div className="login-sent-icon">✉</div>
               <p className="login-sent-title">Check your inbox</p>
               <p className="login-note">
-                We sent a verification link to <b>{email}</b>.<br />
-                Click it, and you’ll land right back here — signed in.
+                {mode === 'sent' ? (
+                  <>
+                    We sent a verification link to <b>{email}</b>.<br />
+                    Click it, and you’ll land right back here — signed in.
+                  </>
+                ) : (
+                  <>
+                    We sent a password reset link to <b>{email}</b>.<br />
+                    Click it to choose a new password.
+                  </>
+                )}
               </p>
               <button className="login-link" onClick={() => switchMode('signin')}>
                 ← back to sign in
@@ -196,6 +217,9 @@ export default function Login() {
                   <>
                     <button className="login-link" onClick={() => switchMode('signup')}>
                       New here? <b>Create an account</b>
+                    </button>
+                    <button className="login-link" onClick={forgot}>
+                      Forgot password?
                     </button>
                     <button className="login-link" onClick={() => switchMode('guest')}>
                       or continue without an account

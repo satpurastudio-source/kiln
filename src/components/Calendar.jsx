@@ -24,9 +24,11 @@ function monthCells(year, month) {
 
 export default function Calendar() {
   const { state, dispatch } = useStore()
+  // the mini calendar can deep-link a date via view.date
+  const initial = state.view.date ? parseDateStr(state.view.date) : new Date()
+  const [cursor, setCursor] = useState({ y: initial.getFullYear(), m: initial.getMonth() })
+  const [selected, setSelected] = useState(state.view.date ?? todayStr())
   const now = new Date()
-  const [cursor, setCursor] = useState({ y: now.getFullYear(), m: now.getMonth() })
-  const [selected, setSelected] = useState(todayStr())
   const [dir, setDir] = useState(0) // month slide direction
   const [title, setTitle] = useState('')
   const [projectId, setProjectId] = useState(state.projects[0]?.id ?? '')

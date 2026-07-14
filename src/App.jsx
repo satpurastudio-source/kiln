@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useStore } from './store'
+import { useStore, todayProgress } from './store'
 import Loader from './components/Loader'
 import Sidebar from './components/Sidebar'
 import Header from './components/Header'
@@ -8,6 +8,10 @@ import QuickAdd from './components/QuickAdd'
 import TaskList from './components/TaskList'
 import Calendar from './components/Calendar'
 import Focus from './components/Focus'
+import CompleteZone from './components/CompleteZone'
+import MiniCalendar from './components/MiniCalendar'
+import Reset from './components/Reset'
+import { maybeNotifyDueToday } from './reminders'
 import ProjectModal from './components/ProjectModal'
 import CommandPalette from './components/CommandPalette'
 import Toasts from './components/Toasts'
@@ -28,6 +32,16 @@ export default function App() {
   const [showVerified, setShowVerified] = useState(() =>
     new URLSearchParams(window.location.search).has('verified')
   )
+  // landing from the password-recovery link (?reset=1)
+  const [showReset, setShowReset] = useState(() =>
+    new URLSearchParams(window.location.search).has('reset')
+  )
+
+  // opt-in "due today" nudge, once per day while the app is open
+  const dueTodayCount = todayProgress(state).active
+  useEffect(() => {
+    if (state.profile) maybeNotifyDueToday(dueTodayCount)
+  }, [state.profile, dueTodayCount])
   const quickAddRef = useRef(null)
   const searchRef = useRef(null)
 
@@ -81,7 +95,14 @@ export default function App() {
           <div className="noise" />
           <Cursor />
 
-          {showVerified ? (
+          {showReset ? (
+            <Reset
+              onDone={() => {
+                window.history.replaceState(null, '', window.location.pathname)
+                setShowReset(false)
+              }}
+            />
+          ) : showVerified ? (
             <Verified
               onDone={() => {
                 window.history.replaceState(null, '', window.location.pathname)
@@ -176,6 +197,8 @@ export default function App() {
       </AnimatePresence>
 
               <Focus />
+              <MiniCalendar />
+              <CompleteZone />
             </>
           )}
           <Toasts />

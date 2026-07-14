@@ -132,6 +132,32 @@ export const FlameIcon = (p) => (
   </I>
 )
 
+export const RepeatIcon = (p) => (
+  <I {...p}>
+    <path d="M17 2l4 4-4 4" />
+    <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
+    <path d="M7 22l-4-4 4-4" />
+    <path d="M21 13v1a4 4 0 0 1-4 4H3" />
+  </I>
+)
+
+export const ChecklistIcon = (p) => (
+  <I {...p}>
+    <path d="M3.5 5.5l1.5 1.5 3-3.5" />
+    <path d="M11 6h9.5" />
+    <path d="M3.5 12.5l1.5 1.5 3-3.5" />
+    <path d="M11 13h9.5" />
+    <path d="M11 20h9.5" />
+  </I>
+)
+
+export const DownloadIcon = (p) => (
+  <I {...p}>
+    <path d="M12 3v12M7 10l5 5 5-5" />
+    <path d="M4 20h16" />
+  </I>
+)
+
 export const ClockIcon = (p) => (
   <I {...p}>
     <circle cx="12" cy="12" r="9.5" />
