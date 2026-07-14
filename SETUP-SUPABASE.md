@@ -33,6 +33,19 @@ create policy "update own data"
 Row Level Security means each user can only ever touch their own row —
 that's why the anon key is safe to ship in the app.
 
+## 1b. Enable instant cross-device sync (Realtime)
+
+Same SQL Editor, run this one-liner:
+
+```sql
+alter publication supabase_realtime add table public.kiln_data;
+```
+
+That broadcasts row changes over a websocket — complete a task on your
+phone and it appears on your laptop in under a second, no refresh.
+(Without this, devices still sync — on sign-in and whenever the tab
+regains focus — just not live.)
+
 ## 2. Auth URL configuration (required)
 
 Dashboard → **Authentication → URL Configuration**:
