@@ -27,22 +27,21 @@ function seed() {
   return {
     projects: [p1, p2, p3],
     tasks: [
-      t(p1.id, 'Complete me — watch what happens ✨', { due: todayStr(), priority: 'high' }),
-      t(p1.id, 'Hover me, then drag the ⋮⋮ grip to reorder', { due: todayStr() }),
+      t(p1.id, 'Complete me — watch what happens ✨', { priority: 'high' }),
+      t(p1.id, 'Hover me, then drag the ⋮⋮ grip to reorder'),
       t(p1.id, 'Click me to edit notes, dates & priority', {
-        due: todayStr(),
         priority: 'medium',
         notes: 'Everything is editable inline. Try moving me to another project.',
       }),
-      t(p1.id, 'Press N to add a task, / to search', { due: addDaysStr(1) }),
-      t(p1.id, 'Open the command palette with Ctrl + K', { due: addDaysStr(1), priority: 'low' }),
-      t(p1.id, 'Finish every task in a project for a surprise 🎉', { due: addDaysStr(2) }),
+      t(p1.id, 'Press N to add a task, / to search'),
+      t(p1.id, 'Open the command palette with Ctrl + K', { priority: 'low' }),
+      t(p1.id, 'Finish every task in a project for a surprise 🎉'),
     ],
     theme: window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light',
     sound: true,
     view: { type: 'today', projectId: null },
     profile: null,
-    seedV: 2,
+    seedV: 3,
   }
 }
 
@@ -53,6 +52,33 @@ const RETIRED_SEED_TASKS = new Set([
   'Book weekend trip',
   'Call home',
 ])
+
+// v3: tutorial tasks no longer carry due dates (they were showing up as
+// "overdue" and reading like real deadlines)
+const TUTORIAL_TITLES = new Set([
+  'Complete me — watch what happens ✨',
+  'Hover me, then drag the ⋮⋮ grip to reorder',
+  'Click me to edit notes, dates & priority',
+  'Press N to add a task, / to search',
+  'Open the command palette with Ctrl + K',
+  'Finish every task in a project for a surprise 🎉',
+])
+
+const stripTutorialDues = (tasks) =>
+  tasks.map((t) => (t.due && TUTORIAL_TITLES.has(t.title) ? { ...t, due: null } : t))
+
+// Deterministic serialization (jsonb reorders keys) — used to tell real
+// changes apart from our own sync echoes.
+export function stableStringify(value) {
+  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`
+  if (value && typeof value === 'object') {
+    return `{${Object.keys(value)
+      .sort()
+      .map((k) => `${JSON.stringify(k)}:${stableStringify(value[k])}`)
+      .join(',')}}`
+  }
+  return JSON.stringify(value)
+}
 
 // Colors from the old violet theme → warm portfolio palette
 const COLOR_MIGRATION = {
@@ -160,7 +186,15 @@ function reducer(state, action) {
     case 'HYDRATE': {
       // replace local projects/tasks with the cloud copy
       if (!Array.isArray(action.data?.projects) || !Array.isArray(action.data?.tasks)) return state
-      return { ...state, projects: action.data.projects, tasks: action.data.tasks }
+      const cloudSeedV = action.data.seedV ?? 1
+      return {
+        ...state,
+        projects: action.data.projects,
+        tasks: cloudSeedV < 3 ? stripTutorialDues(action.data.tasks) : action.data.tasks,
+        // the current view may point at a project that doesn't exist in the
+        // cloud copy (different device, different ids) — fall back to Today
+        view: sanitizeView(state.view, action.data.projects),
+      }
     }
     case 'SET_THEME':
       return { ...state, theme: action.theme }
@@ -173,6 +207,14 @@ function reducer(state, action) {
 
 /* -------------------------------- provider -------------------------------- */
 
+// A view is only valid if the project it points at actually exists.
+function sanitizeView(view, projects) {
+  if (view?.type === 'project' && !projects.some((p) => p.id === view.projectId)) {
+    return { type: 'today', projectId: null }
+  }
+  return view?.type ? view : { type: 'today', projectId: null }
+}
+
 function load() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY)
@@ -180,16 +222,19 @@ function load() {
     const data = JSON.parse(raw)
     if (!Array.isArray(data.projects) || !Array.isArray(data.tasks)) return seed()
     const seedV = data.seedV ?? 1
+    let tasks = data.tasks
+    if (seedV < 2) tasks = tasks.filter((t) => !RETIRED_SEED_TASKS.has(t.title))
+    if (seedV < 3) tasks = stripTutorialDues(tasks)
     return {
       ...data,
       projects: data.projects.map((p) => ({
         ...p,
         color: COLOR_MIGRATION[p.color] ?? p.color,
       })),
-      tasks: seedV < 2 ? data.tasks.filter((t) => !RETIRED_SEED_TASKS.has(t.title)) : data.tasks,
-      seedV: 2,
+      tasks,
+      seedV: 3,
       profile: data.profile ?? null,
-      view: data.view?.type ? data.view : { type: 'today', projectId: null },
+      view: sanitizeView(data.view, data.projects),
     }
   } catch {
     return seed()
@@ -233,10 +278,51 @@ export function StoreProvider({ children }) {
 
   // Always-fresh snapshot of what should be synced, without re-running effects.
   const snapshotRef = useRef(null)
-  snapshotRef.current = { projects: state.projects, tasks: state.tasks }
+  snapshotRef.current = { projects: state.projects, tasks: state.tasks, seedV: 3 }
+
+  // Fingerprint of the last state we know the cloud has — used to skip
+  // no-op pushes and to recognize our own realtime echoes.
+  const lastSyncedRef = useRef('')
+  const channelRef = useRef(null)
+
+  const hasPendingLocalChanges = () =>
+    stableStringify(snapshotRef.current) !== lastSyncedRef.current
+
+  const applyIncoming = (incoming) => {
+    if (!incoming?.projects || !incoming?.tasks) return
+    const json = stableStringify({
+      projects: incoming.projects,
+      tasks: incoming.tasks,
+      seedV: incoming.seedV ?? 3,
+    })
+    if (json === lastSyncedRef.current) return // our own echo
+    // local edits not yet pushed win (they'll overwrite the cloud shortly)
+    if (hasPendingLocalChanges() && lastSyncedRef.current !== '') return
+    lastSyncedRef.current = json
+    dispatch({ type: 'HYDRATE', data: incoming })
+  }
 
   useEffect(() => {
     let alive = true
+
+    const startRealtime = (userId) => {
+      if (channelRef.current) return
+      channelRef.current = supabase
+        .channel(`kiln-sync-${userId}`)
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'kiln_data', filter: `user_id=eq.${userId}` },
+          (payload) => applyIncoming(payload.new?.data)
+        )
+        .subscribe()
+    }
+
+    const stopRealtime = () => {
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current)
+        channelRef.current = null
+      }
+    }
 
     const applySession = async (session) => {
       const u = session?.user
@@ -250,11 +336,18 @@ export function StoreProvider({ children }) {
         const cloud = await pullCloud(u.id)
         if (!alive) return
         if (cloud) {
+          lastSyncedRef.current = stableStringify({
+            projects: cloud.projects,
+            tasks: cloud.tasks,
+            seedV: cloud.seedV ?? 3,
+          })
           dispatch({ type: 'HYDRATE', data: cloud })
         } else {
           // first sign-in on this account: adopt whatever is on this device
           await pushCloud(u.id, snapshotRef.current)
+          lastSyncedRef.current = stableStringify(snapshotRef.current)
         }
+        startRealtime(u.id)
       } catch (e) {
         console.warn('[kiln] cloud sync unavailable:', e.message)
         toast('Cloud sync unavailable — working locally', '⚠')
@@ -263,11 +356,20 @@ export function StoreProvider({ children }) {
 
     supabase.auth.getSession().then(({ data }) => applySession(data.session))
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_IN') applySession(session)
-      if (event === 'SIGNED_OUT') dispatch({ type: 'SIGN_OUT' })
+      // deferred: calling other supabase APIs synchronously inside this
+      // callback can deadlock the client's internal auth lock
+      setTimeout(() => {
+        if (event === 'SIGNED_IN') applySession(session)
+        if (event === 'SIGNED_OUT') {
+          stopRealtime()
+          lastSyncedRef.current = ''
+          dispatch({ type: 'SIGN_OUT' })
+        }
+      }, 0)
     })
     return () => {
       alive = false
+      stopRealtime()
       sub.subscription.unsubscribe()
     }
   }, [])
@@ -279,12 +381,36 @@ export function StoreProvider({ children }) {
     if (!p?.cloud || !p.userId) return
     clearTimeout(pushTimer.current)
     pushTimer.current = setTimeout(() => {
-      pushCloud(p.userId, snapshotRef.current).catch((e) =>
-        console.warn('[kiln] sync push failed:', e.message)
-      )
+      const json = stableStringify(snapshotRef.current)
+      if (json === lastSyncedRef.current) return // nothing actually changed
+      pushCloud(p.userId, snapshotRef.current)
+        .then(() => {
+          lastSyncedRef.current = json
+        })
+        .catch((e) => console.warn('[kiln] sync push failed:', e.message))
     }, 1200)
     return () => clearTimeout(pushTimer.current)
   }, [state.projects, state.tasks, state.profile])
+
+  // Fallback freshness: re-pull when the tab regains focus (covers devices
+  // where realtime isn't enabled and long-suspended phone tabs).
+  useEffect(() => {
+    const p = state.profile
+    if (!p?.cloud || !p.userId) return
+    const refresh = () => {
+      if (document.visibilityState !== 'visible') return
+      if (hasPendingLocalChanges()) return // our push will win — don't clobber
+      pullCloud(p.userId)
+        .then((cloud) => cloud && applyIncoming(cloud))
+        .catch(() => {})
+    }
+    window.addEventListener('focus', refresh)
+    document.addEventListener('visibilitychange', refresh)
+    return () => {
+      window.removeEventListener('focus', refresh)
+      document.removeEventListener('visibilitychange', refresh)
+    }
+  }, [state.profile])
 
   return <StoreCtx.Provider value={{ state, dispatch }}>{children}</StoreCtx.Provider>
 }
