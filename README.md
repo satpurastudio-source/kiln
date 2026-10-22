@@ -34,6 +34,9 @@ Then open http://localhost:5173
 - **Drag to reorder**, drag-to-complete, animated checkbox + strike-through
 - **Personalization** — 6 accent themes + a custom color, light/dark, reduced-visuals mode
 - **Onboarding** — a short, animated first-run tour
+- **Ambient mode** — a calm, glanceable full-screen view (clock, today's tasks, focus
+  session, a small reactive mascot) for a second monitor; opens via the command palette
+  or `?ambient=1`, stays in sync with the main window live
 - **Command palette** (`Ctrl+K`), search (`/`), undo for deletes, toasts
 
 ## Keyboard shortcuts
