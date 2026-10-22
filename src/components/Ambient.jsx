@@ -1,18 +1,20 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { AnimatePresence, LayoutGroup, motion } from 'framer-motion'
 import { useStore, todayProgress, selectInsights, taskInView } from '../store'
-import { isOverdue, priorityRank, PRIORITIES, fmtTime, greeting } from '../utils'
+import { isOverdue, priorityRank, PRIORITIES, fmtTime, greeting, ambientConfig } from '../utils'
 import { FOCUS_KEY, resolveMode } from './Focus'
 import { emberMood, EMBER_MOODS, isNightHour } from '../ember'
 import Checkbox from './Checkbox'
 import ProgressRing from './ProgressRing'
 import Ember from './Ember'
 import AnalogClock from './AnalogClock'
-import { XIcon, FlameIcon } from './Icons'
+import AmbientEditor from './AmbientEditor'
+import { XIcon, FlameIcon, SettingsIcon } from './Icons'
 
 const WD = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 const MO = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
-const ROW_CAP = 10
+const WIDGET_H = 104 // px reserved per slot (≥ the tallest widget) so one leaving can't shift the clock
+const CONTROLS_MS = 2600
 
 const dateLabel = (d) => `${WD[d.getDay()]} ${String(d.getDate()).padStart(2, '0')} ${MO[d.getMonth()]}`
 const hhmm = (d) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
@@ -79,9 +81,10 @@ function useFocusSession() {
   return session
 }
 
-// A widget with nothing worth showing renders nothing — an idle box is
-// just visual noise on a screen meant to be glanced at.
-function Widget({ kind, progress, streak, focusSession, focusTask, focusSecsLeft, focusPct }) {
+// A widget with nothing worth showing returns null — an idle box is just
+// visual noise on a screen meant to be glanced at. Plain render helper (no
+// hooks) so the caller can tell "nothing to show" apart before animating.
+function renderWidget(kind, { progress, streak, focusSession, focusTask, focusSecsLeft, focusPct }) {
   if (kind === 'streak') {
     if (streak <= 0) return null
     return (
@@ -130,19 +133,52 @@ function Widget({ kind, progress, streak, focusSession, focusTask, focusSecsLeft
   return null
 }
 
+const widgetMotion = {
+  initial: { opacity: 0, y: 8 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -4 },
+  transition: { duration: 0.35, ease: [0.22, 1, 0.36, 1] },
+}
+
 export default function Ambient({ onExit }) {
   const { state, dispatch } = useStore()
   const now = useMinuteClock()
   const focusSession = useFocusSession()
   const settings = state.settings
+  const cfg = ambientConfig(settings)
 
   const params = useMemo(() => new URLSearchParams(window.location.search), [])
   const moodOverride =
     import.meta.env.DEV && EMBER_MOODS.includes(params.get('mood')) ? params.get('mood') : null
 
+  const [editing, setEditing] = useState(() => params.has('customize'))
+  const setCfg = (patch) =>
+    dispatch({ type: 'SET_SETTINGS', patch: { ambient: { ...(settings.ambient ?? {}), ...patch } } })
+  const resetCfg = () => dispatch({ type: 'SET_SETTINGS', patch: { ambient: {} } })
+
+  // Fade in only once the web fonts are in, so nothing re-flows (the "pop")
+  // after first paint. Capped so a slow network can't hold the screen blank.
+  const [ready, setReady] = useState(false)
+  useEffect(() => {
+    let alive = true
+    const timeout = new Promise((r) => setTimeout(r, 1500))
+    Promise.race([document.fonts?.ready ?? Promise.resolve(), timeout]).then(() => alive && setReady(true))
+    return () => {
+      alive = false
+    }
+  }, [])
+
+  // remount the watch when the tab wakes so its CSS hands resync after sleep
+  const [clockKey, setClockKey] = useState(0)
+  useEffect(() => {
+    const onVis = () => document.visibilityState === 'visible' && setClockKey((k) => k + 1)
+    document.addEventListener('visibilitychange', onVis)
+    return () => document.removeEventListener('visibilitychange', onVis)
+  }, [])
+
   // forces a re-render 8s after a completion so the 'celebrate' mood (which
   // reads a live Date.now() inside emberMood) has a chance to expire even
-  // with nothing else happening — the only extra timer this adds
+  // with nothing else happening
   const [, bump] = useState(0)
   const prevDoneRef = useRef(todayProgress(state).done)
   useEffect(() => {
@@ -167,9 +203,9 @@ export default function Ambient({ onExit }) {
     return { activeToday: active, completedToday: completed, overdueCount: overdue }
   }, [state.tasks])
 
-  const visibleTodo = activeToday.slice(0, ROW_CAP)
+  const visibleTodo = activeToday.slice(0, cfg.maxRows)
   const todoOverflow = activeToday.length - visibleTodo.length
-  const visibleDone = completedToday.slice(0, ROW_CAP)
+  const visibleDone = completedToday.slice(0, cfg.maxRows)
   const doneOverflow = completedToday.length - visibleDone.length
 
   const progress = todayProgress(state)
@@ -194,18 +230,23 @@ export default function Ambient({ onExit }) {
   const focusPct = focusSession ? Math.min(100, Math.max(0, (focusSecsLeft / focusDuration) * 100)) : 0
 
   const widgetProps = { progress, streak: insights.streak, focusSession, focusTask, focusSecsLeft, focusPct }
+  const slots = [cfg.widget1, cfg.widget2].filter((k) => k !== 'none').length
 
   // burn-in protection: nudge the whole layout a little every 3 minutes
   const [drift, setDrift] = useState({ x: 0, y: 0 })
   useEffect(() => {
+    if (!cfg.drift) {
+      setDrift({ x: 0, y: 0 })
+      return
+    }
     const id = setInterval(() => {
-      setDrift({ x: Math.random() * 12, y: Math.random() * 12 })
+      setDrift({ x: Math.random() * cfg.drift, y: Math.random() * cfg.drift })
     }, 3 * 60 * 1000)
     return () => clearInterval(id)
-  }, [])
+  }, [cfg.drift])
 
-  const isNight = isNightHour(now)
-  const nightDim = isNight && settings.ambientNightDim !== false
+  const isNight = cfg.night !== 'off' && isNightHour(now, cfg.nightStart, cfg.nightEnd)
+  const forcedTheme = isNight && cfg.night === 'dark' ? 'dark' : cfg.theme === 'app' ? null : cfg.theme
 
   // Screen Wake Lock — best-effort; re-acquire whenever the tab regains focus
   // since the browser silently releases it when hidden.
@@ -229,90 +270,159 @@ export default function Ambient({ onExit }) {
     }
   }, [])
 
-  // Esc to exit
+  // Esc closes the panel first, then leaves ambient
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key === 'Escape') onExit()
+      if (e.key !== 'Escape') return
+      if (editing) setEditing(false)
+      else onExit()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [onExit])
+  }, [onExit, editing])
 
-  // the "×" only shows while the mouse is actually moving
-  const [mouseActive, setMouseActive] = useState(false)
+  // Controls (× and ⚙) show on mouse movement OR a tap — phones have no
+  // hover and no Esc key, so a tap anywhere has to reveal the way out.
+  const [controls, setControls] = useState(false)
+  const shownRef = useRef(false)
   const hideTimer = useRef(null)
-  useEffect(() => {
-    const onMove = () => {
-      setMouseActive(true)
-      clearTimeout(hideTimer.current)
-      hideTimer.current = setTimeout(() => setMouseActive(false), 2200)
+  // only touches state when visibility actually flips — pointermove fires
+  // dozens of times a second and must not re-render the whole view
+  const poke = useCallback(() => {
+    if (!shownRef.current) {
+      shownRef.current = true
+      setControls(true)
     }
-    window.addEventListener('mousemove', onMove)
-    return () => {
-      window.removeEventListener('mousemove', onMove)
-      clearTimeout(hideTimer.current)
-    }
+    clearTimeout(hideTimer.current)
+    hideTimer.current = setTimeout(() => {
+      shownRef.current = false
+      setControls(false)
+    }, CONTROLS_MS)
   }, [])
+  useEffect(() => {
+    window.addEventListener('pointermove', poke)
+    window.addEventListener('pointerdown', poke)
+    return () => {
+      window.removeEventListener('pointermove', poke)
+      window.removeEventListener('pointerdown', poke)
+      clearTimeout(hideTimer.current)
+    }
+  }, [poke])
+  const showControls = controls || editing
 
   const toggle = (id) => dispatch({ type: 'TOGGLE_TASK', id })
 
+  const rootStyle = {
+    transform: `translate(${drift.x}px, ${drift.y}px)`,
+    '--amb-pad': `${cfg.padding}px`,
+    '--amb-gap': `${cfg.gap}px`,
+    '--amb-clock': `${cfg.clockSize}px`,
+    '--amb-row': `${cfg.rowSize}px`,
+    '--amb-radius': `${cfg.radius}px`,
+    '--amb-glow': cfg.glow / 100,
+    '--amb-dim': cfg.nightLevel / 100,
+    '--amb-ember-space': cfg.showEmber ? `${Math.round(cfg.emberSize * 0.85)}px` : '0px',
+  }
+
   return (
     <div
-      className={`amb-root ${nightDim ? 'amb-night' : ''}`}
-      style={{ transform: `translate(${drift.x}px, ${drift.y}px)` }}
+      className={[
+        'amb-root',
+        ready && 'ready',
+        isNight && 'amb-night',
+        forcedTheme && `amb-force-${forcedTheme}`,
+        cfg.side === 'right' && 'flip',
+        editing && 'editing',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+      style={rootStyle}
     >
       <AnimatePresence>
-        {mouseActive && (
-          <motion.button
-            className="amb-close"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+        {showControls && (
+          <motion.div
+            className="amb-controls"
+            initial={{ opacity: 0, y: -6 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.2 }}
-            onClick={onExit}
-            aria-label="Exit ambient mode"
           >
-            <XIcon size={16} />
-          </motion.button>
+            <button
+              className={`amb-ctl ${editing ? 'on' : ''}`}
+              onClick={() => setEditing((v) => !v)}
+              aria-label="Customize ambient mode"
+              title="Customize"
+            >
+              <SettingsIcon size={16} />
+            </button>
+            <button className="amb-ctl" onClick={onExit} aria-label="Exit ambient mode" title="Exit (Esc)">
+              <XIcon size={16} />
+            </button>
+          </motion.div>
         )}
       </AnimatePresence>
 
       <div className="amb-layout">
         <div className="amb-left">
-          <AnalogClock now={now} reducedEffects={!!settings.reducedEffects} />
-          <div className="amb-date">
-            {dateLabel(now)} <span className="amb-date-time">{hhmm(now)}</span>
-          </div>
-          <div className="amb-widgets">
-            <Widget kind={settings.ambientWidget1 ?? 'streak'} {...widgetProps} />
-            <Widget kind={settings.ambientWidget2 ?? 'focus'} {...widgetProps} />
-          </div>
+          <AnalogClock
+            key={clockKey}
+            now={now}
+            face={cfg.clockFace}
+            seconds={cfg.seconds}
+            reducedEffects={!!settings.reducedEffects}
+          />
+          {(cfg.showDate || cfg.showDigital) && (
+            <div className="amb-date">
+              {cfg.showDate && dateLabel(now)}
+              {cfg.showDigital && <span className="amb-date-time">{hhmm(now)}</span>}
+            </div>
+          )}
+          {slots > 0 && (
+            <div className="amb-widgets" style={{ minHeight: slots * WIDGET_H + (slots - 1) * 12 }}>
+              <AnimatePresence initial={false}>
+                {[cfg.widget1, cfg.widget2].map((kind, i) => {
+                  const el = renderWidget(kind, widgetProps)
+                  return el ? (
+                    <motion.div key={`${i}-${kind}`} {...widgetMotion}>
+                      {el}
+                    </motion.div>
+                  ) : null
+                })}
+              </AnimatePresence>
+            </div>
+          )}
         </div>
 
         <div className="amb-right">
-          <div className="amb-head">
-            <div className="amb-greet">
-              {greeting()}
-              {state.profile?.name ? `, ${state.profile.name.split(/\s+/)[0]}` : ''}
-              <span className="dot">.</span>
+          {(cfg.showGreeting || cfg.showProgress) && (
+            <div className="amb-head">
+              {cfg.showGreeting && (
+                <div className="amb-greet">
+                  {greeting()}
+                  {state.profile?.name ? `, ${state.profile.name.split(/\s+/)[0]}` : ''}
+                  <span className="dot">.</span>
+                </div>
+              )}
+              {cfg.showProgress && (
+                <div className="amb-progress">
+                  <div className="amb-progress-track">
+                    <motion.div
+                      className="amb-progress-fill"
+                      initial={false}
+                      animate={{ width: `${progress.pct}%` }}
+                      transition={{ type: 'spring', stiffness: 60, damping: 18 }}
+                    />
+                  </div>
+                  <span className="amb-progress-label">
+                    {progress.done}/{progress.total} · {progress.pct}%
+                  </span>
+                </div>
+              )}
             </div>
-            <div className="amb-progress">
-              <div className="amb-progress-track">
-                <motion.div
-                  className="amb-progress-fill"
-                  initial={false}
-                  animate={{ width: `${progress.pct}%` }}
-                  transition={{ type: 'spring', stiffness: 60, damping: 18 }}
-                />
-              </div>
-              <span className="amb-progress-label">
-                {progress.done}/{progress.total} · {progress.pct}%
-              </span>
-            </div>
-          </div>
+          )}
 
           <LayoutGroup>
-            <div className="amb-board">
+            <div className={`amb-board ${cfg.columns === 'todo' ? 'single' : ''}`}>
               <div className="amb-col">
                 <div className="amb-col-head">
                   <span className="amb-col-dot todo" />
@@ -345,44 +455,55 @@ export default function Ambient({ onExit }) {
                 {todoOverflow > 0 && <div className="amb-more">+{todoOverflow} more</div>}
               </div>
 
-              <div className="amb-col">
-                <div className="amb-col-head">
-                  <span className="amb-col-dot done" />
-                  DONE <span className="amb-col-count">{completedToday.length}</span>
+              {cfg.columns !== 'todo' && (
+                <div className="amb-col">
+                  <div className="amb-col-head">
+                    <span className="amb-col-dot done" />
+                    DONE <span className="amb-col-count">{completedToday.length}</span>
+                  </div>
+                  {visibleDone.length === 0 ? (
+                    <div className="amb-empty">Nothing finished yet.</div>
+                  ) : (
+                    <AnimatePresence initial={false}>
+                      {visibleDone.map((t) => (
+                        <motion.div
+                          key={t.id}
+                          layoutId={`amb-${t.id}`}
+                          className="amb-row done"
+                          transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+                        >
+                          <Checkbox checked color="var(--accent)" onToggle={() => toggle(t.id)} />
+                          <span className="amb-row-title">{t.title}</span>
+                        </motion.div>
+                      ))}
+                    </AnimatePresence>
+                  )}
+                  {doneOverflow > 0 && <div className="amb-more">+{doneOverflow} more</div>}
                 </div>
-                {visibleDone.length === 0 ? (
-                  <div className="amb-empty">Nothing finished yet.</div>
-                ) : (
-                  <AnimatePresence initial={false}>
-                    {visibleDone.map((t) => (
-                      <motion.div
-                        key={t.id}
-                        layoutId={`amb-${t.id}`}
-                        className="amb-row done"
-                        transition={{ type: 'spring', stiffness: 260, damping: 30 }}
-                      >
-                        <Checkbox checked color="var(--accent)" onToggle={() => toggle(t.id)} />
-                        <span className="amb-row-title">{t.title}</span>
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                )}
-                {doneOverflow > 0 && <div className="amb-more">+{doneOverflow} more</div>}
-              </div>
+              )}
             </div>
           </LayoutGroup>
-
-          {settings.ambientShowEmber !== false && (
-            <Ember
-              mood={mood}
-              streak={insights.streak}
-              overdueCount={overdueCount}
-              reducedEffects={!!settings.reducedEffects}
-              size={128}
-            />
-          )}
         </div>
       </div>
+
+      {cfg.showEmber && (
+        <div className={`amb-ember-dock corner-${cfg.emberCorner}`}>
+          <Ember
+            mood={mood}
+            streak={insights.streak}
+            overdueCount={overdueCount}
+            reducedEffects={!!settings.reducedEffects}
+            eyesFollow={cfg.emberEyes}
+            size={cfg.emberSize}
+          />
+        </div>
+      )}
+
+      <AnimatePresence>
+        {editing && (
+          <AmbientEditor cfg={cfg} onChange={setCfg} onReset={resetCfg} onClose={() => setEditing(false)} />
+        )}
+      </AnimatePresence>
     </div>
   )
 }

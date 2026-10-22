@@ -4022,76 +4022,172 @@ kbd,
 }
 
 /* =============================== Ambient mode =============================== */
+/* Sizes come in as CSS variables from the user's ambient config (Ambient.jsx
+   rootStyle), so every knob in the editor is a live, per-pixel change. */
 
 .amb-root {
+  --amb-pad: 56px;
+  --amb-gap: 96px;
+  --amb-clock: 480px;
+  --amb-row: 22px;
+  --amb-radius: 18px;
+  --amb-glow: 1;
+  --amb-dim: 0.55;
+  --amb-ember-space: 108px;
+  /* the clock never outgrows the screen, whatever px was asked for */
+  --amb-clock-size: min(var(--amb-clock), 70vh, 42vw);
+
   position: fixed;
   inset: 0;
   z-index: 9999;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
-  padding: clamp(24px, 4vh, 64px) clamp(24px, 4vw, 72px);
-  /* static warm vignette — painted once, no animation cost */
+  padding: var(--amb-pad);
+  padding-top: max(var(--amb-pad), env(safe-area-inset-top));
+  padding-bottom: max(var(--amb-pad), env(safe-area-inset-bottom));
   background:
-    radial-gradient(ellipse 60% 70% at 12% 22%, rgba(var(--accent-rgb), 0.06), transparent 60%),
-    radial-gradient(ellipse 50% 50% at 92% 95%, rgba(var(--accent-rgb), 0.06), transparent 60%),
+    radial-gradient(ellipse 60% 70% at 12% 22%, rgba(var(--accent-rgb), calc(0.06 * var(--amb-glow))), transparent 60%),
+    radial-gradient(ellipse 50% 50% at 92% 95%, rgba(var(--accent-rgb), calc(0.06 * var(--amb-glow))), transparent 60%),
     var(--bg);
   color: var(--text);
   font-family: var(--font-mono);
   overflow: hidden;
   cursor: default;
-  transition: transform 2s ease, filter 1.2s ease, background-color 1.2s ease;
+  opacity: 0;
+  transition:
+    opacity 0.6s ease,
+    transform 2s ease,
+    filter 1.2s ease,
+    background-color 1.2s ease;
 }
 
-/* 23:00–06:00: dim + force the dark palette in this view only, regardless
-   of the document's real theme (which stays whatever the main app has). */
-/* brightness, not opacity — opacity would let a light page show through */
-.amb-root.amb-night {
-  filter: brightness(0.55);
+/* revealed only after web fonts land, so nothing re-flows after first paint */
+.amb-root.ready {
+  opacity: 1;
+}
+
+.amb-root.ready .amb-left {
+  animation: amb-enter 0.9s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.amb-root.ready .amb-right {
+  animation: amb-enter 0.9s 0.12s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes amb-enter {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* explicit theme overrides — scoped to this view, the app keeps its own */
+.amb-root.amb-force-dark {
   color-scheme: dark;
   --bg: #0e0b08;
   --bg-raise: #181310;
   --panel: rgba(244, 239, 230, 0.035);
   --panel-hover: rgba(244, 239, 230, 0.07);
-  --panel-strong: rgba(24, 19, 16, 0.88);
-  --shadow-lift: 0 12px 40px -12px rgba(0, 0, 0, 0.6);
+  --panel-strong: rgba(24, 19, 16, 0.92);
   --border: rgba(244, 239, 230, 0.08);
   --border-strong: rgba(244, 239, 230, 0.2);
   --text: #f4efe6;
   --text-2: rgba(244, 239, 230, 0.62);
   --text-3: rgba(244, 239, 230, 0.38);
+  --shadow-lift: 0 12px 40px -12px rgba(0, 0, 0, 0.6);
 }
 
-.amb-close {
+.amb-root.amb-force-light {
+  color-scheme: light;
+  --bg: #f4efe6;
+  --bg-raise: #ffffff;
+  --panel: rgba(255, 255, 255, 0.7);
+  --panel-hover: rgba(255, 255, 255, 0.98);
+  --panel-strong: rgba(255, 255, 255, 0.94);
+  --border: rgba(42, 38, 32, 0.12);
+  --border-strong: rgba(42, 38, 32, 0.28);
+  --text: #2a2620;
+  --text-2: rgba(42, 38, 32, 0.62);
+  --text-3: rgba(42, 38, 32, 0.42);
+  --shadow-lift: 0 12px 32px -12px rgba(42, 38, 32, 0.16);
+}
+
+/* brightness, not opacity — opacity would let the page behind show through */
+.amb-root.amb-night {
+  filter: brightness(var(--amb-dim));
+}
+
+/* ---------- controls (× / ⚙): mouse move or tap reveals them ---------- */
+
+.amb-controls {
   position: absolute;
-  top: 20px;
-  right: 20px;
-  z-index: 5;
-  width: 36px;
-  height: 36px;
+  top: max(18px, env(safe-area-inset-top));
+  right: max(18px, env(safe-area-inset-right));
+  z-index: 20;
+  display: flex;
+  gap: 8px;
+}
+
+.amb-root.editing .amb-controls {
+  right: calc(min(400px, 100vw) + 18px);
+}
+
+/* while customizing, the preview makes room for the drawer instead of
+   hiding under it */
+@media (min-width: 701px) {
+  .amb-root.editing {
+    padding-right: calc(400px + var(--amb-pad));
+  }
+  .amb-root.editing .amb-ember-dock.corner-right {
+    right: calc(400px + var(--amb-pad));
+  }
+}
+
+.amb-ctl {
+  width: 40px;
+  height: 40px;
   display: grid;
   place-items: center;
-  border-radius: var(--radius-sm);
+  border-radius: 12px;
   background: var(--panel-strong);
   border: 1px solid var(--border);
   color: var(--text-2);
+  box-shadow: var(--shadow-lift);
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease;
 }
 
-.amb-close:hover {
-  color: var(--text);
+.amb-ctl:hover,
+.amb-ctl.on {
+  color: var(--accent);
+  border-color: rgba(var(--accent-rgb), 0.4);
 }
+
+/* ---------- layout ---------- */
 
 .amb-layout {
   display: grid;
-  grid-template-columns: auto 1fr;
+  grid-template-columns: auto minmax(0, 1fr);
   align-items: center;
-  gap: clamp(40px, 6vw, 112px);
+  gap: var(--amb-gap);
   height: 100%;
 }
 
-/* ---------- left column: watch face + customizable widgets ---------- */
+.amb-root.flip .amb-layout {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.amb-root.flip .amb-left {
+  order: 2;
+}
+
+/* ---------- left column: watch + widgets ---------- */
 
 .amb-left {
   display: flex;
@@ -4099,22 +4195,26 @@ kbd,
   align-items: center;
   justify-content: center;
   gap: clamp(14px, 2.2vh, 24px);
-  width: min(46vh, 30vw);
+  width: var(--amb-clock-size);
 }
 
 .amb-date {
+  display: flex;
+  gap: 0.8em;
   font-family: var(--font-mono);
-  font-size: clamp(14px, 1.3vw, 20px);
+  font-size: clamp(14px, calc(var(--amb-clock-size) * 0.04), 22px);
   letter-spacing: 0.22em;
   color: var(--text-2);
+  white-space: nowrap;
 }
 
 .amb-date-time {
-  margin-left: 0.8em;
   color: var(--text);
   letter-spacing: 0.12em;
 }
 
+/* height is reserved inline per configured slot, so a widget appearing or
+   leaving never moves the clock above it */
 .amb-widgets {
   display: flex;
   flex-direction: column;
@@ -4122,25 +4222,94 @@ kbd,
   width: 100%;
 }
 
-.amb-widgets:empty {
-  display: none;
+.amb-widget {
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: calc(var(--amb-radius) * 0.7);
+  border: 1px solid var(--border);
+  background: linear-gradient(160deg, var(--panel), transparent 160%);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
-/* the time is the point of this screen — the dial scales with it */
+.amb-widget-live {
+  border-color: rgba(var(--accent-rgb), 0.35);
+}
+
+.amb-widget-flame {
+  color: var(--accent);
+}
+
+.amb-widget-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  color: var(--text-3);
+}
+
+.amb-widget-value {
+  font-family: var(--font-display);
+  font-size: clamp(20px, 1.8vw, 28px);
+  line-height: 1;
+  color: var(--text);
+}
+
+.amb-widget-sub {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.amb-widget-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.amb-widget-focus-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.amb-widget-focus-info .amb-widget-sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- the watch ---------- */
+
 .amb-clock-face {
   position: relative;
-  width: min(46vh, 30vw);
+  width: var(--amb-clock-size);
   aspect-ratio: 1;
+  flex-shrink: 0;
 }
 
-/* faint accent glow pooled behind the dial */
 .amb-clock-face::before {
   content: '';
   position: absolute;
   inset: -14%;
   border-radius: 50%;
-  background: radial-gradient(circle, transparent 47%, rgba(var(--accent-rgb), 0.06) 52%, transparent 66%);
-  z-index: -1;
+  background: radial-gradient(
+    circle,
+    transparent 47%,
+    rgba(var(--accent-rgb), calc(0.07 * var(--amb-glow))) 52%,
+    transparent 66%
+  );
+  pointer-events: none;
+}
+
+.amb-dial-svg,
+.amb-pin-svg {
+  position: absolute;
+  inset: 0;
+}
+
+.amb-pin-svg {
+  z-index: 4;
 }
 
 .amb-clock-dial {
@@ -4171,15 +4340,56 @@ kbd,
   stroke-width: 2.8;
 }
 
-.amb-hands-shadow {
-  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
+.amb-clock-numeral {
+  font-family: var(--font-display);
+  font-size: 22px;
+  fill: var(--text);
+  letter-spacing: 0.02em;
+}
+
+/* each hand is its own HTML layer turning on the compositor: smooth,
+   automatic-watch glide with no JS or restyle per frame */
+.amb-hand-layer {
+  position: absolute;
+  inset: 0;
+}
+
+.amb-hand-layer.spin {
+  animation-name: amb-spin;
+  animation-iteration-count: infinite;
+  will-change: transform;
+}
+
+/* no CSS filter on these layers: a drop-shadow on a rotating layer
+   re-rasterizes every frame (measured ~20% main thread). The shadow is
+   drawn into the SVG instead (.amb-hand-shade), painted once. */
+.amb-hand-shade {
+  stroke: rgba(0, 0, 0, 0.22);
+  stroke-linecap: round;
+}
+
+.amb-hand-layer.hour {
+  z-index: 1;
+}
+.amb-hand-layer.minute {
+  z-index: 2;
+}
+.amb-hand-layer.second {
+  z-index: 3;
+}
+
+@keyframes amb-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .amb-hand {
   stroke: var(--text);
   stroke-linecap: round;
-  transition: transform 0.5s cubic-bezier(0.34, 1.3, 0.64, 1);
-  transform-origin: 100px 100px;
 }
 
 .amb-hand-hour {
@@ -4200,28 +4410,6 @@ kbd,
   fill: var(--accent);
 }
 
-/* the sweep is pure CSS on its own composited layer, set going once at
-   mount — no JS, no restyle of the dial, per frame */
-.amb-second-layer {
-  position: absolute;
-  inset: 0;
-}
-
-.amb-second-layer.sweep {
-  transform: rotate(var(--amb-sec-start));
-  animation: amb-sweep 60s linear infinite;
-  will-change: transform;
-}
-
-@keyframes amb-sweep {
-  from {
-    transform: rotate(var(--amb-sec-start));
-  }
-  to {
-    transform: rotate(calc(var(--amb-sec-start) + 360deg));
-  }
-}
-
 .amb-clock-pin {
   fill: var(--text);
 }
@@ -4230,64 +4418,7 @@ kbd,
   fill: var(--accent);
 }
 
-.amb-widget {
-  width: 100%;
-  padding: 14px 18px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
-  background: linear-gradient(160deg, var(--panel), transparent 160%);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.amb-widget-live {
-  border-color: rgba(var(--accent-rgb), 0.35);
-}
-
-.amb-widget-flame {
-  color: var(--accent);
-}
-
-.amb-widget-label {
-  font-family: var(--font-mono);
-  font-size: 10.5px;
-  letter-spacing: 0.14em;
-  color: var(--text-3);
-}
-
-.amb-widget-value {
-  font-family: var(--font-display);
-  font-size: clamp(18px, 1.8vw, 26px);
-  line-height: 1;
-  color: var(--text);
-}
-
-.amb-widget-sub {
-  font-size: 12px;
-  color: var(--text-3);
-}
-
-.amb-widget-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.amb-widget-focus-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  min-width: 0;
-}
-
-.amb-widget-focus-info .amb-widget-sub {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* ---------- right side: Todo / Done board ---------- */
+/* ---------- right side: header + board ---------- */
 
 .amb-right {
   position: relative;
@@ -4296,8 +4427,8 @@ kbd,
   justify-content: center;
   height: 100%;
   min-width: 0;
-  /* symmetric reserve so content centers but never runs under Ember */
-  padding: clamp(96px, 13vh, 150px) 0;
+  /* keep content off the Ember corner, symmetric so it still centers */
+  padding: var(--amb-ember-space) 0;
 }
 
 .amb-head {
@@ -4306,12 +4437,11 @@ kbd,
   justify-content: space-between;
   gap: 24px;
   margin-bottom: clamp(18px, 3vh, 32px);
-  padding-right: 48px; /* clear the hover-only close button */
 }
 
 .amb-greet {
   font-family: var(--font-display);
-  font-size: clamp(20px, 1.9vw, 32px);
+  font-size: clamp(20px, calc(var(--amb-row) * 1.3), 40px);
   line-height: 1;
   letter-spacing: 0.06em;
   color: var(--text-2);
@@ -4325,7 +4455,8 @@ kbd,
   display: flex;
   align-items: center;
   gap: 14px;
-  min-width: min(320px, 40%);
+  flex: 0 1 340px;
+  margin-left: auto;
 }
 
 .amb-progress-track {
@@ -4354,8 +4485,12 @@ kbd,
   display: grid;
   grid-template-columns: 1fr 1fr;
   align-items: start;
-  gap: clamp(18px, 2.4vw, 40px);
+  gap: clamp(16px, 2.2vw, 36px);
   min-height: 0;
+}
+
+.amb-board.single {
+  grid-template-columns: 1fr;
 }
 
 /* cards hug their content instead of stretching into empty boxes */
@@ -4364,9 +4499,10 @@ kbd,
   max-height: 100%;
   overflow: hidden;
   padding: clamp(16px, 1.8vw, 28px);
-  border-radius: var(--radius-lg);
+  border-radius: var(--amb-radius);
   border: 1px solid var(--border);
   background: linear-gradient(180deg, var(--panel), transparent 140%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset;
 }
 
 .amb-col-head {
@@ -4412,27 +4548,17 @@ kbd,
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 10px 8px;
+  padding: calc(var(--amb-row) * 0.45) 8px;
   margin: 0 -8px;
-  border-radius: var(--radius-sm);
-  font-size: clamp(16px, 1.5vw, 26px);
+  border-radius: calc(var(--amb-radius) * 0.5);
+  font-size: var(--amb-row);
   transition: background-color 0.2s ease;
 }
 
-.amb-row:hover {
-  background: var(--panel-hover);
-}
-
-.amb-row-tag.prio-high {
-  color: var(--danger);
-}
-
-.amb-row-tag.prio-medium {
-  color: #d98e32;
-}
-
-.amb-row-tag.prio-low {
-  color: #74929f;
+@media (hover: hover) {
+  .amb-row:hover {
+    background: var(--panel-hover);
+  }
 }
 
 .amb-row .checkbox {
@@ -4464,11 +4590,23 @@ kbd,
 
 .amb-row-tag {
   color: var(--text-3);
-  font-size: 0.68em;
+  font-size: 0.66em;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   flex-shrink: 0;
   white-space: nowrap;
+}
+
+.amb-row-tag.prio-high {
+  color: var(--danger);
+}
+
+.amb-row-tag.prio-medium {
+  color: #d98e32;
+}
+
+.amb-row-tag.prio-low {
+  color: #74929f;
 }
 
 .amb-more {
@@ -4479,46 +4617,51 @@ kbd,
 
 .amb-empty {
   color: var(--text-3);
-  font-size: clamp(13px, 1.1vw, 16px);
+  font-size: calc(var(--amb-row) * 0.75);
 }
 
 /* ---------- Ember ---------- */
 
-.amb-ember {
+.amb-ember-dock {
   position: fixed;
-  right: clamp(24px, 4vw, 64px);
-  bottom: clamp(24px, 4vh, 56px);
-  z-index: 4;
+  bottom: max(var(--amb-pad), env(safe-area-inset-bottom));
+  z-index: 6;
+}
+
+.amb-ember-dock.corner-right {
+  right: max(var(--amb-pad), env(safe-area-inset-right));
+}
+
+.amb-ember-dock.corner-left {
+  left: max(var(--amb-pad), env(safe-area-inset-left));
+}
+
+.amb-ember {
+  position: relative;
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
+  -webkit-touch-callout: none; /* long-press is "hold", not the iOS menu */
+  touch-action: none;
 }
 
-.amb-ember-hold {
-  position: relative;
-  width: 100%;
-  height: 100%;
-}
-
-.amb-ember-squash {
+.amb-ember-hold,
+.amb-ember-squash,
+.amb-ember-streak,
+.amb-ember-body {
   position: relative;
   width: 100%;
   height: 100%;
 }
 
 .amb-ember-streak {
-  width: 100%;
-  height: 100%;
   transform-origin: 50% 90%;
   transition: transform 0.6s cubic-bezier(0.34, 1.3, 0.64, 1);
 }
 
-/* per-mood body motion — CSS transforms on an HTML box, so the compositor
-   runs them with no main-thread work. Every loop is >= 4s except the brief,
-   finite celebrate gust. */
+/* per-mood body motion: transforms on an HTML box, run by the compositor.
+   Every loop is >= 4s except the brief, finite celebrate gust. */
 .amb-ember-body {
-  width: 100%;
-  height: 100%;
   transform-origin: 50% 90%;
   will-change: transform;
 }
@@ -4622,7 +4765,16 @@ kbd,
   }
 }
 
-/* halo — slow 5s breath, brightness picked by mood */
+/* in SVG, CSS px = user units, so this shifts the eyes in glyph space */
+.amb-ember-eyes {
+  transform: translate(calc(var(--ex, 0) * 1px), calc(var(--ey, 0) * 1px));
+  transition: transform 0.25s ease-out;
+}
+
+.amb-ember-eyes.away {
+  transform: translate(-0.4px, 0);
+}
+
 .amb-ember-glow {
   position: absolute;
   inset: -22%;
@@ -4660,7 +4812,6 @@ kbd,
   }
 }
 
-/* embers drifting up off the flame */
 .amb-ember-rise {
   position: absolute;
   inset: 0;
@@ -4682,7 +4833,6 @@ kbd,
 
 .amb-ember-rise span:nth-child(1) {
   margin-left: -10px;
-  animation-delay: 0s;
 }
 .amb-ember-rise span:nth-child(2) {
   margin-left: 6px;
@@ -4695,6 +4845,9 @@ kbd,
 .amb-ember-rise span:nth-child(4) {
   margin-left: 11px;
   animation-delay: 4.5s;
+}
+.amb-ember-rise span:nth-child(odd) {
+  --drift: -8px;
 }
 
 .amb-ember-rise.fast span {
@@ -4715,11 +4868,6 @@ kbd,
   }
 }
 
-.amb-ember-rise span:nth-child(odd) {
-  --drift: -8px;
-}
-
-/* sleepy z's */
 .amb-ember-zzz {
   position: absolute;
   top: 2%;
@@ -4772,6 +4920,12 @@ kbd,
   color: var(--text);
   font-size: 13px;
   white-space: nowrap;
+  z-index: 2;
+}
+
+.amb-ember-dock.corner-left .amb-ember-bubble {
+  right: auto;
+  left: 0;
 }
 
 .amb-ember-sparks {
@@ -4791,34 +4945,270 @@ kbd,
   background: var(--accent-2);
 }
 
+/* ---------- customization drawer ---------- */
+
+.ame {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 30;
+  width: min(400px, 100vw);
+  display: flex;
+  flex-direction: column;
+  background: var(--panel-strong);
+  border-left: 1px solid var(--border);
+  box-shadow: -24px 0 60px -20px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  color: var(--text);
+  font-family: var(--font-mono);
+  /* the night filter lives on .amb-root; keep the editor readable */
+  filter: none;
+}
+
+.ame-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: max(22px, env(safe-area-inset-top)) 22px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ame-kicker {
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.ame-h {
+  font-family: var(--font-display);
+  font-size: 30px;
+  line-height: 1.1;
+  letter-spacing: 0.03em;
+}
+
+.ame-close {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  color: var(--text-2);
+}
+
+.ame-body {
+  flex: 1;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px 22px 20px;
+}
+
+.ame-section {
+  padding: 16px 0 6px;
+  border-bottom: 1px solid var(--border);
+}
+
+.ame-section:last-child {
+  border-bottom: none;
+}
+
+.ame-title {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 10px;
+}
+
+.ame-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 40px;
+  padding: 4px 0;
+}
+
+.ame-label {
+  font-size: 13px;
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+
+.ame-seg {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+}
+
+.ame-seg button {
+  padding: 6px 10px;
+  border-radius: 7px;
+  font-size: 12px;
+  color: var(--text-2);
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.ame-seg button.on {
+  background: var(--accent);
+  color: #fff;
+}
+
+.ame-slider-row input[type='range'] {
+  flex: 1;
+  min-width: 0;
+  height: 4px;
+  appearance: none;
+  -webkit-appearance: none;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--accent) var(--fill), var(--border) var(--fill));
+  outline: none;
+}
+
+.ame-slider-row input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--bg-raise);
+  border: 2px solid var(--accent);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+}
+
+.ame-slider-row input[type='range']::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--bg-raise);
+  border: 2px solid var(--accent);
+  cursor: pointer;
+}
+
+.ame-num {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 0 8px;
+  height: 30px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.ame-num input {
+  width: 38px;
+  border: none;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  text-align: right;
+  outline: none;
+  -moz-appearance: textfield;
+}
+
+.ame-num input::-webkit-outer-spin-button,
+.ame-num input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.ame-hours {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-3);
+}
+
+.ame-hours select {
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+}
+
+.ame-hint {
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--text-3);
+  margin: 4px 0 8px;
+}
+
+.ame-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 22px max(16px, env(safe-area-inset-bottom));
+  border-top: 1px solid var(--border);
+}
+
+.ame-reset {
+  font-size: 12.5px;
+  color: var(--text-2);
+  padding: 8px 12px;
+  border-radius: 9px;
+  border: 1px solid var(--border);
+}
+
+.ame-reset:hover {
+  color: var(--danger);
+  border-color: rgba(196, 61, 43, 0.4);
+}
+
+.ame-saved {
+  font-size: 11px;
+  color: var(--text-3);
+  letter-spacing: 0.06em;
+}
+
+/* ---------- portrait monitors & docked phones ---------- */
+
 @media (orientation: portrait) {
-  .amb-layout {
-    grid-template-columns: 1fr;
+  .amb-root {
+    --amb-clock-size: min(var(--amb-clock), 62vw, 34vh);
+  }
+  .amb-layout,
+  .amb-root.flip .amb-layout {
+    grid-template-columns: minmax(0, 1fr);
     grid-template-rows: auto auto;
     align-content: center;
     align-items: start;
-    gap: clamp(28px, 4vh, 56px);
+    gap: clamp(24px, 4vh, 56px);
+  }
+  .amb-root.flip .amb-left {
+    order: 0;
   }
   .amb-left {
     width: 100%;
-  }
-  .amb-clock-face {
-    width: min(62vw, 30vh);
-  }
-  .amb-row {
-    font-size: clamp(18px, 2.3vw, 30px);
   }
   .amb-widgets {
     flex-direction: row;
     justify-content: center;
     max-width: 640px;
   }
-  .amb-widget {
+  .amb-widgets > * {
+    flex: 1 1 0;
     max-width: 300px;
-  }
-  .amb-right {
-    justify-content: flex-start;
-    padding-top: 0;
   }
   .amb-head {
     flex-direction: column;
@@ -4826,8 +5216,94 @@ kbd,
   }
   .amb-progress {
     width: 100%;
+    flex-basis: auto;
+  }
+  .amb-right {
+    justify-content: flex-start;
+    padding: 0 0 var(--amb-ember-space);
+  }
+}
+
+/* phones: pad down, scroll if the day is long, sheet-style editor */
+@media (max-width: 700px) {
+  .amb-root {
+    /* desktop-sized padding would eat a phone — cap it (inline var wins
+       otherwise) */
+    --amb-pad-m: min(var(--amb-pad), 18px);
+    padding: var(--amb-pad-m);
+    padding-top: max(var(--amb-pad-m), env(safe-area-inset-top));
+    padding-bottom: max(var(--amb-pad-m), env(safe-area-inset-bottom));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+  .amb-layout {
+    height: auto;
+    min-height: 100%;
   }
   .amb-board {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr;
+  }
+  .amb-widgets {
+    flex-direction: column;
+  }
+  .amb-widgets > * {
+    max-width: none;
+  }
+  .amb-row {
+    font-size: min(var(--amb-row), 18px);
+    padding-block: 10px; /* comfortable tap targets */
+  }
+  .amb-row .checkbox {
+    width: 24px;
+    height: 24px;
+  }
+  /* the page scrolls on a phone, so a floating Ember would always sit on
+     top of something — it settles at the end of the page instead */
+  .amb-right {
+    padding: 0;
+  }
+  .amb-ember-dock,
+  .amb-root.editing .amb-ember-dock.corner-right {
+    position: relative;
+    inset: auto;
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+  }
+  .amb-ember-dock.corner-left {
+    justify-content: flex-start;
+  }
+  /* title gets the full width; time/priority drop to a line beneath it */
+  .amb-row {
+    flex-wrap: wrap;
+    row-gap: 2px;
+  }
+  .amb-row-title {
+    flex: 1 1 calc(100% - 60px);
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+  .amb-row-title + .amb-row-tag {
+    margin-left: 36px;
+  }
+
+  .ame {
+    top: auto;
+    left: 0;
+    width: 100vw;
+    height: min(78dvh, 640px);
+    border-left: none;
+    border-top: 1px solid var(--border);
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -24px 60px -20px rgba(0, 0, 0, 0.45);
+  }
+  .amb-root.editing .amb-controls {
+    right: 18px;
+  }
+  .ame-num input,
+  .ame-hours select {
+    font-size: 16px; /* no iOS/Android zoom-on-focus */
   }
 }

@@ -19,6 +19,7 @@ export default function Ember({
   streak = 0,
   overdueCount = 0,
   reducedEffects = false,
+  eyesFollow = true,
   size = 100,
 }) {
   const gradId = useId()
@@ -28,7 +29,6 @@ export default function Ember({
   const [line, setLine] = useState('')
   const [holding, setHolding] = useState(false)
   const [poke, setPoke] = useState(0)
-  const [look, setLook] = useState({ x: 0, y: 0 })
   const blinkTimer = useRef(null)
   const downAt = useRef(0)
   const squash = useAnimationControls()
@@ -48,30 +48,52 @@ export default function Ember({
     return () => clearTimeout(blinkTimer.current)
   }, [mood, reducedEffects])
 
-  // eyes glance toward the cursor — only fires while the mouse actually
-  // moves, rAF-throttled, so it costs nothing on an untouched screen
+  // Eyes glance toward the pointer. Written straight to CSS variables on
+  // the root (no React state), and the root's position is cached instead of
+  // measured per move — re-rendering + forced layout on every pointer move
+  // was the single biggest idle cost.
   useEffect(() => {
-    if (reducedEffects) return
+    const el = rootRef.current
+    if (!el) return
+    const reset = () => {
+      el.style.setProperty('--ex', 0)
+      el.style.setProperty('--ey', 0)
+    }
+    if (reducedEffects || !eyesFollow) {
+      reset()
+      return
+    }
+    let center = null
+    const measure = () => {
+      const r = el.getBoundingClientRect()
+      center = { x: r.left + r.width / 2, y: r.top + r.height / 2 }
+    }
+    measure()
     let raf = 0
+    let last = null
     const onMove = (e) => {
+      last = e
       if (raf) return
       raf = requestAnimationFrame(() => {
         raf = 0
-        const r = rootRef.current?.getBoundingClientRect()
-        if (!r) return
-        const dx = e.clientX - (r.left + r.width / 2)
-        const dy = e.clientY - (r.top + r.height / 2)
+        const dx = last.clientX - center.x
+        const dy = last.clientY - center.y
         const d = Math.hypot(dx, dy) || 1
         const k = Math.min(1, d / 400)
-        setLook({ x: (dx / d) * EYE_RANGE * k, y: (dy / d) * EYE_RANGE * k })
+        el.style.setProperty('--ex', ((dx / d) * EYE_RANGE * k).toFixed(3))
+        el.style.setProperty('--ey', ((dy / d) * EYE_RANGE * k).toFixed(3))
       })
     }
-    window.addEventListener('mousemove', onMove)
+    window.addEventListener('pointermove', onMove)
+    window.addEventListener('resize', measure)
+    const remeasure = setInterval(measure, 30000) // layout drift / size changes
     return () => {
-      window.removeEventListener('mousemove', onMove)
+      window.removeEventListener('pointermove', onMove)
+      window.removeEventListener('resize', measure)
+      clearInterval(remeasure)
       cancelAnimationFrame(raf)
     }
-  }, [reducedEffects])
+  }, [reducedEffects, eyesFollow, size])
 
   // a quick squash-and-stretch whenever a task completes
   useEffect(() => {
@@ -93,8 +115,6 @@ export default function Ember({
 
   const eyesClosed = mood === 'proud' || mood === 'sleepy' || blink || holding
   const eyesNarrow = mood === 'focus'
-  const eyeX = (mood === 'worried' ? -0.4 : look.x) + 0
-  const eyeY = mood === 'worried' ? 0 : look.y
 
   // gradient stops: brighter/hotter for celebrate+proud, dimmer/duller for
   // worried+sleepy, the normal accent pair otherwise
@@ -205,17 +225,19 @@ export default function Ember({
               {/* inner highlight — reads as heat at the core */}
               <ellipse cx="11" cy="17.2" rx="3.4" ry="2.6" fill="#fff" opacity={mood === 'celebrate' ? 0.32 : 0.14} />
 
+              {/* follows --ex/--ey set by the pointer effect; worried looks away instead */}
+              <g className={`amb-ember-eyes ${mood === 'worried' ? 'away' : ''}`}>
               {eyesClosed ? (
                 <>
                   <path
-                    d={`M${7.6 + eyeX} 15.3 q1.1 ${holding ? -0.6 : 1} 2.2 0`}
+                    d={`M7.6 15.3 q1.1 ${holding ? -0.6 : 1} 2.2 0`}
                     stroke={EYE}
                     strokeWidth="1"
                     fill="none"
                     strokeLinecap="round"
                   />
                   <path
-                    d={`M${11.2 + eyeX} 15.3 q1.1 ${holding ? -0.6 : 1} 2.2 0`}
+                    d={`M11.2 15.3 q1.1 ${holding ? -0.6 : 1} 2.2 0`}
                     stroke={EYE}
                     strokeWidth="1"
                     fill="none"
@@ -224,17 +246,18 @@ export default function Ember({
                 </>
               ) : (
                 <>
-                  <ellipse cx={8.7 + eyeX} cy={15.6 + eyeY} rx="1" ry={eyesNarrow ? 0.45 : 1.1} fill={EYE} />
-                  <ellipse cx={12.3 + eyeX} cy={15.6 + eyeY} rx="1" ry={eyesNarrow ? 0.45 : 1.1} fill={EYE} />
+                  <ellipse cx="8.7" cy="15.6" rx="1" ry={eyesNarrow ? 0.45 : 1.1} fill={EYE} />
+                  <ellipse cx="12.3" cy="15.6" rx="1" ry={eyesNarrow ? 0.45 : 1.1} fill={EYE} />
                   {/* tiny catchlights */}
                   {!eyesNarrow && (
                     <>
-                      <circle cx={9 + eyeX} cy={15.2 + eyeY} r="0.28" fill="#fff" opacity="0.85" />
-                      <circle cx={12.6 + eyeX} cy={15.2 + eyeY} r="0.28" fill="#fff" opacity="0.85" />
+                      <circle cx="9" cy="15.2" r="0.28" fill="#fff" opacity="0.85" />
+                      <circle cx="12.6" cy="15.2" r="0.28" fill="#fff" opacity="0.85" />
                     </>
                   )}
                 </>
               )}
+              </g>
 
               {/* blush when proud or celebrating */}
               {(mood === 'proud' || mood === 'celebrate') && (

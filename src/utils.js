@@ -105,10 +105,7 @@ export const DEFAULT_SETTINGS = {
   reducedEffects: false, // lighter, faster: no blur / aurora / confetti
   focusWork: 25, // custom pomodoro work minutes
   focusBreak: 5, // custom pomodoro break minutes
-  ambientShowEmber: true,
-  ambientNightDim: true,
-  ambientWidget1: 'streak', // 'none' | 'streak' | 'progress' | 'focus'
-  ambientWidget2: 'focus',
+  ambient: {}, // partial overrides of AMBIENT_DEFAULTS — always read via ambientConfig()
 }
 
 export const AMBIENT_WIDGETS = [
@@ -117,6 +114,42 @@ export const AMBIENT_WIDGETS = [
   { id: 'progress', label: 'Progress' },
   { id: 'focus', label: 'Focus' },
 ]
+
+// Every ambient-mode knob. Sizes are literal px so a given monitor can be
+// tuned exactly; the CSS still caps them so nothing can overflow the screen.
+export const AMBIENT_DEFAULTS = {
+  theme: 'app', // 'app' | 'light' | 'dark'
+  side: 'left', // which side the clock sits on
+  clockSize: 480, // px
+  clockFace: 'classic', // 'minimal' | 'classic' | 'numerals'
+  seconds: 'sweep', // 'sweep' | 'tick' | 'off'
+  showDigital: true,
+  showDate: true,
+  showGreeting: true,
+  showProgress: true,
+  widget1: 'streak',
+  widget2: 'focus',
+  columns: 'both', // 'both' | 'todo'
+  rowSize: 22, // px, task text
+  maxRows: 10,
+  padding: 56, // px, screen edge
+  gap: 96, // px, between clock and board
+  radius: 18, // px, card corners
+  glow: 100, // %, background warmth
+  showEmber: true,
+  emberSize: 128, // px
+  emberCorner: 'right', // 'right' | 'left'
+  emberEyes: true, // eyes follow the cursor
+  night: 'off', // 'off' | 'dim' | 'dark'
+  nightStart: 23,
+  nightEnd: 6,
+  nightLevel: 55, // % brightness while dimmed
+  drift: 12, // px, burn-in nudge every 3 min (0 = off)
+}
+
+// Saved settings only hold what the user changed, so new keys added here
+// later still reach returning users.
+export const ambientConfig = (settings) => ({ ...AMBIENT_DEFAULTS, ...(settings?.ambient ?? {}) })
 
 /* -------------------------- accent color helpers -------------------------- */
 

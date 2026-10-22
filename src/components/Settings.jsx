@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useStore, toast } from '../store'
 import { supabase } from '../supabase'
-import { PRIORITIES, AMBIENT_WIDGETS } from '../utils'
+import { PRIORITIES } from '../utils'
 import AccentPicker from './AccentPicker'
 import { remindersOptedIn, enableReminders, disableReminders } from '../reminders'
 import {
@@ -285,59 +285,28 @@ export default function Settings({ onClose }) {
             <div className="set-head">
               <FlameIcon size={12} /> Ambient
             </div>
-            <div className="set-row">
-              <span>Left widget 1</span>
-              <div className="chip-wrap">
-                {AMBIENT_WIDGETS.map((w) => (
-                  <button
-                    key={w.id}
-                    className={`chip ${settings.ambientWidget1 === w.id ? 'on' : ''}`}
-                    onClick={() => set({ ambientWidget1: w.id })}
-                  >
-                    {w.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="set-row">
-              <span>Left widget 2</span>
-              <div className="chip-wrap">
-                {AMBIENT_WIDGETS.map((w) => (
-                  <button
-                    key={w.id}
-                    className={`chip ${settings.ambientWidget2 === w.id ? 'on' : ''}`}
-                    onClick={() => set({ ambientWidget2: w.id })}
-                  >
-                    {w.label}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="set-row">
-              <span>Show Ember</span>
-              <button
-                className={`switch ${settings.ambientShowEmber ? 'on' : ''}`}
-                role="switch"
-                aria-checked={settings.ambientShowEmber}
-                onClick={() => set({ ambientShowEmber: !settings.ambientShowEmber })}
-              >
-                <span className="switch-knob" />
+            <p className="set-hint" style={{ marginTop: 0 }}>
+              A calm full-screen clock + today view for a second monitor or a docked phone. Every
+              part of it — clock size, dial, layout, widgets, Ember, night mode — is tweakable with a
+              live preview.
+            </p>
+            <button
+              className="set-action"
+              onClick={() => window.location.assign(`${window.location.pathname}?ambient=1&customize=1`)}
+            >
+              <SparkleIcon size={14} /> Customize ambient mode
+            </button>
+            <button
+              className="set-action"
+              onClick={() => window.open(`${window.location.pathname}?ambient=1`, 'kiln-ambient', 'popup')}
+            >
+              <FlameIcon size={14} /> Open in a new window
+            </button>
+            {Object.keys(settings.ambient ?? {}).length > 0 && (
+              <button className="set-action" onClick={() => set({ ambient: {} })}>
+                Reset ambient customizations
               </button>
-            </div>
-            <div className="set-row">
-              <span>
-                Dim at night
-                <span className="set-sub">55% opacity + dark palette, 11pm–6am</span>
-              </span>
-              <button
-                className={`switch ${settings.ambientNightDim ? 'on' : ''}`}
-                role="switch"
-                aria-checked={settings.ambientNightDim}
-                onClick={() => set({ ambientNightDim: !settings.ambientNightDim })}
-              >
-                <span className="switch-knob" />
-              </button>
-            </div>
+            )}
           </section>
 
           {/* Actions */}

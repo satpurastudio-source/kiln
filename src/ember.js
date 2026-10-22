@@ -1,16 +1,15 @@
 // Ember's mood — a pure function of app state so it can be unit-reasoned
 // and force-overridden in dev without touching any component.
 import { todayProgress } from './store'
-import { isOverdue } from './utils'
+import { isOverdue, ambientConfig } from './utils'
 
 export const EMBER_MOODS = ['focus', 'celebrate', 'worried', 'proud', 'sleepy', 'idle']
 
-const NIGHT_START = 23
-const NIGHT_END = 6
-
-export const isNightHour = (now = new Date()) => {
+// start > end wraps past midnight (e.g. 23 → 6)
+export const isNightHour = (now = new Date(), start = 23, end = 6) => {
   const h = now.getHours()
-  return h >= NIGHT_START || h < NIGHT_END
+  if (start === end) return false
+  return start > end ? h >= start || h < end : h >= start && h < end
 }
 
 // focusSession mirrors Focus.jsx's kiln-focus shape: { taskId, mode, phase, endsAt, remaining, count }
@@ -30,7 +29,8 @@ export function emberMood(state, focusSession, now = new Date()) {
   const progress = todayProgress(state)
   if (progress.total > 0 && progress.active === 0) return 'proud'
 
-  if (isNightHour(now) || progress.total === 0) return 'sleepy'
+  const { nightStart, nightEnd } = ambientConfig(state.settings)
+  if (isNightHour(now, nightStart, nightEnd) || progress.total === 0) return 'sleepy'
 
   return 'idle'
 }
