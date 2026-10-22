@@ -113,7 +113,6 @@ are injected automatically, so there are no secrets to set. The function:
 Settings → **Danger zone → Delete account** invokes it, then wipes the device and
 returns to a clean first-run state. (Until it's deployed, that button just clears
 local data and signs out — deploy it before you publish.)
-
 ## Test checklist
 
 1. `npm run dev`, open http://localhost:5173
