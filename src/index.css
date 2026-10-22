@@ -3999,3 +3999,24 @@ kbd,
     padding-bottom: max(16px, env(safe-area-inset-bottom));
   }
 }
+
+/* mobile browsers auto-zoom the whole page on focusing any text field under
+   16px — every input here is styled smaller than that for desktop density,
+   so force 16px back on narrow viewports to stop the zoom-and-drift */
+@media (max-width: 640px) {
+  .search input,
+  .quickadd input.title,
+  .modal input[type='text'],
+  .palette-input input,
+  .cal-add-row input,
+  .sub-add input,
+  .login-input,
+  .set-input,
+  .onb-input,
+  .habit-input,
+  .time-input input[type='time'],
+  .accent-hex,
+  .focus-custom input {
+    font-size: 16px;
+  }
+}
