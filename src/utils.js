@@ -127,6 +127,7 @@ export const AMBIENT_DEFAULTS = {
   showDate: true,
   showGreeting: true,
   showProgress: true,
+  quickAdd: true, // N / + adds a task without leaving ambient
   widget1: 'streak',
   widget2: 'focus',
   columns: 'both', // 'both' | 'todo'

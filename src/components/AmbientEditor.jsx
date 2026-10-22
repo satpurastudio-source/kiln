@@ -152,6 +152,7 @@ export default function AmbientEditor({ cfg, onChange, onReset, onClose }) {
           <Slider label="Clock ↔ tasks gap" value={cfg.gap} min={0} max={300} onChange={set('gap')} />
           <Slider label="Task text" value={cfg.rowSize} min={12} max={48} onChange={set('rowSize')} />
           <Slider label="Max rows" value={cfg.maxRows} min={3} max={25} unit="" onChange={set('maxRows')} />
+          <Toggle label="Quick add (N / +)" value={cfg.quickAdd} onChange={set('quickAdd')} />
           <Toggle label="Greeting" value={cfg.showGreeting} onChange={set('showGreeting')} />
           <Toggle label="Progress bar" value={cfg.showProgress} onChange={set('showProgress')} />
         </Section>

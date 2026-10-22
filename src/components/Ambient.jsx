@@ -9,7 +9,8 @@ import ProgressRing from './ProgressRing'
 import Ember from './Ember'
 import AnalogClock from './AnalogClock'
 import AmbientEditor from './AmbientEditor'
-import { XIcon, FlameIcon, SettingsIcon } from './Icons'
+import AmbientQuickAdd from './AmbientQuickAdd'
+import { XIcon, FlameIcon, SettingsIcon, PlusIcon } from './Icons'
 
 const WD = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 const MO = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
@@ -152,6 +153,7 @@ export default function Ambient({ onExit }) {
     import.meta.env.DEV && EMBER_MOODS.includes(params.get('mood')) ? params.get('mood') : null
 
   const [editing, setEditing] = useState(() => params.has('customize'))
+  const [adding, setAdding] = useState(false)
   const setCfg = (patch) =>
     dispatch({ type: 'SET_SETTINGS', patch: { ambient: { ...(settings.ambient ?? {}), ...patch } } })
   const resetCfg = () => dispatch({ type: 'SET_SETTINGS', patch: { ambient: {} } })
@@ -270,16 +272,26 @@ export default function Ambient({ onExit }) {
     }
   }, [])
 
-  // Esc closes the panel first, then leaves ambient
+  // N opens quick add (same shortcut as the main app). Esc peels back one
+  // layer at a time: quick add → customize panel → leave ambient.
   useEffect(() => {
     const onKey = (e) => {
-      if (e.key !== 'Escape') return
-      if (editing) setEditing(false)
-      else onExit()
+      const t = e.target
+      const typing = t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable
+      if (e.key === 'Escape') {
+        if (adding) setAdding(false)
+        else if (editing) setEditing(false)
+        else onExit()
+        return
+      }
+      if ((e.key === 'n' || e.key === 'N') && !typing && !e.metaKey && !e.ctrlKey && !e.altKey && cfg.quickAdd) {
+        e.preventDefault()
+        setAdding(true)
+      }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [onExit, editing])
+  }, [onExit, editing, adding, cfg.quickAdd])
 
   // Controls (× and ⚙) show on mouse movement OR a tap — phones have no
   // hover and no Esc key, so a tap anywhere has to reveal the way out.
@@ -347,6 +359,16 @@ export default function Ambient({ onExit }) {
             exit={{ opacity: 0, y: -6 }}
             transition={{ duration: 0.2 }}
           >
+            {cfg.quickAdd && (
+              <button
+                className={`amb-ctl ${adding ? 'on' : ''}`}
+                onClick={() => setAdding((v) => !v)}
+                aria-label="Add a task"
+                title="Add a task (N)"
+              >
+                <PlusIcon size={16} sw={2.2} />
+              </button>
+            )}
             <button
               className={`amb-ctl ${editing ? 'on' : ''}`}
               onClick={() => setEditing((v) => !v)}
@@ -498,6 +520,8 @@ export default function Ambient({ onExit }) {
           />
         </div>
       )}
+
+      <AnimatePresence>{adding && <AmbientQuickAdd onClose={() => setAdding(false)} />}</AnimatePresence>
 
       <AnimatePresence>
         {editing && (
