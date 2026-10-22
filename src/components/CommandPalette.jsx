@@ -22,6 +22,7 @@ import {
   ChartIcon,
   ArchiveIcon,
   TrashIcon,
+  FlameIcon,
 } from './Icons'
 
 export default function CommandPalette({ onClose, onNewProject, onOpenSettings }) {
@@ -51,6 +52,12 @@ export default function CommandPalette({ onClose, onNewProject, onOpenSettings }
         hint: 'Folder',
         fn: go({ type: 'project', projectId: p.id }),
       })),
+      {
+        icon: <FlameIcon size={14} />,
+        label: 'Open Ambient mode',
+        hint: 'Action',
+        fn: () => window.open(location.pathname + '?ambient=1', 'kiln-ambient', 'popup'),
+      },
       { icon: <PlusIcon size={14} />, label: 'New folder', hint: 'Action', fn: onNewProject },
       { icon: <SettingsIcon size={14} />, label: 'Open settings', hint: 'Action', fn: onOpenSettings },
       {

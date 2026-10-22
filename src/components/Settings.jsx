@@ -15,6 +15,7 @@ import {
   InfoIcon,
   DownloadIcon,
   FlagIcon,
+  FlameIcon,
 } from './Icons'
 
 const DUE_OPTS = [
@@ -273,6 +274,55 @@ export default function Settings({ onClose }) {
                 role="switch"
                 aria-checked={reminders}
                 onClick={toggleReminders}
+              >
+                <span className="switch-knob" />
+              </button>
+            </div>
+          </section>
+
+          {/* Ambient */}
+          <section className="set-section">
+            <div className="set-head">
+              <FlameIcon size={12} /> Ambient
+            </div>
+            <div className="set-row">
+              <span>Clock format</span>
+              <div className="seg">
+                <button
+                  className={`seg-btn ${settings.ambientClock24 ? 'on' : ''}`}
+                  onClick={() => set({ ambientClock24: true })}
+                >
+                  24h
+                </button>
+                <button
+                  className={`seg-btn ${!settings.ambientClock24 ? 'on' : ''}`}
+                  onClick={() => set({ ambientClock24: false })}
+                >
+                  12h
+                </button>
+              </div>
+            </div>
+            <div className="set-row">
+              <span>Show Ember</span>
+              <button
+                className={`switch ${settings.ambientShowEmber ? 'on' : ''}`}
+                role="switch"
+                aria-checked={settings.ambientShowEmber}
+                onClick={() => set({ ambientShowEmber: !settings.ambientShowEmber })}
+              >
+                <span className="switch-knob" />
+              </button>
+            </div>
+            <div className="set-row">
+              <span>
+                Dim at night
+                <span className="set-sub">55% opacity + dark palette, 11pm–6am</span>
+              </span>
+              <button
+                className={`switch ${settings.ambientNightDim ? 'on' : ''}`}
+                role="switch"
+                aria-checked={settings.ambientNightDim}
+                onClick={() => set({ ambientNightDim: !settings.ambientNightDim })}
               >
                 <span className="switch-knob" />
               </button>

@@ -105,6 +105,9 @@ export const DEFAULT_SETTINGS = {
   reducedEffects: false, // lighter, faster: no blur / aurora / confetti
   focusWork: 25, // custom pomodoro work minutes
   focusBreak: 5, // custom pomodoro break minutes
+  ambientClock24: true,
+  ambientShowEmber: true,
+  ambientNightDim: true,
 }
 
 /* -------------------------- accent color helpers -------------------------- */
