@@ -105,10 +105,18 @@ export const DEFAULT_SETTINGS = {
   reducedEffects: false, // lighter, faster: no blur / aurora / confetti
   focusWork: 25, // custom pomodoro work minutes
   focusBreak: 5, // custom pomodoro break minutes
-  ambientClock24: true,
   ambientShowEmber: true,
   ambientNightDim: true,
+  ambientWidget1: 'streak', // 'none' | 'streak' | 'progress' | 'focus'
+  ambientWidget2: 'focus',
 }
+
+export const AMBIENT_WIDGETS = [
+  { id: 'none', label: 'Blank' },
+  { id: 'streak', label: 'Streak' },
+  { id: 'progress', label: 'Progress' },
+  { id: 'focus', label: 'Focus' },
+]
 
 /* -------------------------- accent color helpers -------------------------- */
 

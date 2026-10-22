@@ -1,27 +1,20 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { AnimatePresence, LayoutGroup, motion } from 'framer-motion'
 import { useStore, todayProgress, selectInsights, taskInView } from '../store'
-import { isOverdue, priorityRank, PRIORITIES, fmtTime } from '../utils'
+import { isOverdue, priorityRank, PRIORITIES, fmtTime, greeting } from '../utils'
 import { FOCUS_KEY, resolveMode } from './Focus'
 import { emberMood, EMBER_MOODS, isNightHour } from '../ember'
 import Checkbox from './Checkbox'
 import ProgressRing from './ProgressRing'
 import Ember from './Ember'
+import AnalogClock from './AnalogClock'
 import { XIcon } from './Icons'
 
 const WD = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 const MO = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+const ROW_CAP = 10
 
 const dateLabel = (d) => `${WD[d.getDay()]} ${String(d.getDate()).padStart(2, '0')} ${MO[d.getMonth()]}`
-
-function formatClock(d, is24) {
-  let h = d.getHours()
-  const m = String(d.getMinutes()).padStart(2, '0')
-  if (is24) return `${String(h).padStart(2, '0')}:${m}`
-  const ap = h < 12 ? 'AM' : 'PM'
-  h = h % 12 === 0 ? 12 : h % 12
-  return `${h}:${m} ${ap}`
-}
 
 const fmtCountdown = (secs) => {
   const s = Math.max(0, Math.ceil(secs))
@@ -85,6 +78,56 @@ function useFocusSession() {
   return session
 }
 
+function Widget({ kind, progress, streak, focusSession, focusTask, focusSecsLeft, focusPct }) {
+  if (kind === 'streak') {
+    return (
+      <div className="amb-widget">
+        <span className="amb-widget-label">STREAK</span>
+        {streak > 0 ? (
+          <span className="amb-widget-value">🔥 {streak}d</span>
+        ) : (
+          <span className="amb-widget-sub">No streak yet</span>
+        )}
+      </div>
+    )
+  }
+  if (kind === 'progress') {
+    return (
+      <div className="amb-widget">
+        <span className="amb-widget-label">TODAY</span>
+        <div className="amb-widget-row">
+          <ProgressRing size={38} stroke={4} pct={progress.pct} />
+          <span className="amb-widget-value">{progress.pct}%</span>
+        </div>
+      </div>
+    )
+  }
+  if (kind === 'focus') {
+    return (
+      <div className="amb-widget">
+        <span className="amb-widget-label">FOCUS</span>
+        {focusSession ? (
+          <div className="amb-widget-row">
+            <ProgressRing
+              size={38}
+              stroke={4}
+              pct={focusPct}
+              color={focusSession.phase === 'work' ? 'var(--accent)' : '#7c8a4d'}
+            />
+            <div className="amb-widget-focus-info">
+              <span className="amb-widget-value">{fmtCountdown(focusSecsLeft)}</span>
+              <span className="amb-widget-sub">{focusTask?.title ?? 'Focus session'}</span>
+            </div>
+          </div>
+        ) : (
+          <span className="amb-widget-sub">No active session</span>
+        )}
+      </div>
+    )
+  }
+  return <div className="amb-widget amb-widget-blank" />
+}
+
 export default function Ambient({ onExit }) {
   const { state, dispatch } = useStore()
   const now = useMinuteClock()
@@ -122,9 +165,10 @@ export default function Ambient({ onExit }) {
     return { activeToday: active, completedToday: completed, overdueCount: overdue }
   }, [state.tasks])
 
-  const combined = [...activeToday, ...completedToday]
-  const visibleRows = combined.slice(0, 7)
-  const overflowCount = combined.length - visibleRows.length
+  const visibleTodo = activeToday.slice(0, ROW_CAP)
+  const todoOverflow = activeToday.length - visibleTodo.length
+  const visibleDone = completedToday.slice(0, ROW_CAP)
+  const doneOverflow = completedToday.length - visibleDone.length
 
   const progress = todayProgress(state)
   const insights = selectInsights(state)
@@ -146,6 +190,8 @@ export default function Ambient({ onExit }) {
           : focusMode.brk
       : 1
   const focusPct = focusSession ? Math.min(100, Math.max(0, (focusSecsLeft / focusDuration) * 100)) : 0
+
+  const widgetProps = { progress, streak: insights.streak, focusSession, focusTask, focusSecsLeft, focusPct }
 
   // burn-in protection: nudge the whole layout a little every 3 minutes
   const [drift, setDrift] = useState({ x: 0, y: 0 })
@@ -206,6 +252,8 @@ export default function Ambient({ onExit }) {
     }
   }, [])
 
+  const toggle = (id) => dispatch({ type: 'TOGGLE_TASK', id })
+
   return (
     <div
       className={`amb-root ${nightDim ? 'amb-night' : ''}`}
@@ -227,66 +275,96 @@ export default function Ambient({ onExit }) {
         )}
       </AnimatePresence>
 
-      <div className="amb-top">
-        <div className="amb-date">{dateLabel(now)}</div>
-        <div className="amb-chips">
-          <div className="amb-chip">
-            <ProgressRing size={22} stroke={3} pct={progress.pct} />
-            <span>{progress.pct}%</span>
-          </div>
-          {insights.streak > 0 && <div className="amb-chip amb-streak">🔥 {insights.streak}d</div>}
-        </div>
-      </div>
-
-      <div className="amb-clock-wrap">
-        <div className="amb-clock">{formatClock(now, settings.ambientClock24 !== false)}</div>
-      </div>
-
-      <div className="amb-bottom">
-        <div className="amb-today">
-          <div className="amb-section-label">
-            TODAY <span>· {progress.active} left</span>
-          </div>
-          {visibleRows.length === 0 ? (
-            <div className="amb-empty">Nothing due. Rest or plan tomorrow.</div>
-          ) : (
-            <>
-              {visibleRows.map((t) => (
-                <div key={t.id} className={`amb-row ${t.done ? 'done' : ''}`}>
-                  <Checkbox
-                    checked={t.done}
-                    color="var(--accent)"
-                    onToggle={() => dispatch({ type: 'TOGGLE_TASK', id: t.id })}
-                  />
-                  {!t.done && isOverdue(t.due) && <span className="amb-overdue-dot" />}
-                  <span className="amb-row-title">{t.title}</span>
-                  {!t.done && t.time && <span className="amb-row-time">{fmtTime(t.time)}</span>}
-                  {!t.done && t.priority !== 'none' && (
-                    <span className="amb-row-priority">
-                      {PRIORITIES.find((p) => p.id === t.priority)?.label}
-                    </span>
-                  )}
-                </div>
-              ))}
-              {overflowCount > 0 && <div className="amb-more">+{overflowCount} more</div>}
-            </>
-          )}
+      <div className="amb-layout">
+        <div className="amb-left">
+          <AnalogClock now={now} reducedEffects={!!settings.reducedEffects} />
+          <div className="amb-date">{dateLabel(now)}</div>
+          <Widget kind={settings.ambientWidget1 ?? 'streak'} {...widgetProps} />
+          <Widget kind={settings.ambientWidget2 ?? 'focus'} {...widgetProps} />
         </div>
 
-        <div className="amb-bottom-right">
-          {focusSession && (
-            <div className="amb-focus">
-              <div className="amb-section-label">FOCUS</div>
-              <div className="amb-focus-body">
-                <ProgressRing size={54} stroke={4} pct={focusPct} color={focusSession.phase === 'work' ? 'var(--accent)' : '#7c8a4d'} />
-                <div className="amb-focus-info">
-                  <span className="amb-focus-time">{fmtCountdown(focusSecsLeft)}</span>
-                  <span className="amb-focus-task">{focusTask?.title ?? 'Focus session'}</span>
-                  <span className="amb-focus-phase">{focusSession.phase === 'work' ? 'focus' : 'break'}</span>
+        <div className="amb-right">
+          <div className="amb-head">
+            <div className="amb-greet">
+              {greeting()}
+              {state.profile?.name ? `, ${state.profile.name.split(/\s+/)[0]}` : ''}
+              <span className="dot">.</span>
+            </div>
+            <div className="amb-progress">
+              <div className="amb-progress-track">
+                <motion.div
+                  className="amb-progress-fill"
+                  initial={false}
+                  animate={{ width: `${progress.pct}%` }}
+                  transition={{ type: 'spring', stiffness: 60, damping: 18 }}
+                />
+              </div>
+              <span className="amb-progress-label">
+                {progress.done}/{progress.total} · {progress.pct}%
+              </span>
+            </div>
+          </div>
+
+          <LayoutGroup>
+            <div className="amb-board">
+              <div className="amb-col">
+                <div className="amb-col-head">
+                  <span className="amb-col-dot todo" />
+                  TODO <span className="amb-col-count">{activeToday.length}</span>
                 </div>
+                {visibleTodo.length === 0 ? (
+                  <div className="amb-empty">Nothing due. Rest or plan tomorrow.</div>
+                ) : (
+                  <AnimatePresence initial={false}>
+                    {visibleTodo.map((t) => (
+                      <motion.div
+                        key={t.id}
+                        layoutId={`amb-${t.id}`}
+                        className="amb-row"
+                        transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+                      >
+                        <Checkbox checked={false} color="var(--accent)" onToggle={() => toggle(t.id)} />
+                        {isOverdue(t.due) && <span className="amb-overdue-dot" />}
+                        <span className="amb-row-title">{t.title}</span>
+                        {t.time && <span className="amb-row-tag">{fmtTime(t.time)}</span>}
+                        {t.priority !== 'none' && (
+                          <span className={`amb-row-tag prio-${t.priority}`}>
+                            {PRIORITIES.find((p) => p.id === t.priority)?.label}
+                          </span>
+                        )}
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                )}
+                {todoOverflow > 0 && <div className="amb-more">+{todoOverflow} more</div>}
+              </div>
+
+              <div className="amb-col">
+                <div className="amb-col-head">
+                  <span className="amb-col-dot done" />
+                  DONE <span className="amb-col-count">{completedToday.length}</span>
+                </div>
+                {visibleDone.length === 0 ? (
+                  <div className="amb-empty">Nothing finished yet.</div>
+                ) : (
+                  <AnimatePresence initial={false}>
+                    {visibleDone.map((t) => (
+                      <motion.div
+                        key={t.id}
+                        layoutId={`amb-${t.id}`}
+                        className="amb-row done"
+                        transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+                      >
+                        <Checkbox checked color="var(--accent)" onToggle={() => toggle(t.id)} />
+                        <span className="amb-row-title">{t.title}</span>
+                      </motion.div>
+                    ))}
+                  </AnimatePresence>
+                )}
+                {doneOverflow > 0 && <div className="amb-more">+{doneOverflow} more</div>}
               </div>
             </div>
-          )}
+          </LayoutGroup>
 
           {settings.ambientShowEmber !== false && (
             <Ember

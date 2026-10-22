@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { useStore, toast } from '../store'
 import { supabase } from '../supabase'
-import { PRIORITIES } from '../utils'
+import { PRIORITIES, AMBIENT_WIDGETS } from '../utils'
 import AccentPicker from './AccentPicker'
 import { remindersOptedIn, enableReminders, disableReminders } from '../reminders'
 import {
@@ -286,20 +286,31 @@ export default function Settings({ onClose }) {
               <FlameIcon size={12} /> Ambient
             </div>
             <div className="set-row">
-              <span>Clock format</span>
-              <div className="seg">
-                <button
-                  className={`seg-btn ${settings.ambientClock24 ? 'on' : ''}`}
-                  onClick={() => set({ ambientClock24: true })}
-                >
-                  24h
-                </button>
-                <button
-                  className={`seg-btn ${!settings.ambientClock24 ? 'on' : ''}`}
-                  onClick={() => set({ ambientClock24: false })}
-                >
-                  12h
-                </button>
+              <span>Left widget 1</span>
+              <div className="chip-wrap">
+                {AMBIENT_WIDGETS.map((w) => (
+                  <button
+                    key={w.id}
+                    className={`chip ${settings.ambientWidget1 === w.id ? 'on' : ''}`}
+                    onClick={() => set({ ambientWidget1: w.id })}
+                  >
+                    {w.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+            <div className="set-row">
+              <span>Left widget 2</span>
+              <div className="chip-wrap">
+                {AMBIENT_WIDGETS.map((w) => (
+                  <button
+                    key={w.id}
+                    className={`chip ${settings.ambientWidget2 === w.id ? 'on' : ''}`}
+                    onClick={() => set({ ambientWidget2: w.id })}
+                  >
+                    {w.label}
+                  </button>
+                ))}
               </div>
             </div>
             <div className="set-row">

@@ -4033,7 +4033,11 @@ kbd,
   height: 100vh;
   width: 100vw;
   padding: clamp(24px, 4vh, 64px) clamp(24px, 4vw, 72px);
-  background: var(--bg);
+  /* static warm vignette — painted once, no animation cost */
+  background:
+    radial-gradient(ellipse 60% 70% at 12% 22%, rgba(var(--accent-rgb), 0.09), transparent 60%),
+    radial-gradient(ellipse 50% 50% at 92% 95%, rgba(var(--accent-rgb), 0.06), transparent 60%),
+    var(--bg);
   color: var(--text);
   font-family: var(--font-mono);
   overflow: hidden;
@@ -4075,91 +4079,327 @@ kbd,
   color: var(--text);
 }
 
-.amb-top {
+.amb-layout {
+  display: grid;
+  grid-template-columns: minmax(200px, 24vw) 1fr;
+  gap: clamp(32px, 5vw, 72px);
+  height: 100%;
+}
+
+/* ---------- left column: watch face + customizable widgets ---------- */
+
+.amb-left {
   display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding-top: clamp(8px, 3vh, 28px);
 }
 
 .amb-date {
   font-family: var(--font-mono);
-  font-size: clamp(13px, 1.3vw, 19px);
-  letter-spacing: 0.18em;
+  font-size: clamp(12px, 1.1vw, 15px);
+  letter-spacing: 0.2em;
   color: var(--text-2);
+  margin-bottom: 4px;
 }
 
-.amb-chips {
+.amb-clock-face {
+  position: relative;
+}
+
+/* faint accent glow pooled behind the dial */
+.amb-clock-face::before {
+  content: '';
+  position: absolute;
+  inset: -14%;
+  border-radius: 50%;
+  background: radial-gradient(circle, transparent 46%, rgba(var(--accent-rgb), 0.12) 52%, transparent 70%);
+  z-index: -1;
+}
+
+.amb-clock-dial {
+  fill: var(--panel);
+}
+
+.amb-clock-rim {
+  fill: none;
+  stroke: var(--border-strong);
+  stroke-width: 1.6;
+}
+
+.amb-clock-tick {
+  stroke: var(--text-3);
+  stroke-width: 0.9;
+  stroke-linecap: round;
+  opacity: 0.55;
+}
+
+.amb-clock-tick.hour {
+  stroke: var(--text-2);
+  stroke-width: 1.9;
+  opacity: 1;
+}
+
+.amb-clock-tick.quarter {
+  stroke: var(--text);
+  stroke-width: 2.8;
+}
+
+.amb-hands-shadow {
+  filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.35));
+}
+
+.amb-hand {
+  stroke: var(--text);
+  stroke-linecap: round;
+  transition: transform 0.5s cubic-bezier(0.34, 1.3, 0.64, 1);
+  transform-origin: 100px 100px;
+}
+
+.amb-hand-hour {
+  stroke-width: 6;
+}
+
+.amb-hand-minute {
+  stroke-width: 3.8;
+}
+
+.amb-hand-second {
+  stroke: var(--accent);
+  stroke-width: 1.3;
+  stroke-linecap: round;
+}
+
+.amb-hand-second-weight {
+  fill: var(--accent);
+}
+
+.amb-hand-second-static {
+  transform-origin: 100px 100px;
+}
+
+/* the sweep is pure CSS, set going once at mount — no JS ticks per second */
+.amb-hand-second-sweep {
+  transform-origin: 100px 100px;
+  transform: rotate(var(--amb-sec-start));
+  animation: amb-sweep 60s linear infinite;
+}
+
+@keyframes amb-sweep {
+  from {
+    transform: rotate(var(--amb-sec-start));
+  }
+  to {
+    transform: rotate(calc(var(--amb-sec-start) + 360deg));
+  }
+}
+
+.amb-clock-pin {
+  fill: var(--text);
+}
+
+.amb-clock-pin-cap {
+  fill: var(--accent);
+}
+
+.amb-widget {
+  width: 100%;
+  max-width: 240px;
+  padding: 14px 16px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: linear-gradient(160deg, var(--panel), transparent 160%);
   display: flex;
-  align-items: center;
-  gap: 16px;
+  flex-direction: column;
+  gap: 6px;
 }
 
-.amb-chip {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: clamp(13px, 1.1vw, 16px);
-  color: var(--text-2);
+.amb-widget-blank {
+  border-style: dashed;
+  min-height: 54px;
 }
 
-.amb-streak {
-  font-size: clamp(13px, 1.1vw, 16px);
+.amb-widget-label {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  color: var(--text-3);
 }
 
-.amb-clock-wrap {
-  flex: 1;
-  display: grid;
-  place-items: center;
-  min-height: 0;
-}
-
-.amb-clock {
+.amb-widget-value {
   font-family: var(--font-display);
-  font-size: clamp(64px, 18vw, 320px);
+  font-size: clamp(18px, 1.8vw, 26px);
+  line-height: 1;
+  color: var(--text);
+}
+
+.amb-widget-sub {
+  font-size: 12px;
+  color: var(--text-3);
+}
+
+.amb-widget-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.amb-widget-focus-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.amb-widget-focus-info .amb-widget-sub {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- right side: Todo / Done board ---------- */
+
+.amb-right {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-width: 0;
+}
+
+.amb-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: clamp(18px, 3vh, 32px);
+  padding-right: 48px; /* clear the hover-only close button */
+}
+
+.amb-greet {
+  font-family: var(--font-display);
+  font-size: clamp(34px, 3.6vw, 64px);
   line-height: 1;
   letter-spacing: 0.02em;
   color: var(--text);
 }
 
-.amb-bottom {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-end;
-  gap: clamp(24px, 4vw, 64px);
+.amb-greet .dot {
+  color: var(--accent);
 }
 
-.amb-bottom-right {
+.amb-progress {
   display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  gap: clamp(20px, 3vw, 48px);
-  flex-shrink: 0;
+  align-items: center;
+  gap: 14px;
+  min-width: min(320px, 40%);
 }
 
-.amb-today {
+.amb-progress-track {
   flex: 1;
-  min-width: 0;
-  max-width: 560px;
+  height: 6px;
+  border-radius: 99px;
+  background: var(--border);
+  overflow: hidden;
 }
 
-.amb-section-label {
-  font-family: var(--font-mono);
-  font-size: clamp(11px, 1vw, 14px);
-  letter-spacing: 0.14em;
-  color: var(--text-3);
-  margin-bottom: 10px;
+.amb-progress-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--accent-deep), var(--accent), var(--accent-2));
+  box-shadow: 0 0 12px rgba(var(--accent-rgb), 0.5);
 }
 
-.amb-section-label span {
+.amb-progress-label {
+  font-size: clamp(11px, 0.95vw, 14px);
+  letter-spacing: 0.08em;
   color: var(--text-2);
+  white-space: nowrap;
+}
+
+.amb-board {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: clamp(18px, 2.4vw, 40px);
+  min-height: 0;
+  padding-bottom: clamp(110px, 14vh, 150px); /* leave Ember room to breathe */
+}
+
+.amb-col {
+  min-width: 0;
+  overflow: hidden;
+  padding: clamp(16px, 1.8vw, 28px);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, var(--panel), transparent 140%);
+}
+
+.amb-col-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-family: var(--font-mono);
+  font-size: clamp(12px, 1.05vw, 14px);
+  letter-spacing: 0.18em;
+  color: var(--text-2);
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border);
+}
+
+.amb-col-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.amb-col-dot.todo {
+  background: var(--accent);
+  box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.7);
+}
+
+.amb-col-dot.done {
+  background: var(--text-3);
+}
+
+.amb-col-count {
+  margin-left: auto;
+  min-width: 26px;
+  padding: 2px 8px;
+  border-radius: 99px;
+  background: var(--panel-hover);
+  color: var(--text);
+  text-align: center;
+  letter-spacing: 0.04em;
 }
 
 .amb-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 6px 0;
-  font-size: clamp(14px, 1.3vw, 19px);
+  gap: 12px;
+  padding: 10px 8px;
+  margin: 0 -8px;
+  border-radius: var(--radius-sm);
+  font-size: clamp(14px, 1.35vw, 20px);
+  transition: background-color 0.2s ease;
+}
+
+.amb-row:hover {
+  background: var(--panel-hover);
+}
+
+.amb-row-tag.prio-high {
+  color: var(--danger);
+}
+
+.amb-row-tag.prio-medium {
+  color: #d98e32;
+}
+
+.amb-row-tag.prio-low {
+  color: #74929f;
 }
 
 .amb-row .checkbox {
@@ -4189,10 +4429,9 @@ kbd,
   flex-shrink: 0;
 }
 
-.amb-row-time,
-.amb-row-priority {
+.amb-row-tag {
   color: var(--text-3);
-  font-size: 0.72em;
+  font-size: 0.68em;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   flex-shrink: 0;
@@ -4202,57 +4441,173 @@ kbd,
 .amb-more {
   color: var(--text-3);
   font-size: 0.85em;
-  margin-top: 4px;
+  margin-top: 6px;
 }
 
 .amb-empty {
   color: var(--text-3);
-  font-size: clamp(14px, 1.2vw, 18px);
+  font-size: clamp(13px, 1.1vw, 16px);
 }
 
-.amb-focus {
-  text-align: right;
-}
-
-.amb-focus-body {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-}
-
-.amb-focus-info {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-}
-
-.amb-focus-time {
-  font-family: var(--font-display);
-  font-size: clamp(24px, 2.6vw, 40px);
-  line-height: 1;
-}
-
-.amb-focus-task {
-  color: var(--text-2);
-  font-size: clamp(12px, 1vw, 15px);
-  max-width: 240px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.amb-focus-phase {
-  color: var(--text-3);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.1em;
-}
+/* ---------- Ember ---------- */
 
 .amb-ember {
-  position: relative;
-  flex-shrink: 0;
+  position: fixed;
+  right: clamp(24px, 4vw, 64px);
+  bottom: clamp(24px, 4vh, 56px);
   z-index: 4;
-  cursor: default;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.amb-ember-hold {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.amb-ember-squash {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* halo — slow 5s breath, brightness picked by mood */
+.amb-ember-glow {
+  position: absolute;
+  inset: -22%;
+  border-radius: 50%;
+  background: radial-gradient(circle at 50% 62%, rgba(var(--accent-rgb), 0.55), transparent 62%);
+  opacity: 0.45;
+  animation: amb-glow 5s ease-in-out infinite alternate;
+  transition: opacity 0.8s ease;
+  pointer-events: none;
+}
+
+.amb-ember-glow.glow-hot {
+  opacity: 0.95;
+  animation-duration: 0.9s;
+}
+
+.amb-ember-glow.glow-warm {
+  opacity: 0.7;
+}
+
+.amb-ember-glow.glow-low {
+  opacity: 0.22;
+}
+
+.amb-ember-glow.still {
+  animation: none;
+}
+
+@keyframes amb-glow {
+  from {
+    transform: scale(0.92);
+  }
+  to {
+    transform: scale(1.08);
+  }
+}
+
+/* embers drifting up off the flame */
+.amb-ember-rise {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.amb-ember-rise span {
+  position: absolute;
+  bottom: 48%;
+  left: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--accent-2);
+  box-shadow: 0 0 6px var(--accent-2);
+  opacity: 0;
+  animation: amb-rise 6s ease-out infinite;
+}
+
+.amb-ember-rise span:nth-child(1) {
+  margin-left: -10px;
+  animation-delay: 0s;
+}
+.amb-ember-rise span:nth-child(2) {
+  margin-left: 6px;
+  animation-delay: 1.6s;
+}
+.amb-ember-rise span:nth-child(3) {
+  margin-left: -2px;
+  animation-delay: 3.1s;
+}
+.amb-ember-rise span:nth-child(4) {
+  margin-left: 11px;
+  animation-delay: 4.5s;
+}
+
+.amb-ember-rise.fast span {
+  animation-duration: 1.4s;
+}
+
+@keyframes amb-rise {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 0;
+  }
+  12% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translate(var(--drift, 6px), -70px) scale(0.2);
+    opacity: 0;
+  }
+}
+
+.amb-ember-rise span:nth-child(odd) {
+  --drift: -8px;
+}
+
+/* sleepy z's */
+.amb-ember-zzz {
+  position: absolute;
+  top: 2%;
+  right: -6%;
+  pointer-events: none;
+}
+
+.amb-ember-zzz span {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-2);
+  opacity: 0;
+  animation: amb-zzz 4.8s ease-out infinite;
+}
+
+.amb-ember-zzz span:nth-child(2) {
+  animation-delay: 1.6s;
+  font-size: 11px;
+}
+.amb-ember-zzz span:nth-child(3) {
+  animation-delay: 3.2s;
+  font-size: 9px;
+}
+
+@keyframes amb-zzz {
+  0% {
+    transform: translate(0, 0);
+    opacity: 0;
+  }
+  20% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(14px, -34px);
+    opacity: 0;
+  }
 }
 
 .amb-ember-bubble {
@@ -4270,16 +4625,46 @@ kbd,
   white-space: nowrap;
 }
 
+.amb-ember-sparks {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.amb-spark {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px;
+  border-radius: 50%;
+  background: var(--accent-2);
+}
+
 @media (orientation: portrait) {
-  .amb-bottom {
-    flex-direction: column;
-    align-items: stretch;
+  .amb-layout {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto 1fr;
     gap: 28px;
   }
-  .amb-today {
-    max-width: none;
+  .amb-left {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding-top: 0;
   }
-  .amb-bottom-right {
-    justify-content: space-between;
+  .amb-widget {
+    max-width: 200px;
+  }
+  .amb-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .amb-progress {
+    width: 100%;
+  }
+  .amb-board {
+    grid-template-columns: 1fr 1fr;
   }
 }
