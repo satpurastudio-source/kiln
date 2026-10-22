@@ -17,7 +17,7 @@ import { setSoundEnabled } from './sound'
 import { setFxLite } from './fx'
 import { supabase, pullCloud, pushCloud } from './supabase'
 
-const STORAGE_KEY = 'zenith-v1'
+export const STORAGE_KEY = 'zenith-v1'
 // Deleted tasks linger here before being purged.
 export const TRASH_TTL = 30 * 24 * 60 * 60 * 1000
 const StoreCtx = createContext(null)
@@ -410,6 +410,13 @@ function reducer(state, action) {
         view: sanitizeView(state.view, action.data.projects),
       }
     }
+    case 'HYDRATE_LOCAL': {
+      // mirror another same-origin tab's write to STORAGE_KEY — this is how
+      // the ambient window and the main window stay in sync with each other
+      // (separate from HYDRATE, which pulls from the cloud)
+      if (!action.data || typeof action.data !== 'object') return state
+      return { ...state, ...action.data }
+    }
     case 'SET_THEME':
       return { ...state, theme: action.theme }
     case 'SET_SOUND':
@@ -515,6 +522,23 @@ export function StoreProvider({ children }) {
     document.documentElement.classList.toggle('fx-lite', on)
     setFxLite(on)
   }, [state.settings.reducedEffects])
+
+  // Cross-window sync: pick up another same-origin tab's save (e.g. the
+  // ambient view ticking a task, or the main window completing one while
+  // ambient is open elsewhere). The browser never fires this in the tab
+  // that made the write, so there's no echo to guard against here.
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key !== STORAGE_KEY || !e.newValue) return
+      try {
+        dispatch({ type: 'HYDRATE_LOCAL', data: JSON.parse(e.newValue) })
+      } catch {
+        /* a half-written value from another tab — ignore, next save will fix it */
+      }
+    }
+    window.addEventListener('storage', onStorage)
+    return () => window.removeEventListener('storage', onStorage)
+  }, [])
 
   // Trash auto-purge: fire exactly when the soonest item expires, then reschedule.
   useEffect(() => {

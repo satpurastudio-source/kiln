@@ -4020,3 +4020,266 @@ kbd,
     font-size: 16px;
   }
 }
+
+/* =============================== Ambient mode =============================== */
+
+.amb-root {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100vh;
+  width: 100vw;
+  padding: clamp(24px, 4vh, 64px) clamp(24px, 4vw, 72px);
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-mono);
+  overflow: hidden;
+  cursor: default;
+  transition: transform 2s ease, opacity 1.2s ease, background-color 1.2s ease;
+}
+
+/* 23:00–06:00: dim + force the dark palette in this view only, regardless
+   of the document's real theme (which stays whatever the main app has). */
+.amb-root.amb-night {
+  opacity: 0.55;
+  --bg: #0e0b08;
+  --bg-raise: #181310;
+  --panel: rgba(244, 239, 230, 0.035);
+  --panel-strong: rgba(24, 19, 16, 0.88);
+  --border: rgba(244, 239, 230, 0.08);
+  --border-strong: rgba(244, 239, 230, 0.2);
+  --text: #f4efe6;
+  --text-2: rgba(244, 239, 230, 0.62);
+  --text-3: rgba(244, 239, 230, 0.38);
+}
+
+.amb-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  z-index: 5;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--radius-sm);
+  background: var(--panel-strong);
+  border: 1px solid var(--border);
+  color: var(--text-2);
+}
+
+.amb-close:hover {
+  color: var(--text);
+}
+
+.amb-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.amb-date {
+  font-family: var(--font-mono);
+  font-size: clamp(13px, 1.3vw, 19px);
+  letter-spacing: 0.18em;
+  color: var(--text-2);
+}
+
+.amb-chips {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.amb-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: clamp(13px, 1.1vw, 16px);
+  color: var(--text-2);
+}
+
+.amb-streak {
+  font-size: clamp(13px, 1.1vw, 16px);
+}
+
+.amb-clock-wrap {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+}
+
+.amb-clock {
+  font-family: var(--font-display);
+  font-size: clamp(64px, 18vw, 320px);
+  line-height: 1;
+  letter-spacing: 0.02em;
+  color: var(--text);
+}
+
+.amb-bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: clamp(24px, 4vw, 64px);
+}
+
+.amb-bottom-right {
+  display: flex;
+  align-items: flex-end;
+  justify-content: flex-end;
+  gap: clamp(20px, 3vw, 48px);
+  flex-shrink: 0;
+}
+
+.amb-today {
+  flex: 1;
+  min-width: 0;
+  max-width: 560px;
+}
+
+.amb-section-label {
+  font-family: var(--font-mono);
+  font-size: clamp(11px, 1vw, 14px);
+  letter-spacing: 0.14em;
+  color: var(--text-3);
+  margin-bottom: 10px;
+}
+
+.amb-section-label span {
+  color: var(--text-2);
+}
+
+.amb-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: clamp(14px, 1.3vw, 19px);
+}
+
+.amb-row .checkbox {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+}
+
+.amb-row-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.amb-row.done .amb-row-title {
+  color: var(--text-3);
+  text-decoration: line-through;
+}
+
+.amb-overdue-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--danger);
+  flex-shrink: 0;
+}
+
+.amb-row-time,
+.amb-row-priority {
+  color: var(--text-3);
+  font-size: 0.72em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.amb-more {
+  color: var(--text-3);
+  font-size: 0.85em;
+  margin-top: 4px;
+}
+
+.amb-empty {
+  color: var(--text-3);
+  font-size: clamp(14px, 1.2vw, 18px);
+}
+
+.amb-focus {
+  text-align: right;
+}
+
+.amb-focus-body {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.amb-focus-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+}
+
+.amb-focus-time {
+  font-family: var(--font-display);
+  font-size: clamp(24px, 2.6vw, 40px);
+  line-height: 1;
+}
+
+.amb-focus-task {
+  color: var(--text-2);
+  font-size: clamp(12px, 1vw, 15px);
+  max-width: 240px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.amb-focus-phase {
+  color: var(--text-3);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+}
+
+.amb-ember {
+  position: relative;
+  flex-shrink: 0;
+  z-index: 4;
+  cursor: default;
+}
+
+.amb-ember-bubble {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  margin-bottom: 10px;
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: var(--panel-strong);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lift);
+  color: var(--text);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+@media (orientation: portrait) {
+  .amb-bottom {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 28px;
+  }
+  .amb-today {
+    max-width: none;
+  }
+  .amb-bottom-right {
+    justify-content: space-between;
+  }
+}

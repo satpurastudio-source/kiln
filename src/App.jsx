@@ -22,12 +22,22 @@ import Login from './components/Login'
 import Verified from './components/Verified'
 import Onboarding from './components/Onboarding'
 import Settings from './components/Settings'
+import Ambient from './components/Ambient'
 import { MenuIcon, XIcon } from './components/Icons'
 
 export default function App() {
   const { state } = useStore()
-  const [booted, setBooted] = useState(false)
+  // ?ambient=1 opens straight into the ambient view — skip the typewriter
+  // boot screen for it (a second-monitor kiosk shouldn't wait on that)
+  const [showAmbient, setShowAmbient] = useState(() =>
+    new URLSearchParams(window.location.search).has('ambient')
+  )
+  const [booted, setBooted] = useState(() => showAmbient)
   const reveal = useCallback(() => setBooted(true), [])
+  const exitAmbient = useCallback(() => {
+    window.history.replaceState(null, '', window.location.pathname)
+    setShowAmbient(false)
+  }, [])
   const [query, setQuery] = useState('')
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [projectModal, setProjectModal] = useState(null)
@@ -89,15 +99,19 @@ export default function App() {
   // position in the fragment so it never remounts mid-sequence.
   return (
     <>
-      <Loader onReveal={reveal} />
+      {!showAmbient && <Loader onReveal={reveal} />}
       {booted && (
         <div className="app">
-          <div className="aurora">
-            <div className="blob b1" />
-            <div className="blob b2" />
-            <div className="blob b3" />
-          </div>
-          <div className="noise" />
+          {!showAmbient && (
+            <>
+              <div className="aurora">
+                <div className="blob b1" />
+                <div className="blob b2" />
+                <div className="blob b3" />
+              </div>
+              <div className="noise" />
+            </>
+          )}
 
           {showReset ? (
             <Reset
@@ -117,6 +131,8 @@ export default function App() {
             <Onboarding />
           ) : !signedIn ? (
             <Login />
+          ) : showAmbient ? (
+            <Ambient onExit={exitAmbient} />
           ) : (
             <>
       <button

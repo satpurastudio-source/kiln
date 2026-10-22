@@ -5,15 +5,15 @@ import { playComplete, playFanfare, playPop } from '../sound'
 import { PauseIcon, PlayIcon, SkipIcon, XIcon, FlameIcon } from './Icons'
 import Tip from './Tip'
 
-const FOCUS_KEY = 'kiln-focus'
-const MODES = {
+export const FOCUS_KEY = 'kiln-focus'
+export const MODES = {
   classic: { work: 25 * 60, brk: 5 * 60, label: '25 · 5' },
   deep: { work: 50 * 60, brk: 10 * 60, label: '50 · 10' },
 }
 
 // custom mode reads work/break minutes from settings
 const clampMin = (n, max) => Math.min(max, Math.max(1, Math.round(n) || 1))
-const resolveMode = (id, settings) =>
+export const resolveMode = (id, settings) =>
   id === 'custom'
     ? {
         work: clampMin(settings.focusWork, 180) * 60,
