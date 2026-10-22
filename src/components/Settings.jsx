@@ -58,7 +58,7 @@ export default function Settings({ onClose }) {
   }
 
   const replayTour = () => {
-    dispatch({ type: 'SET_ONBOARDED', value: false })
+    dispatch({ type: 'START_TOUR_REPLAY' })
     onClose()
   }
 

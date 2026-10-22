@@ -57,7 +57,7 @@ export default function CommandPalette({ onClose, onNewProject, onOpenSettings }
         icon: <InfoIcon size={14} />,
         label: 'Replay welcome tour',
         hint: 'Action',
-        fn: () => dispatch({ type: 'SET_ONBOARDED', value: false }),
+        fn: () => dispatch({ type: 'START_TOUR_REPLAY' }),
       },
       {
         icon: state.theme === 'dark' ? <SunIcon size={14} /> : <MoonIcon size={14} />,

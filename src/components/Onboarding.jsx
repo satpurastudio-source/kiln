@@ -11,7 +11,10 @@ import { FlameIcon, SunIcon, MoonIcon } from './Icons'
 // Also reopened as a quick tour from Settings / palette by flipping `onboarded`.
 export default function Onboarding() {
   const { state, dispatch } = useStore()
-  const firstRun = !state.profile // no account/guest yet → this is a new user
+  // an explicit replay (Settings / palette) is never treated as first-run,
+  // even if `profile` happens to be unset (e.g. right after signing out) —
+  // first-run is the only path that's allowed to touch projects/tasks
+  const firstRun = !state.replayTour && !state.profile
   const accent = resolveAccent(state.settings).accent
   const [step, setStep] = useState(0)
   const [name, setName] = useState(state.profile?.name ?? '')

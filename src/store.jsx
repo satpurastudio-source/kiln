@@ -386,7 +386,12 @@ function reducer(state, action) {
     case 'SET_SETTINGS':
       return { ...state, settings: { ...state.settings, ...action.patch } }
     case 'SET_ONBOARDED':
-      return { ...state, onboarded: action.value }
+      // finishing (true) always clears any in-flight replay, first-run or not
+      return { ...state, onboarded: action.value, replayTour: action.value ? false : state.replayTour }
+    case 'START_TOUR_REPLAY':
+      // explicit "show me the tour again" — distinct from a genuine first run,
+      // so Onboarding must never infer first-run status from this
+      return { ...state, onboarded: false, replayTour: true }
     case 'SIGN_OUT':
       return { ...state, profile: null }
     case 'HYDRATE': {
