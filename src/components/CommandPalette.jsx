@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useStore, toast } from '../store'
+import { iconGlyph } from '../utils'
 import { supabase } from '../supabase'
 import { remindersOptedIn, enableReminders, disableReminders } from '../reminders'
 import {
@@ -16,9 +17,14 @@ import {
   BroomIcon,
   XIcon,
   DownloadIcon,
+  SettingsIcon,
+  InfoIcon,
+  ChartIcon,
+  ArchiveIcon,
+  TrashIcon,
 } from './Icons'
 
-export default function CommandPalette({ onClose, onNewProject }) {
+export default function CommandPalette({ onClose, onNewProject, onOpenSettings }) {
   const { state, dispatch } = useStore()
   const [q, setQ] = useState('')
   const [sel, setSel] = useState(0)
@@ -36,13 +42,23 @@ export default function CommandPalette({ onClose, onNewProject }) {
       { icon: <ClockIcon size={14} />, label: 'Go to Upcoming', hint: 'View', fn: go({ type: 'upcoming', projectId: null }) },
       { icon: <CalendarIcon size={14} />, label: 'Go to Calendar', hint: 'View', fn: go({ type: 'calendar', projectId: null }) },
       { icon: <LayersIcon size={14} />, label: 'Go to All Tasks', hint: 'View', fn: go({ type: 'all', projectId: null }) },
+      { icon: <ChartIcon size={14} />, label: 'Go to Insights', hint: 'View', fn: go({ type: 'insights', projectId: null }) },
+      { icon: <ArchiveIcon size={14} />, label: 'Go to Archive', hint: 'View', fn: go({ type: 'archive', projectId: null }) },
+      { icon: <TrashIcon size={14} />, label: 'Go to Trash', hint: 'View', fn: go({ type: 'trash', projectId: null }) },
       ...state.projects.map((p) => ({
-        icon: <span style={{ color: p.color }}>{p.icon}</span>,
+        icon: <span style={{ color: p.color }}>{iconGlyph(p.icon)}</span>,
         label: `Go to ${p.name}`,
-        hint: 'Project',
+        hint: 'Folder',
         fn: go({ type: 'project', projectId: p.id }),
       })),
-      { icon: <PlusIcon size={14} />, label: 'New project', hint: 'Action', fn: onNewProject },
+      { icon: <PlusIcon size={14} />, label: 'New folder', hint: 'Action', fn: onNewProject },
+      { icon: <SettingsIcon size={14} />, label: 'Open settings', hint: 'Action', fn: onOpenSettings },
+      {
+        icon: <InfoIcon size={14} />,
+        label: 'Replay welcome tour',
+        hint: 'Action',
+        fn: () => dispatch({ type: 'SET_ONBOARDED', value: false }),
+      },
       {
         icon: state.theme === 'dark' ? <SunIcon size={14} /> : <MoonIcon size={14} />,
         label: `Switch to ${state.theme === 'dark' ? 'light' : 'dark'} theme`,
@@ -108,7 +124,7 @@ export default function CommandPalette({ onClose, onNewProject }) {
     ]
     const ql = q.trim().toLowerCase()
     return ql ? base.filter((i) => i.label.toLowerCase().includes(ql)) : base
-  }, [q, state.projects, state.theme, state.sound, state.tasks, dispatch, onNewProject])
+  }, [q, state.projects, state.theme, state.sound, state.tasks, dispatch, onNewProject, onOpenSettings])
 
   useEffect(() => {
     setSel(0)

@@ -4,6 +4,7 @@ import { useStore } from '../store'
 import { toDateStr, todayStr, parseDateStr } from '../utils'
 import { playAdd } from '../sound'
 import TaskItem from './TaskItem'
+import Tip from './Tip'
 import { ChevronIcon, PlusIcon } from './Icons'
 
 const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
@@ -36,7 +37,7 @@ export default function Calendar() {
   const byDue = useMemo(() => {
     const map = {}
     for (const t of state.tasks) {
-      if (!t.due) continue
+      if (!t.due || t.archived) continue
       ;(map[t.due] ??= []).push(t)
     }
     return map
@@ -72,6 +73,9 @@ export default function Calendar() {
 
   return (
     <div className="calendar">
+      <Tip id="calendar">
+        Any task with a due date shows up here. Tap a day to add one, or drag a task onto a date.
+      </Tip>
       <div className="cal-head">
         <div className="cal-title">
           <AnimatePresence mode="wait">

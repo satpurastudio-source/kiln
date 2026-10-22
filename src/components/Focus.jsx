@@ -3,12 +3,24 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useStore, onFocusRequest, toast } from '../store'
 import { playComplete, playFanfare, playPop } from '../sound'
 import { PauseIcon, PlayIcon, SkipIcon, XIcon, FlameIcon } from './Icons'
+import Tip from './Tip'
 
 const FOCUS_KEY = 'kiln-focus'
 const MODES = {
   classic: { work: 25 * 60, brk: 5 * 60, label: '25 · 5' },
   deep: { work: 50 * 60, brk: 10 * 60, label: '50 · 10' },
 }
+
+// custom mode reads work/break minutes from settings
+const clampMin = (n, max) => Math.min(max, Math.max(1, Math.round(n) || 1))
+const resolveMode = (id, settings) =>
+  id === 'custom'
+    ? {
+        work: clampMin(settings.focusWork, 180) * 60,
+        brk: clampMin(settings.focusBreak, 60) * 60,
+        label: `${clampMin(settings.focusWork, 180)} · ${clampMin(settings.focusBreak, 60)}`,
+      }
+    : MODES[id]
 
 const loadSession = () => {
   try {
@@ -32,8 +44,12 @@ export default function Focus() {
   const sessionRef = useRef(session)
   sessionRef.current = session
 
+  const settings = state.settings
+  const settingsRef = useRef(settings)
+  settingsRef.current = settings
+
   const task = session ? state.tasks.find((t) => t.id === session.taskId) : null
-  const mode = MODES[session?.mode ?? 'classic']
+  const mode = resolveMode(session?.mode ?? 'classic', settings)
 
   // a task row asked to start focusing
   useEffect(
@@ -44,7 +60,7 @@ export default function Focus() {
           taskId,
           mode: m,
           phase: 'work',
-          endsAt: Date.now() + MODES[m].work * 1000,
+          endsAt: Date.now() + resolveMode(m, settingsRef.current).work * 1000,
           remaining: null, // null = running; number = paused seconds
           count: 0,
         })
@@ -81,6 +97,7 @@ export default function Focus() {
         const count = s.count + 1
         playFanfare()
         toast(`Pomodoro ${count} done — take a break`, '🔥')
+        dispatch({ type: 'LOG_FOCUS' }) // count it for Insights (survives task clears)
         if (taskIdRef.current) {
           dispatch({
             type: 'UPDATE_TASK',
@@ -88,12 +105,13 @@ export default function Focus() {
             patch: { pomos: (pomosRef.current ?? 0) + 1 },
           })
         }
-        const brkLen = count % 4 === 0 ? MODES[s.mode].brk * 3 : MODES[s.mode].brk
+        const m = resolveMode(s.mode, settingsRef.current)
+        const brkLen = count % 4 === 0 ? m.brk * 3 : m.brk
         setSession({ ...s, phase: 'break', count, endsAt: Date.now() + brkLen * 1000 })
       } else {
         playComplete()
         toast('Break over — back to it', '⚒')
-        setSession({ ...s, phase: 'work', endsAt: Date.now() + MODES[s.mode].work * 1000 })
+        setSession({ ...s, phase: 'work', endsAt: Date.now() + resolveMode(s.mode, settingsRef.current).work * 1000 })
       }
     }, 500)
     return () => clearInterval(iv)
@@ -132,12 +150,26 @@ export default function Focus() {
     playPop()
   }
   const setMode = (m) => {
+    const dur = resolveMode(m, settingsRef.current)[isWork ? 'work' : 'brk']
     setSession({
       ...session,
       mode: m,
-      endsAt: Date.now() + MODES[m][isWork ? 'work' : 'brk'] * 1000,
-      remaining: session.remaining === null ? null : MODES[m][isWork ? 'work' : 'brk'],
+      endsAt: Date.now() + dur * 1000,
+      remaining: session.remaining === null ? null : dur,
     })
+  }
+  // live-adjust custom minutes; reflect immediately if custom is active
+  const setCustom = (patch) => {
+    dispatch({ type: 'SET_SETTINGS', patch })
+    if (session.mode === 'custom') {
+      const next = { ...settingsRef.current, ...patch }
+      const dur = resolveMode('custom', next)[isWork ? 'work' : 'brk']
+      setSession((s) => ({
+        ...s,
+        endsAt: Date.now() + dur * 1000,
+        remaining: s.remaining === null ? null : dur,
+      }))
+    }
   }
   const completeTask = () => {
     if (task && !task.done) {
@@ -169,6 +201,10 @@ export default function Focus() {
               exit={{ opacity: 0, scale: 0.95, y: 12 }}
               transition={{ type: 'spring', stiffness: 300, damping: 26 }}
             >
+              <Tip id="focus">
+                Pick 25·5, 50·10, or a custom length. Every finished session counts toward your
+                Insights.
+              </Tip>
               <div className="focus-top">
                 <span className={`focus-phase ${isWork ? 'work' : 'brk'}`}>
                   {isWork ? '⚒ focus' : '☕ break'}
@@ -183,11 +219,44 @@ export default function Focus() {
                       {m.label}
                     </button>
                   ))}
+                  <button
+                    className={`chip ${session.mode === 'custom' ? 'on' : ''}`}
+                    onClick={() => setMode('custom')}
+                  >
+                    Custom
+                  </button>
                 </div>
                 <button className="icon-btn" onClick={() => setOpen(false)} title="Minimize">
                   —
                 </button>
               </div>
+
+              {session.mode === 'custom' && (
+                <div className="focus-custom">
+                  <label>
+                    Focus
+                    <input
+                      type="number"
+                      min="1"
+                      max="180"
+                      value={clampMin(settings.focusWork, 180)}
+                      onChange={(e) => setCustom({ focusWork: Number(e.target.value) })}
+                    />
+                    min
+                  </label>
+                  <label>
+                    Break
+                    <input
+                      type="number"
+                      min="1"
+                      max="60"
+                      value={clampMin(settings.focusBreak, 60)}
+                      onChange={(e) => setCustom({ focusBreak: Number(e.target.value) })}
+                    />
+                    min
+                  </label>
+                </div>
+              )}
 
               <div className="focus-ring">
                 <svg viewBox="0 0 200 200">

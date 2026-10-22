@@ -13,6 +13,10 @@ import {
   BellIcon,
   BellOffIcon,
   FlameIcon,
+  SettingsIcon,
+  ChartIcon,
+  ArchiveIcon,
+  TrashIcon,
 } from './Icons'
 import { APP_NAME, APP_TAG } from '../brand'
 
@@ -43,7 +47,7 @@ function NavItem({ active, onClick, icon, label, right, editBtn, order = 0 }) {
   )
 }
 
-export default function Sidebar({ onNewProject, onEditProject, mobileOpen, closeMobile }) {
+export default function Sidebar({ onNewProject, onEditProject, onOpenSettings, mobileOpen, closeMobile }) {
   const { state, dispatch } = useStore()
   const { view } = state
 
@@ -52,11 +56,13 @@ export default function Sidebar({ onNewProject, onEditProject, mobileOpen, close
     closeMobile?.()
   }
 
-  const active = state.tasks.filter((t) => !t.done)
+  const active = state.tasks.filter((t) => !t.done && !t.archived)
   const counts = {
     today: active.filter((t) => isToday(t.due) || isOverdue(t.due)).length,
     upcoming: active.filter((t) => !!t.due).length,
     all: active.length,
+    archived: state.tasks.filter((t) => t.archived).length,
+    trash: state.trash.length,
   }
 
   const tp = todayProgress(state)
@@ -85,7 +91,7 @@ export default function Sidebar({ onNewProject, onEditProject, mobileOpen, close
         order={0}
         active={view.type === 'today'}
         onClick={() => go({ type: 'today', projectId: null })}
-        icon={<SunIcon size={15} />}
+        icon={<SunIcon size={15} filled={view.type === 'today'} />}
         label="Today"
         right={counts.today > 0 && <span className="count">{counts.today}</span>}
       />
@@ -93,7 +99,7 @@ export default function Sidebar({ onNewProject, onEditProject, mobileOpen, close
         order={1}
         active={view.type === 'upcoming'}
         onClick={() => go({ type: 'upcoming', projectId: null })}
-        icon={<ClockIcon size={15} />}
+        icon={<ClockIcon size={15} filled={view.type === 'upcoming'} />}
         label="Upcoming"
         right={counts.upcoming > 0 && <span className="count">{counts.upcoming}</span>}
       />
@@ -101,26 +107,33 @@ export default function Sidebar({ onNewProject, onEditProject, mobileOpen, close
         order={2}
         active={view.type === 'calendar'}
         onClick={() => go({ type: 'calendar', projectId: null })}
-        icon={<CalendarIcon size={15} />}
+        icon={<CalendarIcon size={15} filled={view.type === 'calendar'} />}
         label="Calendar"
       />
       <NavItem
         order={3}
         active={view.type === 'all'}
         onClick={() => go({ type: 'all', projectId: null })}
-        icon={<LayersIcon size={15} />}
+        icon={<LayersIcon size={15} filled={view.type === 'all'} />}
         label="All Tasks"
         right={counts.all > 0 && <span className="count">{counts.all}</span>}
       />
+      <NavItem
+        order={4}
+        active={view.type === 'insights'}
+        onClick={() => go({ type: 'insights', projectId: null })}
+        icon={<ChartIcon size={15} filled={view.type === 'insights'} />}
+        label="Insights"
+      />
 
       <div className="section-label">
-        Projects
+        Folders
         <motion.button
           onClick={onNewProject}
           whileHover={{ rotate: 90 }}
           whileTap={{ scale: 0.85 }}
           transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-          title="New project"
+          title="New folder"
         >
           <PlusIcon size={13} />
         </motion.button>
@@ -132,7 +145,7 @@ export default function Sidebar({ onNewProject, onEditProject, mobileOpen, close
           return (
             <NavItem
               key={p.id}
-              order={4 + i}
+              order={5 + i}
               active={view.type === 'project' && view.projectId === p.id}
               onClick={() => go({ type: 'project', projectId: p.id })}
               icon={<span className="project-dot" style={{ background: p.color, color: p.color }} />}
@@ -153,12 +166,29 @@ export default function Sidebar({ onNewProject, onEditProject, mobileOpen, close
               }
               right={
                 prog.total > 0 && (
-                  <ProgressRing size={17} stroke={2.4} pct={prog.pct} color={p.color} />
+                  <ProgressRing size={17} stroke={2.4} pct={prog.pct} color="var(--accent)" />
                 )
               }
             />
           )
         })}
+      </div>
+
+      <div className="sidebar-util">
+        <NavItem
+          active={view.type === 'archive'}
+          onClick={() => go({ type: 'archive', projectId: null })}
+          icon={<ArchiveIcon size={14} filled={view.type === 'archive'} />}
+          label="Archive"
+          right={counts.archived > 0 && <span className="count">{counts.archived}</span>}
+        />
+        <NavItem
+          active={view.type === 'trash'}
+          onClick={() => go({ type: 'trash', projectId: null })}
+          icon={<TrashIcon size={14} />}
+          label="Trash"
+          right={counts.trash > 0 && <span className="count">{counts.trash}</span>}
+        />
       </div>
 
       <div className="sidebar-footer">
@@ -184,6 +214,9 @@ export default function Sidebar({ onNewProject, onEditProject, mobileOpen, close
             }
           >
             {state.theme === 'dark' ? <MoonIcon size={14} /> : <SunIcon size={14} />}
+          </button>
+          <button className="icon-btn" title="Settings" onClick={onOpenSettings}>
+            <SettingsIcon size={14} />
           </button>
         </div>
       </div>

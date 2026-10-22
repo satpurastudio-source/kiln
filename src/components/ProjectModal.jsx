@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useStore, toast } from '../store'
-import { PROJECT_COLORS, PROJECT_ICONS } from '../utils'
+import { PROJECT_COLORS, PROJECT_ICONS, iconGlyph } from '../utils'
 
 export default function ProjectModal({ mode, project, onClose }) {
   const { dispatch } = useStore()
@@ -24,10 +24,10 @@ export default function ProjectModal({ mode, project, onClose }) {
     }
     if (editing) {
       dispatch({ type: 'UPDATE_PROJECT', id: project.id, patch: { name, color, icon } })
-      toast('Project updated', '✓')
+      toast('Folder updated', '✓')
     } else {
       dispatch({ type: 'ADD_PROJECT', name, color, icon })
-      toast(`“${name.trim()}” created`, icon)
+      toast(`“${name.trim()}” created`, iconGlyph(icon))
     }
     onClose()
   }
@@ -38,9 +38,11 @@ export default function ProjectModal({ mode, project, onClose }) {
       return
     }
     dispatch({ type: 'DELETE_PROJECT', id: project.id })
-    toast('Project deleted', '🗑')
+    toast('Folder deleted', '🗑')
     onClose()
   }
+
+  const customColor = !PROJECT_COLORS.includes(color)
 
   return (
     <motion.div
@@ -61,7 +63,7 @@ export default function ProjectModal({ mode, project, onClose }) {
           if (e.key === 'Enter' && e.target.tagName === 'INPUT') submit()
         }}
       >
-        <h2>{editing ? 'Edit project' : 'New project'}</h2>
+        <h2>{editing ? 'Edit folder' : 'New folder'}</h2>
 
         <label>Name</label>
         <input
@@ -82,8 +84,21 @@ export default function ProjectModal({ mode, project, onClose }) {
               style={{ background: c, color: c }}
               onClick={() => setColor(c)}
               whileTap={{ scale: 0.85 }}
+              aria-label={`Use ${c}`}
             />
           ))}
+          <label
+            className={`swatch swatch-custom ${customColor ? 'on' : ''}`}
+            style={customColor ? { background: color, color } : undefined}
+            title="Pick a custom color"
+          >
+            {!customColor && <span className="swatch-custom-plus">+</span>}
+            <input
+              type="color"
+              value={color}
+              onChange={(e) => setColor(e.target.value)}
+            />
+          </label>
         </div>
 
         <label>Icon</label>
@@ -92,10 +107,11 @@ export default function ProjectModal({ mode, project, onClose }) {
             <motion.button
               key={i}
               className={`icon-choice ${icon === i ? 'on' : ''}`}
+              style={icon === i ? { color } : undefined}
               onClick={() => setIcon(i)}
               whileTap={{ scale: 0.85 }}
             >
-              {i}
+              {iconGlyph(i)}
             </motion.button>
           ))}
         </div>
@@ -103,14 +119,14 @@ export default function ProjectModal({ mode, project, onClose }) {
         <div className="modal-actions">
           {editing && (
             <button className="danger-btn" style={{ marginRight: 'auto', height: 38 }} onClick={remove}>
-              {confirmDelete ? 'Delete project & tasks?' : 'Delete'}
+              {confirmDelete ? 'Delete folder & tasks?' : 'Delete'}
             </button>
           )}
           <button className="btn ghost" onClick={onClose}>
             Cancel
           </button>
           <motion.button className="btn primary" onClick={submit} whileTap={{ scale: 0.96 }}>
-            {editing ? 'Save' : 'Create project'}
+            {editing ? 'Save' : 'Create folder'}
           </motion.button>
         </div>
       </motion.div>

@@ -9,16 +9,16 @@ const I = ({ children, size = 16, sw = 1.7, style, ...p }) => (
     strokeWidth={sw}
     strokeLinecap="round"
     strokeLinejoin="round"
-    style={{ flexShrink: 0, ...style }}
+    style={{ flexShrink: 0, display: 'block', ...style }}
     {...p}
   >
     {children}
   </svg>
 )
 
-export const SunIcon = (p) => (
+export const SunIcon = ({ filled, ...p }) => (
   <I {...p}>
-    <circle cx="12" cy="12" r="4" />
+    <circle cx="12" cy="12" r={filled ? '4.6' : '4'} fill={filled ? 'currentColor' : 'none'} stroke={filled ? 'none' : 'currentColor'} />
     <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
   </I>
 )
@@ -29,15 +29,17 @@ export const MoonIcon = (p) => (
   </I>
 )
 
-export const CalendarIcon = (p) => (
+export const CalendarIcon = ({ filled, ...p }) => (
   <I {...p}>
+    {filled && <rect x="3" y="4.5" width="18" height="17" rx="3" fill="currentColor" stroke="none" opacity="0.22" />}
     <rect x="3" y="4.5" width="18" height="17" rx="3" />
     <path d="M3 9.5h18M8 2.5v4M16 2.5v4" />
   </I>
 )
 
-export const LayersIcon = (p) => (
+export const LayersIcon = ({ filled, ...p }) => (
   <I {...p}>
+    {filled && <path d="M12 2.5 22 8l-10 5.5L2 8l10-5.5z" fill="currentColor" stroke="none" opacity="0.28" />}
     <path d="M12 2.5 22 8l-10 5.5L2 8l10-5.5z" />
     <path d="M2 12.5 12 18l10-5.5" />
     <path d="M2 17 12 22.5 22 17" />
@@ -158,8 +160,9 @@ export const DownloadIcon = (p) => (
   </I>
 )
 
-export const ClockIcon = (p) => (
+export const ClockIcon = ({ filled, ...p }) => (
   <I {...p}>
+    {filled && <circle cx="12" cy="12" r="9.5" fill="currentColor" stroke="none" opacity="0.22" />}
     <circle cx="12" cy="12" r="9.5" />
     <path d="M12 7v5l3.2 2" />
   </I>
@@ -200,5 +203,59 @@ export const MenuIcon = (p) => (
 export const BroomIcon = (p) => (
   <I {...p}>
     <path d="M19 3l-7 7M5 21c3-1 5-3 5.5-5.5L13 13l-2-2-2.5 2.5C6 14 4 16 3 19l2 2z" />
+  </I>
+)
+
+export const SettingsIcon = (p) => (
+  <I {...p}>
+    <circle cx="12" cy="12" r="3.2" />
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+  </I>
+)
+
+export const InfoIcon = (p) => (
+  <I {...p}>
+    <circle cx="12" cy="12" r="9.5" />
+    <path d="M12 16v-4.5M12 8h.01" />
+  </I>
+)
+
+export const UserIcon = (p) => (
+  <I {...p}>
+    <circle cx="12" cy="8" r="4" />
+    <path d="M4 21c0-4.4 3.6-8 8-8s8 3.6 8 8" />
+  </I>
+)
+
+export const ChartIcon = ({ filled, ...p }) => (
+  <I {...p}>
+    {filled && (
+      <g fill="currentColor" stroke="none" opacity="0.24">
+        <rect x="4" y="12" width="4" height="7" rx="1" />
+        <rect x="10" y="8" width="4" height="11" rx="1" />
+        <rect x="16" y="4" width="4" height="15" rx="1" />
+      </g>
+    )}
+    <rect x="4" y="12" width="4" height="7" rx="1" />
+    <rect x="10" y="8" width="4" height="11" rx="1" />
+    <rect x="16" y="4" width="4" height="15" rx="1" />
+    <path d="M3 21h18" />
+  </I>
+)
+
+export const TargetIcon = (p) => (
+  <I {...p}>
+    <circle cx="12" cy="12" r="9" />
+    <circle cx="12" cy="12" r="5" />
+    <circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none" />
+  </I>
+)
+
+export const ArchiveIcon = ({ filled, ...p }) => (
+  <I {...p}>
+    {filled && <rect x="3" y="3.5" width="18" height="4.5" rx="1.4" fill="currentColor" stroke="none" opacity="0.25" />}
+    <rect x="3" y="3.5" width="18" height="4.5" rx="1.4" />
+    <path d="M5 8v10.5A1.5 1.5 0 0 0 6.5 20h11a1.5 1.5 0 0 0 1.5-1.5V8" />
+    <path d="M10 12h4" />
   </I>
 )

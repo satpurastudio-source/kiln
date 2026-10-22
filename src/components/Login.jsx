@@ -1,9 +1,21 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useStore, toast } from '../store'
 import { supabase } from '../supabase'
 import { FlameIcon } from './Icons'
 import { APP_NAME, APP_LABEL } from '../brand'
+
+// onboarding hands off the chosen name + whether they wanted to sign up
+const readIntent = () => {
+  try {
+    return {
+      name: localStorage.getItem('kiln-pending-name') || '',
+      mode: localStorage.getItem('kiln-auth-intent') === 'signup' ? 'signup' : 'signin',
+    }
+  } catch {
+    return { name: '', mode: 'signin' }
+  }
+}
 
 const fade = {
   initial: { opacity: 0, y: 10 },
@@ -14,12 +26,23 @@ const fade = {
 
 export default function Login() {
   const { dispatch } = useStore()
-  const [mode, setMode] = useState('signin') // signin | signup | sent | guest
-  const [name, setName] = useState('')
+  const intent = readIntent()
+  const [mode, setMode] = useState(intent.mode) // signin | signup | sent | guest
+  const [name, setName] = useState(intent.name)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+
+  // consume the one-time handoff so it doesn't stick around next visit
+  useEffect(() => {
+    try {
+      localStorage.removeItem('kiln-pending-name')
+      localStorage.removeItem('kiln-auth-intent')
+    } catch {
+      /* ignore */
+    }
+  }, [])
 
   const switchMode = (m) => {
     setMode(m)
@@ -234,6 +257,12 @@ export default function Login() {
             </motion.div>
           )}
         </AnimatePresence>
+
+        <div className="login-legal">
+          <a href={`${import.meta.env.BASE_URL}privacy.html`} target="_blank" rel="noreferrer">Privacy</a>
+          <span>·</span>
+          <a href={`${import.meta.env.BASE_URL}terms.html`} target="_blank" rel="noreferrer">Terms</a>
+        </div>
       </motion.div>
     </div>
   )

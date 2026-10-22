@@ -7,6 +7,9 @@ import Header from './components/Header'
 import QuickAdd from './components/QuickAdd'
 import TaskList from './components/TaskList'
 import Calendar from './components/Calendar'
+import Insights from './components/Insights'
+import Archive from './components/Archive'
+import Trash from './components/Trash'
 import Focus from './components/Focus'
 import CompleteZone from './components/CompleteZone'
 import MiniCalendar from './components/MiniCalendar'
@@ -15,9 +18,10 @@ import { maybeNotifyDueToday } from './reminders'
 import ProjectModal from './components/ProjectModal'
 import CommandPalette from './components/CommandPalette'
 import Toasts from './components/Toasts'
-import Cursor from './components/Cursor'
 import Login from './components/Login'
 import Verified from './components/Verified'
+import Onboarding from './components/Onboarding'
+import Settings from './components/Settings'
 import { MenuIcon, XIcon } from './components/Icons'
 
 export default function App() {
@@ -27,6 +31,7 @@ export default function App() {
   const [query, setQuery] = useState('')
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [projectModal, setProjectModal] = useState(null)
+  const [settingsOpen, setSettingsOpen] = useState(false)
   const [mobileNav, setMobileNav] = useState(false)
   // landing from the email-confirmation link (?verified=1)
   const [showVerified, setShowVerified] = useState(() =>
@@ -93,7 +98,6 @@ export default function App() {
             <div className="blob b3" />
           </div>
           <div className="noise" />
-          <Cursor />
 
           {showReset ? (
             <Reset
@@ -109,6 +113,8 @@ export default function App() {
                 setShowVerified(false)
               }}
             />
+          ) : !state.onboarded ? (
+            <Onboarding />
           ) : !signedIn ? (
             <Login />
           ) : (
@@ -143,6 +149,10 @@ export default function App() {
           setMobileNav(false)
           setProjectModal({ mode: 'edit', project: p })
         }}
+        onOpenSettings={() => {
+          setMobileNav(false)
+          setSettingsOpen(true)
+        }}
         mobileOpen={mobileNav}
         closeMobile={() => setMobileNav(false)}
       />
@@ -166,6 +176,12 @@ export default function App() {
             >
               {state.view.type === 'calendar' ? (
                 <Calendar />
+              ) : state.view.type === 'insights' ? (
+                <Insights />
+              ) : state.view.type === 'archive' ? (
+                <Archive />
+              ) : state.view.type === 'trash' ? (
+                <Trash />
               ) : (
                 <>
                   <QuickAdd ref={quickAddRef} />
@@ -192,8 +208,13 @@ export default function App() {
           <CommandPalette
             onClose={() => setPaletteOpen(false)}
             onNewProject={() => setProjectModal({ mode: 'new' })}
+            onOpenSettings={() => setSettingsOpen(true)}
           />
         )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {settingsOpen && <Settings onClose={() => setSettingsOpen(false)} />}
       </AnimatePresence>
 
               <Focus />

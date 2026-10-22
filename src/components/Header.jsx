@@ -1,6 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion'
-import { useStore, selectActive, projectProgress } from '../store'
-import { fmtLongDate, greeting } from '../utils'
+import { useStore, selectActive, projectProgress, todayProgress } from '../store'
+import { fmtLongDate, greeting, iconGlyph } from '../utils'
 import { SearchIcon, CommandIcon } from './Icons'
 
 export default function Header({ query, setQuery, searchRef, openPalette }) {
@@ -9,6 +9,16 @@ export default function Header({ query, setQuery, searchRef, openPalette }) {
   const project = view.type === 'project' ? state.projects.find((p) => p.id === view.projectId) : null
   const activeCount = selectActive(state).length
   const prog = project ? projectProgress(state, project.id) : null
+
+  // progress bar shown on Today (day's load) and inside a folder — always the
+  // accent color so every progress indicator matches the current theme
+  const today = view.type === 'today' ? todayProgress(state) : null
+  const bar =
+    project && prog.total > 0
+      ? { pct: prog.pct, done: prog.done, total: prog.total, color: 'var(--accent)' }
+      : today && today.total > 0
+        ? { pct: today.pct, done: today.done, total: today.total, color: 'var(--accent)' }
+        : null
 
   const firstName = state.profile?.name?.trim().split(/\s+/)[0] || 'Capt'
 
@@ -32,6 +42,24 @@ export default function Header({ query, setQuery, searchRef, openPalette }) {
         Calendar<em>.</em>
       </>
     )
+  else if (view.type === 'insights')
+    title = (
+      <>
+        Insights<em>.</em>
+      </>
+    )
+  else if (view.type === 'archive')
+    title = (
+      <>
+        Archive<em>.</em>
+      </>
+    )
+  else if (view.type === 'trash')
+    title = (
+      <>
+        Trash<em>.</em>
+      </>
+    )
   else if (view.type === 'all')
     title = (
       <>
@@ -41,10 +69,20 @@ export default function Header({ query, setQuery, searchRef, openPalette }) {
   else
     title = (
       <>
-        {project?.name ?? 'Project'}
+        {project?.name ?? 'Folder'}
         <em>.</em>
       </>
     )
+
+  const milestone = bar
+    ? bar.pct >= 100
+      ? 'cleared — nice work ✦'
+      : bar.pct >= 80
+        ? 'so close — one more push ✦'
+        : bar.pct >= 50
+          ? 'halfway there'
+          : null
+    : null
 
   const sub =
     view.type === 'today'
@@ -53,7 +91,13 @@ export default function Header({ query, setQuery, searchRef, openPalette }) {
         ? `${prog.done} of ${prog.total} complete`
         : view.type === 'calendar'
           ? `${activeCount} scheduled task${activeCount === 1 ? '' : 's'}`
-          : `${activeCount} open task${activeCount === 1 ? '' : 's'}`
+          : view.type === 'insights'
+            ? 'your habits & weekly progress'
+            : view.type === 'archive'
+              ? 'tucked away, out of your way'
+              : view.type === 'trash'
+                ? 'recently deleted — auto-erased after 30 days'
+                : `${activeCount} open task${activeCount === 1 ? '' : 's'}`
 
   const viewKey = `${view.type}-${view.projectId ?? ''}`
 
@@ -79,7 +123,7 @@ export default function Header({ query, setQuery, searchRef, openPalette }) {
                         transform: 'translateY(-0.15em)',
                       }}
                     >
-                      {project.icon}
+                      {iconGlyph(project.icon)}
                     </span>
                   )}
                   {title}
@@ -122,40 +166,42 @@ export default function Header({ query, setQuery, searchRef, openPalette }) {
         </div>
       </div>
 
-      {project && prog.total > 0 && (
-        <div style={{ marginTop: 18, display: 'flex', alignItems: 'center', gap: 12 }}>
-          <div
-            style={{
-              flex: 1,
-              height: 5,
-              borderRadius: 99,
-              background: 'var(--panel-hover)',
-              overflow: 'hidden',
-            }}
-          >
+      {bar && (
+        <div className={`goal-bar ${bar.pct >= 100 ? 'complete' : ''}`}>
+          <div className="goal-track">
             <motion.div
+              className="goal-fill"
               style={{
-                height: '100%',
-                borderRadius: 99,
-                background: `linear-gradient(90deg, ${project.color}, var(--accent-2))`,
-                boxShadow: `0 0 12px 0 ${project.color}`,
+                background: `linear-gradient(90deg, ${bar.color}, var(--accent-2))`,
+                // glow blooms as you approach the finish line
+                boxShadow: `0 0 ${8 + bar.pct * 0.16}px ${bar.pct * 0.02}px ${bar.color}`,
               }}
               initial={false}
-              animate={{ width: `${prog.pct}%` }}
+              animate={{ width: `${bar.pct}%` }}
               transition={{ type: 'spring', stiffness: 80, damping: 20 }}
-            />
+            >
+              {bar.pct >= 8 && <span className="goal-shimmer" />}
+            </motion.div>
           </div>
-          <span
-            style={{
-              fontFamily: 'var(--font-mono)',
-              fontSize: 11,
-              color: 'var(--text-3)',
-              minWidth: 34,
-              textAlign: 'right',
-            }}
-          >
-            {prog.pct}%
-          </span>
+          <div className="goal-meta">
+            <AnimatePresence mode="wait">
+              {milestone && (
+                <motion.span
+                  key={milestone}
+                  className="goal-milestone"
+                  initial={{ opacity: 0, y: 4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {milestone}
+                </motion.span>
+              )}
+            </AnimatePresence>
+            <span className="goal-pct">
+              {bar.done}/{bar.total} · {bar.pct}%
+            </span>
+          </div>
         </div>
       )}
     </header>

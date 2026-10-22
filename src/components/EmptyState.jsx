@@ -2,10 +2,10 @@ import { motion } from 'framer-motion'
 
 const STATES = {
   search: { icon: '🔍', title: 'No matches', body: 'Nothing fits that search. Try different words.' },
-  today: { icon: '✨', title: 'All clear', body: 'Nothing due today. Savor it — or press N to plan something.' },
-  upcoming: { icon: '🌅', title: 'A blank horizon', body: 'No scheduled tasks ahead. Add a due date to see it here.' },
-  all: { icon: '🪐', title: 'A fresh start', body: 'No tasks anywhere. Press N and write the first one.' },
-  project: { icon: '🎯', title: 'Nothing here yet', body: 'This project is a blank canvas. Add its first task below.' },
+  today: { icon: '✨', title: 'All clear', body: 'Nothing due today. Enjoy it — or add something in the bar above.' },
+  upcoming: { icon: '🌅', title: 'A blank horizon', body: 'No scheduled tasks ahead. Add a due date to a task to see it here.' },
+  all: { icon: '🪐', title: 'A fresh start', body: 'No tasks yet. Write your first one in the bar above.' },
+  project: { icon: '🎯', title: 'Nothing here yet', body: 'This folder is empty. Add its first task in the bar above.' },
 }
 
 export default function EmptyState({ kind }) {

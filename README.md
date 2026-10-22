@@ -2,15 +2,17 @@
 
 _shape · fire · ship_
 
-A premium-feeling project & task manager in the same cream/terracotta editorial
-style as [ananysoni2007.github.io](https://ananysoni2007.github.io) — typewriter
-boot screen, custom cursor, film grain, spring physics animations everywhere,
-sounds, confetti, and a command palette.
+A premium-feeling project & task manager with a cream/terracotta editorial style —
+typewriter boot screen, film grain, spring-physics animations, sounds, confetti,
+natural-language quick add, a command palette, and cross-device sync.
 
-Built with React + Vite + Framer Motion. All data persists in `localStorage`.
+A **[Satpura Studio](https://satpurastudio.com)** product. Built with React + Vite +
+Framer Motion. Data persists locally and syncs to the cloud when you sign in.
 To rename the app, edit `src/brand.js` (one place) and the `<title>` in `index.html`.
 
 ## Run it
+
+Requires Node.js 18+.
 
 ```bash
 npm install
@@ -19,25 +21,20 @@ npm run dev
 
 Then open http://localhost:5173
 
-> Node.js lives at `~/.local/opt/node` (portable install). If `npm` isn't found, run:
-> `export PATH="$HOME/.local/opt/node/bin:$PATH"` (add it to `~/.bashrc` to make it permanent).
-
 ## Features
 
-- **Projects** with custom color + icon, live progress rings, and confetti + fanfare when you finish the last task
-- **Views**: Today (overdue + due today), Upcoming (grouped by date), All Tasks, per-project
-- **Quick add bar** — press `N`, type, pick date chips / priority flags / project, hit Enter
-- **Inline editor** — click any task to edit title, notes, due date, priority, or move project
-- **Drag to reorder** (grip handle, in All Tasks & project views)
-- **Command palette** — `Ctrl+K`
-- **Search** — `/`
-- Animated checkbox with particle burst, strike-through sweep, satisfying completion sounds (mutable)
-- **Typewriter loading screen** that types the app name, then fades into the UI
-- **Custom cursor** — trailing ring + dot that grows over anything clickable (auto-disabled on touch)
-- **3D tilt** on task cards following the pointer, Bebas Neue slide-up header reveals
-- Light (cream) & dark (warm black) themes with a smooth whole-page cross-fade on toggle
-- Dot-grid paper texture + film grain overlay, DM Mono for all data text
-- Undo for deletes, hover ✗ quick-delete on task rows, toasts
+- **Folders** with custom color + icon and live progress rings
+- **Natural-language quick add** — type `gym tomorrow 7am !high #fitness` and it parses
+  the date, time, priority, and folder (creating the folder if it doesn't exist)
+- **Views** — Today, Upcoming, Calendar, All Tasks, per-folder
+- **Insights** — daily habits with streaks, plus a weekly completion/focus review
+- **Focus** — a built-in Pomodoro timer (25·5, 50·10, or custom)
+- **Archive & Trash** — tuck tasks away, or delete with a recoverable trash window
+- **Inline editor** — notes, sub-steps, due date, exact time, priority, repeat, move folder
+- **Drag to reorder**, drag-to-complete, animated checkbox + strike-through
+- **Personalization** — 6 accent themes + a custom color, light/dark, reduced-visuals mode
+- **Onboarding** — a short, animated first-run tour
+- **Command palette** (`Ctrl+K`), search (`/`), undo for deletes, toasts
 
 ## Keyboard shortcuts
 
@@ -54,3 +51,7 @@ Then open http://localhost:5173
 ```bash
 npm run build   # outputs to dist/
 ```
+
+---
+
+© Satpura Studio

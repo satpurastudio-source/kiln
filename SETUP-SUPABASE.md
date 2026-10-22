@@ -88,6 +88,32 @@ Optional polish: **Authentication → Emails → Templates** → edit the
 "Confirm signup" template (custom SMTP unlocks template editing on free tier).
 Keep the `{{ .ConfirmationURL }}` variable — that's the magic link.
 
+## 4. Account deletion (required for the app stores)
+
+Google Play and Apple both require in-app account deletion. A client can't delete
+its own auth user, so kiln calls a small **Edge Function** that does it with the
+service-role key. The code already lives in `supabase/functions/delete-account/`.
+
+Deploy it once with the Supabase CLI:
+
+```bash
+# install once:  npm i -g supabase   (or: brew install supabase/tap/supabase)
+supabase login
+supabase link --project-ref <your-project-ref>
+supabase functions deploy delete-account
+```
+
+That's it — `SUPABASE_URL`, `SUPABASE_ANON_KEY` and `SUPABASE_SERVICE_ROLE_KEY`
+are injected automatically, so there are no secrets to set. The function:
+
+1. verifies the caller's JWT,
+2. deletes their `kiln_data` row,
+3. deletes their auth user.
+
+Settings → **Danger zone → Delete account** invokes it, then wipes the device and
+returns to a clean first-run state. (Until it's deployed, that button just clears
+local data and signs out — deploy it before you publish.)
+
 ## Test checklist
 
 1. `npm run dev`, open http://localhost:5173

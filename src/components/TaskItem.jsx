@@ -3,8 +3,9 @@ import { AnimatePresence, motion, Reorder, useDragControls } from 'framer-motion
 import confetti from 'canvas-confetti'
 import Checkbox from './Checkbox'
 import { useStore, toast, startFocus, emitDrag } from '../store'
-import { fmtDue, isOverdue, isToday, priorityColor, PRIORITIES, REPEATS, uid } from '../utils'
+import { fmtDue, fmtTime, isOverdue, isToday, priorityColor, PRIORITIES, REPEATS, uid, iconGlyph } from '../utils'
 import { playComplete, playPop, playFanfare } from '../sound'
+import { heavyFxOff } from '../fx'
 import {
   GripIcon,
   NoteIcon,
@@ -14,6 +15,7 @@ import {
   FlameIcon,
   RepeatIcon,
   ChecklistIcon,
+  ClockIcon,
   PlusIcon,
 } from './Icons'
 
@@ -80,19 +82,19 @@ const TaskItem = forwardRef(function TaskItem(
       if (rep) toast(`Repeats ${rep} — next one queued`, '↻')
       if (remaining === 0 && !rep) {
         playFanfare()
-        fireProjectConfetti(project?.color ?? '#d85a30')
-        toast(`${project?.name ?? 'Project'} — 100% complete!`, '🎉')
+        if (!heavyFxOff()) fireProjectConfetti(project?.color ?? '#d85a30')
+        toast(`${project?.name ?? 'Folder'} — 100% complete!`, '🎉')
       }
     }, 620)
   }
 
-  // Subtle 3D tilt following the pointer (matches the portfolio's card hover)
+  // Whisper-subtle 3D tilt following the pointer. Off entirely in reduced mode.
   const tiltMove = (e) => {
-    if (open || dragging || !tiltRef.current) return
+    if (open || dragging || heavyFxOff() || !tiltRef.current) return
     const r = tiltRef.current.getBoundingClientRect()
     const x = (e.clientX - r.left) / r.width - 0.5
     const y = (e.clientY - r.top) / r.height - 0.5
-    tiltRef.current.style.transform = `perspective(700px) rotateY(${(x * 2.4).toFixed(2)}deg) rotateX(${(-y * 3.5).toFixed(2)}deg)`
+    tiltRef.current.style.transform = `perspective(800px) rotateY(${(x * 1.3).toFixed(2)}deg) rotateX(${(-y * 1.8).toFixed(2)}deg)`
   }
   const tiltReset = () => {
     if (tiltRef.current) tiltRef.current.style.transform = ''
@@ -174,6 +176,7 @@ const TaskItem = forwardRef(function TaskItem(
             />
           </span>
           {(task.due ||
+            task.time ||
             task.notes ||
             (showProject && project) ||
             task.priority !== 'none' ||
@@ -189,6 +192,12 @@ const TaskItem = forwardRef(function TaskItem(
                   className={`due ${isOverdue(task.due) ? 'overdue' : isToday(task.due) ? 'today' : ''}`}
                 >
                   {isOverdue(task.due) ? `Overdue — ${fmtDue(task.due)}` : fmtDue(task.due)}
+                  {task.time ? ` · ${fmtTime(task.time)}` : ''}
+                </span>
+              )}
+              {task.time && !task.due && !task.done && (
+                <span className="notes-hint">
+                  <ClockIcon size={10} /> {fmtTime(task.time)}
                 </span>
               )}
               {task.repeat && task.repeat !== 'none' && (
@@ -416,6 +425,14 @@ function Editor({ task, project, onDelete }) {
             value={task.due ?? ''}
             onChange={(e) => patch({ due: e.target.value || null })}
           />
+          <label className={`time-input ${task.time ? 'set' : ''}`} title="Set a time">
+            <ClockIcon size={12} />
+            <input
+              type="time"
+              value={task.time ?? ''}
+              onChange={(e) => patch({ time: e.target.value || null })}
+            />
+          </label>
           <select
             className="select"
             value={task.repeat ?? 'none'}
@@ -446,10 +463,22 @@ function Editor({ task, project, onDelete }) {
           >
             {state.projects.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.icon} {p.name}
+                {iconGlyph(p.icon)} {p.name}
               </option>
             ))}
           </select>
+          <button
+            className="mini-btn"
+            onClick={() => {
+              dispatch({ type: 'ARCHIVE_TASK', id: task.id })
+              toast('Archived', '🗄', {
+                label: 'Undo',
+                fn: () => dispatch({ type: 'UNARCHIVE_TASK', id: task.id }),
+              })
+            }}
+          >
+            Archive
+          </button>
           <button className="danger-btn" onClick={onDelete}>
             Delete
           </button>

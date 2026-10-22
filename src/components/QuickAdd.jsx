@@ -1,36 +1,74 @@
-import { forwardRef, useEffect, useState } from 'react'
+import { forwardRef, useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useStore, toast } from '../store'
-import { todayStr, addDaysStr, PRIORITIES, fmtDue } from '../utils'
+import { todayStr, addDaysStr, PRIORITIES, fmtDue, fmtTime, iconGlyph, parseQuickAdd } from '../utils'
 import { playAdd } from '../sound'
-import { SunIcon, FlagIcon, PlusIcon } from './Icons'
+import { SunIcon, FlagIcon, PlusIcon, ClockIcon, CalendarIcon } from './Icons'
+
+const prioLabel = (id) => PRIORITIES.find((p) => p.id === id)?.label ?? id
+
+// No physical keyboard on touch, so the "N" shortcut hint becomes a tap target.
+const COARSE =
+  typeof window !== 'undefined' && window.matchMedia('(pointer: coarse)').matches
 
 const QuickAdd = forwardRef(function QuickAdd(_, inputRef) {
   const { state, dispatch } = useStore()
-  const { view } = state
+  const { view, settings } = state
 
+  // smart default due date: the view wins, otherwise fall back to the setting
+  const settingDue = () =>
+    settings.defaultDue === 'today'
+      ? todayStr()
+      : settings.defaultDue === 'tomorrow'
+        ? addDaysStr(1)
+        : null
   const defaultDue = () =>
-    view.type === 'today' ? todayStr() : view.type === 'upcoming' ? addDaysStr(1) : null
+    view.type === 'today' ? todayStr() : view.type === 'upcoming' ? addDaysStr(1) : settingDue()
   const defaultProject = () =>
     view.type === 'project' ? view.projectId : state.projects[0]?.id
 
   const [title, setTitle] = useState('')
   const [due, setDue] = useState(defaultDue)
-  const [priority, setPriority] = useState('none')
+  const [time, setTime] = useState(settings.defaultTime || '')
+  const [priority, setPriority] = useState(settings.defaultPriority)
   const [projectId, setProjectId] = useState(defaultProject)
   const [focused, setFocused] = useState(false)
 
-  // keep defaults in sync when the view changes
+  // keep defaults in sync when the view or the defaults change
   useEffect(() => {
     setDue(defaultDue())
     setProjectId(defaultProject())
   }, [view.type, view.projectId]) // eslint-disable-line
 
+  // live natural-language parse ("gym tomorrow 7am !high #fitness")
+  const parsed = useMemo(() => parseQuickAdd(title, state.projects), [title, state.projects])
+  const parsedProject = parsed.projectId
+    ? state.projects.find((p) => p.id === parsed.projectId)
+    : null
+  const detected = !!(parsed.due || parsed.time || parsed.priority || parsed.projectId || parsed.newFolder)
+
   const submit = () => {
-    if (!title.trim() || !projectId) return
-    dispatch({ type: 'ADD_TASK', title, projectId, due, priority })
+    const p = parseQuickAdd(title, state.projects)
+    const finalTitle = p.title.trim()
+    if (!finalTitle) return
+    const base = {
+      type: 'ADD_TASK',
+      title: finalTitle,
+      due: p.due ?? due,
+      time: p.time ?? time ?? null,
+      priority: p.priority ?? priority,
+    }
+    if (p.newFolder) {
+      // "#name" for a folder that doesn't exist → create it and file the task
+      dispatch({ ...base, newFolder: p.newFolder })
+      toast(`Created folder “${p.newFolder}”`, '📁')
+    } else {
+      const pid = p.projectId ?? projectId
+      if (!pid) return
+      dispatch({ ...base, projectId: pid })
+    }
     setTitle('')
-    setPriority('none')
+    setPriority(settings.defaultPriority)
     playAdd()
   }
 
@@ -56,7 +94,7 @@ const QuickAdd = forwardRef(function QuickAdd(_, inputRef) {
           className="title"
           value={title}
           maxLength={140}
-          placeholder="Add a task…"
+          placeholder={'Add a task…  try “pay rent friday 5pm”'}
           onChange={(e) => setTitle(e.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
@@ -66,7 +104,17 @@ const QuickAdd = forwardRef(function QuickAdd(_, inputRef) {
           }}
         />
         <span className="kbd-hint">
-          <kbd>N</kbd>
+          {COARSE ? (
+            <button
+              className="add-tap"
+              aria-label="Add a task"
+              onClick={() => (title.trim() ? submit() : inputRef?.current?.focus())}
+            >
+              <PlusIcon size={15} sw={2.4} />
+            </button>
+          ) : (
+            <kbd>N</kbd>
+          )}
         </span>
       </div>
 
@@ -79,6 +127,45 @@ const QuickAdd = forwardRef(function QuickAdd(_, inputRef) {
             transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             style={{ overflow: 'hidden' }}
           >
+            <AnimatePresence initial={false}>
+              {detected && (
+                <motion.div
+                  className="qa-parse"
+                  initial={{ opacity: 0, y: -4 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -4 }}
+                  transition={{ duration: 0.18 }}
+                >
+                  <span className="qa-parse-label">reading:</span>
+                  {parsed.due && (
+                    <span className="qa-pill">
+                      <CalendarIcon size={11} /> {fmtDue(parsed.due)}
+                    </span>
+                  )}
+                  {parsed.time && (
+                    <span className="qa-pill">
+                      <ClockIcon size={11} /> {fmtTime(parsed.time)}
+                    </span>
+                  )}
+                  {parsed.priority && (
+                    <span className="qa-pill">
+                      <FlagIcon size={10} filled /> {prioLabel(parsed.priority)}
+                    </span>
+                  )}
+                  {parsedProject && (
+                    <span className="qa-pill">
+                      <span className="qa-pill-dot" style={{ background: parsedProject.color }} />
+                      {parsedProject.name}
+                    </span>
+                  )}
+                  {parsed.newFolder && (
+                    <span className="qa-pill qa-pill-new">
+                      <PlusIcon size={10} sw={2.4} /> New folder · {parsed.newFolder}
+                    </span>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
             <div className="quickadd-options">
               <button
                 className={`chip ${due === todayStr() ? 'on' : ''}`}
@@ -102,6 +189,15 @@ const QuickAdd = forwardRef(function QuickAdd(_, inputRef) {
                 onChange={(e) => setDue(e.target.value || null)}
                 title="Pick a date"
               />
+              <label className={`time-input ${time ? 'set' : ''}`} title="Set a time">
+                <ClockIcon size={12} />
+                <input
+                  type="time"
+                  value={time}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onChange={(e) => setTime(e.target.value)}
+                />
+              </label>
 
               <span style={{ width: 1, height: 18, background: 'var(--border)' }} />
 
@@ -127,7 +223,7 @@ const QuickAdd = forwardRef(function QuickAdd(_, inputRef) {
               >
                 {state.projects.map((p) => (
                   <option key={p.id} value={p.id}>
-                    {p.icon} {p.name}
+                    {iconGlyph(p.icon)} {p.name}
                   </option>
                 ))}
               </select>
