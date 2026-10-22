@@ -112,7 +112,7 @@ export const DEFAULT_SETTINGS = {
 }
 
 export const AMBIENT_WIDGETS = [
-  { id: 'none', label: 'Blank' },
+  { id: 'none', label: 'Off' },
   { id: 'streak', label: 'Streak' },
   { id: 'progress', label: 'Progress' },
   { id: 'focus', label: 'Focus' },

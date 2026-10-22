@@ -11,6 +11,8 @@ const SPARKS = 7
 const HOLD_MS = 1500
 const POKE_MS = 250 // pointer-down shorter than this counts as a tap, not a hold
 const EYE_RANGE = 0.55 // how far (in 24-unit glyph space) the eyes can glance
+// the flame is always accent-colored, so the eyes stay dark in either theme
+const EYE = '#1d1612'
 
 export default function Ember({
   mood = 'idle',
@@ -83,33 +85,11 @@ export default function Ember({
   }, [mood, reducedEffects, squash])
 
   const streakScale = emberScale(streak)
-  const still = reducedEffects
-  const t = (anim) => (still ? { duration: 0 } : anim)
 
-  // sway/flicker, per mood — celebrate burns brighter and faster, as if
-  // caught in a gust; worried leans and gutters; the rest just breathe
-  const flameAnim = holding
-    ? { rotate: 0, scaleY: 1, scaleX: 1, x: 0 }
-    : {
-        focus: { scaleY: [1, 1.04, 1], scaleX: [1, 0.98, 1], rotate: 0, x: 0 },
-        celebrate: { rotate: [-9, 7, -6, 8, -3, 0], scaleY: [1, 1.18, 1.05, 1.2, 1], x: [0, -2, 2, -1.5, 0] },
-        worried: { rotate: [-4, 4, -3, 2, 0], scaleY: [1, 0.95, 1], x: 0 },
-        proud: { scaleY: [1.1, 1.15, 1.1], scaleX: [1.06, 1.09, 1.06], rotate: [0, 1.5, 0, -1.5, 0], x: 0 },
-        sleepy: { scaleY: [0.76, 0.72, 0.76], scaleX: [0.76, 0.78, 0.76], rotate: 0, x: 0 },
-        idle: { scaleY: [1, 1.05, 1], scaleX: [1, 0.97, 1], rotate: [0, 1.2, 0, -1.2, 0], x: 0 },
-      }[mood]
-
-  const flameDur = { focus: 2.6, celebrate: 0.45, worried: 0.7, proud: 3.4, sleepy: 4.2, idle: 4.4 }[mood]
-  const flameRepeat = mood === 'celebrate' ? 3 : Infinity
-
-  const bodyLean =
-    mood === 'celebrate'
-      ? { y: [0, -9, -2, -7, 0] }
-      : mood === 'proud'
-        ? { y: [0, -3, 0] }
-        : { y: 0 }
-  const bodyDur = mood === 'proud' ? 3.4 : flameDur
-  const bodyRepeat = mood === 'proud' ? Infinity : flameRepeat
+  // The per-mood sway/breath loops live in CSS (.amb-ember-body.anim-*) on
+  // an HTML wrapper, so the GPU compositor runs them. Driving them from
+  // Framer Motion on SVG cost ~60 style+layout passes a second while idle.
+  const bodyAnim = `mood-${mood}${reducedEffects || holding ? ' still' : ''}`
 
   const eyesClosed = mood === 'proud' || mood === 'sleepy' || blink || holding
   const eyesNarrow = mood === 'focus'
@@ -210,17 +190,9 @@ export default function Ember({
         )}
 
         <motion.div className="amb-ember-squash" animate={squash} style={{ transformOrigin: '50% 90%' }}>
-          <motion.svg
-            viewBox="0 0 24 24"
-            width="100%"
-            height="100%"
-            initial={false}
-            animate={{ scale: streakScale, ...bodyLean }}
-            transition={t({
-              scale: { type: 'spring', stiffness: 120, damping: 14 },
-              y: { duration: bodyDur, repeat: bodyRepeat, ease: 'easeInOut' },
-            })}
-          >
+          <div className="amb-ember-streak" style={{ transform: `scale(${streakScale})` }}>
+          <div className={`amb-ember-body ${bodyAnim}`}>
+          <svg viewBox="0 0 24 24" width="100%" height="100%">
             <defs>
               <linearGradient id={gradId} x1="0" y1="0" x2="1" y2="1">
                 <stop offset="0" stopColor={stopA} />
@@ -228,11 +200,7 @@ export default function Ember({
               </linearGradient>
             </defs>
 
-            <motion.g
-              style={{ transformOrigin: '11px 18px' }}
-              animate={flameAnim}
-              transition={t({ duration: flameDur, repeat: holding ? 0 : flameRepeat, ease: 'easeInOut' })}
-            >
+            <g>
               <path d={FLAME_PATH} fill={`url(#${gradId})`} />
               {/* inner highlight — reads as heat at the core */}
               <ellipse cx="11" cy="17.2" rx="3.4" ry="2.6" fill="#fff" opacity={mood === 'celebrate' ? 0.32 : 0.14} />
@@ -241,14 +209,14 @@ export default function Ember({
                 <>
                   <path
                     d={`M${7.6 + eyeX} 15.3 q1.1 ${holding ? -0.6 : 1} 2.2 0`}
-                    stroke="var(--bg)"
+                    stroke={EYE}
                     strokeWidth="1"
                     fill="none"
                     strokeLinecap="round"
                   />
                   <path
                     d={`M${11.2 + eyeX} 15.3 q1.1 ${holding ? -0.6 : 1} 2.2 0`}
-                    stroke="var(--bg)"
+                    stroke={EYE}
                     strokeWidth="1"
                     fill="none"
                     strokeLinecap="round"
@@ -256,8 +224,8 @@ export default function Ember({
                 </>
               ) : (
                 <>
-                  <ellipse cx={8.7 + eyeX} cy={15.6 + eyeY} rx="1" ry={eyesNarrow ? 0.45 : 1.1} fill="var(--bg)" />
-                  <ellipse cx={12.3 + eyeX} cy={15.6 + eyeY} rx="1" ry={eyesNarrow ? 0.45 : 1.1} fill="var(--bg)" />
+                  <ellipse cx={8.7 + eyeX} cy={15.6 + eyeY} rx="1" ry={eyesNarrow ? 0.45 : 1.1} fill={EYE} />
+                  <ellipse cx={12.3 + eyeX} cy={15.6 + eyeY} rx="1" ry={eyesNarrow ? 0.45 : 1.1} fill={EYE} />
                   {/* tiny catchlights */}
                   {!eyesNarrow && (
                     <>
@@ -275,8 +243,10 @@ export default function Ember({
                   <ellipse cx="13.6" cy="17.3" rx="0.9" ry="0.5" fill="#ff8a7a" opacity="0.55" />
                 </>
               )}
-            </motion.g>
-          </motion.svg>
+            </g>
+          </svg>
+          </div>
+          </div>
         </motion.div>
       </motion.div>
 

@@ -8,13 +8,14 @@ import Checkbox from './Checkbox'
 import ProgressRing from './ProgressRing'
 import Ember from './Ember'
 import AnalogClock from './AnalogClock'
-import { XIcon } from './Icons'
+import { XIcon, FlameIcon } from './Icons'
 
 const WD = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 const MO = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 const ROW_CAP = 10
 
 const dateLabel = (d) => `${WD[d.getDay()]} ${String(d.getDate()).padStart(2, '0')} ${MO[d.getMonth()]}`
+const hhmm = (d) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 
 const fmtCountdown = (secs) => {
   const s = Math.max(0, Math.ceil(secs))
@@ -78,16 +79,20 @@ function useFocusSession() {
   return session
 }
 
+// A widget with nothing worth showing renders nothing — an idle box is
+// just visual noise on a screen meant to be glanced at.
 function Widget({ kind, progress, streak, focusSession, focusTask, focusSecsLeft, focusPct }) {
   if (kind === 'streak') {
+    if (streak <= 0) return null
     return (
       <div className="amb-widget">
         <span className="amb-widget-label">STREAK</span>
-        {streak > 0 ? (
-          <span className="amb-widget-value">🔥 {streak}d</span>
-        ) : (
-          <span className="amb-widget-sub">No streak yet</span>
-        )}
+        <div className="amb-widget-row">
+          <FlameIcon size={22} className="amb-widget-flame" />
+          <span className="amb-widget-value">
+            {streak} day{streak === 1 ? '' : 's'}
+          </span>
+        </div>
       </div>
     )
   }
@@ -103,29 +108,26 @@ function Widget({ kind, progress, streak, focusSession, focusTask, focusSecsLeft
     )
   }
   if (kind === 'focus') {
+    if (!focusSession) return null
     return (
-      <div className="amb-widget">
-        <span className="amb-widget-label">FOCUS</span>
-        {focusSession ? (
-          <div className="amb-widget-row">
-            <ProgressRing
-              size={38}
-              stroke={4}
-              pct={focusPct}
-              color={focusSession.phase === 'work' ? 'var(--accent)' : '#7c8a4d'}
-            />
-            <div className="amb-widget-focus-info">
-              <span className="amb-widget-value">{fmtCountdown(focusSecsLeft)}</span>
-              <span className="amb-widget-sub">{focusTask?.title ?? 'Focus session'}</span>
-            </div>
+      <div className="amb-widget amb-widget-live">
+        <span className="amb-widget-label">{focusSession.phase === 'work' ? 'FOCUS' : 'BREAK'}</span>
+        <div className="amb-widget-row">
+          <ProgressRing
+            size={38}
+            stroke={4}
+            pct={focusPct}
+            color={focusSession.phase === 'work' ? 'var(--accent)' : '#7c8a4d'}
+          />
+          <div className="amb-widget-focus-info">
+            <span className="amb-widget-value">{fmtCountdown(focusSecsLeft)}</span>
+            <span className="amb-widget-sub">{focusTask?.title ?? 'Focus session'}</span>
           </div>
-        ) : (
-          <span className="amb-widget-sub">No active session</span>
-        )}
+        </div>
       </div>
     )
   }
-  return <div className="amb-widget amb-widget-blank" />
+  return null
 }
 
 export default function Ambient({ onExit }) {
@@ -278,9 +280,13 @@ export default function Ambient({ onExit }) {
       <div className="amb-layout">
         <div className="amb-left">
           <AnalogClock now={now} reducedEffects={!!settings.reducedEffects} />
-          <div className="amb-date">{dateLabel(now)}</div>
-          <Widget kind={settings.ambientWidget1 ?? 'streak'} {...widgetProps} />
-          <Widget kind={settings.ambientWidget2 ?? 'focus'} {...widgetProps} />
+          <div className="amb-date">
+            {dateLabel(now)} <span className="amb-date-time">{hhmm(now)}</span>
+          </div>
+          <div className="amb-widgets">
+            <Widget kind={settings.ambientWidget1 ?? 'streak'} {...widgetProps} />
+            <Widget kind={settings.ambientWidget2 ?? 'focus'} {...widgetProps} />
+          </div>
         </div>
 
         <div className="amb-right">
@@ -372,6 +378,7 @@ export default function Ambient({ onExit }) {
               streak={insights.streak}
               overdueCount={overdueCount}
               reducedEffects={!!settings.reducedEffects}
+              size={128}
             />
           )}
         </div>
