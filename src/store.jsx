@@ -839,8 +839,8 @@ export function groupUpcoming(tasks) {
 
 const listeners = new Set()
 
-export function toast(message, icon = '✓', action = null) {
-  const t = { id: uid(), message, icon, action }
+export function toast(message, icon = '✓', action = null, { sticky = false } = {}) {
+  const t = { id: uid(), message, icon, action, sticky }
   listeners.forEach((fn) => fn(t))
 }
 

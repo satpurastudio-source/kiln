@@ -8,6 +8,7 @@ export default function Toasts() {
   useEffect(() => {
     return onToast((t) => {
       setToasts((prev) => [...prev.slice(-2), t])
+      if (t.sticky) return
       setTimeout(() => {
         setToasts((prev) => prev.filter((x) => x.id !== t.id))
       }, 2800)
