@@ -45,7 +45,10 @@ Deno.serve(async (req) => {
 
     // admin client wipes their data + auth record
     const admin = createClient(url, service)
-    await admin.from('kiln_data').delete().eq('user_id', user.id)
+    // data first, and stop if it fails — never leave an orphaned row of
+    // someone's tasks behind a deleted account
+    const { error: dataErr } = await admin.from('kiln_data').delete().eq('user_id', user.id)
+    if (dataErr) return json(500, { error: dataErr.message })
     const { error: delErr } = await admin.auth.admin.deleteUser(user.id)
     if (delErr) return json(500, { error: delErr.message })
 
