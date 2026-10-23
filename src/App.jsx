@@ -24,6 +24,7 @@ import Onboarding from './components/Onboarding'
 import Settings from './components/Settings'
 import Ambient from './components/Ambient'
 import { MenuIcon, XIcon } from './components/Icons'
+import useEdgeSwipe from './useEdgeSwipe'
 
 export default function App() {
   const { state } = useStore()
@@ -68,6 +69,12 @@ export default function App() {
   }, [viewKey])
 
   const signedIn = !!state.profile
+
+  useEdgeSwipe({
+    open: mobileNav,
+    setOpen: setMobileNav,
+    enabled: booted && signedIn && state.onboarded && !showAmbient && !showReset && !showVerified,
+  })
 
   useEffect(() => {
     if (!signedIn) return
