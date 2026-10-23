@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { XIcon, SparkleIcon } from './Icons'
 
@@ -13,19 +13,34 @@ const readSeen = () => {
   }
 }
 
+const SEEN_EVENT = 'kiln-tip-seen'
+
+export const tipSeen = (id) => readSeen().has(id)
+
+// Retire a tip from anywhere — e.g. once someone actually uses the gesture
+// it describes, there's nothing left to teach.
+export function markTipSeen(id) {
+  const seen = readSeen()
+  if (seen.has(id)) return
+  seen.add(id)
+  try {
+    localStorage.setItem(KEY, JSON.stringify([...seen]))
+  } catch {
+    /* private mode: fine, it just won't persist */
+  }
+  window.dispatchEvent(new CustomEvent(SEEN_EVENT, { detail: id }))
+}
+
 export default function Tip({ id, children }) {
   const [show, setShow] = useState(() => !readSeen().has(id))
 
-  const dismiss = () => {
-    const seen = readSeen()
-    seen.add(id)
-    try {
-      localStorage.setItem(KEY, JSON.stringify([...seen]))
-    } catch {
-      /* private mode: fine, it just won't persist */
-    }
-    setShow(false)
-  }
+  useEffect(() => {
+    const on = (e) => e.detail === id && setShow(false)
+    window.addEventListener(SEEN_EVENT, on)
+    return () => window.removeEventListener(SEEN_EVENT, on)
+  }, [id])
+
+  const dismiss = () => markTipSeen(id)
 
   return (
     <AnimatePresence initial={false}>

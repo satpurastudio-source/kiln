@@ -25,6 +25,7 @@ import Settings from './components/Settings'
 import Ambient from './components/Ambient'
 import { MenuIcon, XIcon } from './components/Icons'
 import useEdgeSwipe from './useEdgeSwipe'
+import GestureTips from './components/GestureTips'
 import usePullToSearch from './usePullToSearch'
 
 export default function App() {
@@ -207,6 +208,7 @@ export default function App() {
                 <Trash />
               ) : (
                 <>
+                  <GestureTips />
                   <QuickAdd ref={quickAddRef} />
                   <TaskList query={query} />
                 </>

@@ -153,6 +153,15 @@ export const ChecklistIcon = (p) => (
   </I>
 )
 
+// iOS share sheet glyph (box with an arrow out the top)
+export const ShareIcon = (p) => (
+  <I {...p}>
+    <path d="M12 3v12" />
+    <path d="M8 7l4-4 4 4" />
+    <path d="M8 11H6a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-8a1 1 0 0 0-1-1h-2" />
+  </I>
+)
+
 export const DownloadIcon = (p) => (
   <I {...p}>
     <path d="M12 3v12M7 10l5 5 5-5" />

@@ -49,3 +49,49 @@ export function initPWA() {
     },
   })
 }
+
+/* ------------------------------ install prompt ------------------------------ */
+// Chrome/Android fire `beforeinstallprompt` once, early, so it's caught at
+// startup and held until the UI asks for it. iOS has no such event — there
+// the UI shows Share → Add to Home Screen instructions instead.
+
+let deferredPrompt = null
+const installListeners = new Set()
+const notifyInstall = () => installListeners.forEach((fn) => fn())
+
+if (typeof window !== 'undefined') {
+  window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault() // we show our own button instead of the mini-infobar
+    deferredPrompt = e
+    notifyInstall()
+  })
+  window.addEventListener('appinstalled', () => {
+    deferredPrompt = null
+    notifyInstall()
+  })
+}
+
+export const isStandalone = () =>
+  navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches
+
+export const isIOS = () =>
+  /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) // iPadOS reports as Mac
+
+export const canPromptInstall = () => !!deferredPrompt
+
+export function onInstallChange(fn) {
+  installListeners.add(fn)
+  return () => installListeners.delete(fn)
+}
+
+// Shows the browser's install dialog. Resolves true if the user accepted.
+export async function promptInstall() {
+  if (!deferredPrompt) return false
+  const e = deferredPrompt
+  deferredPrompt = null // a prompt event can only be used once
+  e.prompt()
+  const { outcome } = await e.userChoice
+  notifyInstall()
+  return outcome === 'accepted'
+}

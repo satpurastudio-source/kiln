@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { markTipSeen } from './components/Tip'
 
 // Mobile: pull down on the header (title area) to open the command palette —
 // search + jump-anywhere, the touch stand-in for Ctrl+K. The header stretches
@@ -63,6 +64,7 @@ export default function usePullToSearch({ onPull, enabled }) {
       const speed = done.dy / Math.max(1, (done.tLast ?? e.timeStamp) - done.t0)
       if (done.dy > PULL || (done.dy > LOCK * 2 && speed > FLICK)) {
         navigator.vibrate?.(8)
+        markTipSeen('pull-search')
         onPull()
       }
     }

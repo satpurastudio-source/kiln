@@ -14,16 +14,38 @@ const useCycle = (n, ms) => {
   return i
 }
 
-/* type naturally → tokens become pills → collapses into a filed task */
+/* type naturally → tokens become pills → collapses into a filed task.
+   Alternates a relative date ("tomorrow") with a real one ("26 oct") so
+   both read as things you can type. */
+const NL_EXAMPLES = [
+  {
+    text: 'gym tomorrow 7am !high #fitness',
+    title: 'gym',
+    meta: 'Tomorrow · 7:00 AM',
+    pills: [
+      { key: 'd', icon: <CalendarIcon size={11} />, label: 'Tomorrow' },
+      { key: 't', icon: <ClockIcon size={11} />, label: '7:00 AM' },
+      { key: 'p', icon: <FlagIcon size={10} filled />, label: 'High' },
+      { key: 'f', dot: true, label: 'Fitness' },
+    ],
+  },
+  {
+    text: 'pay rent 26 oct 6pm #home',
+    title: 'pay rent',
+    meta: 'Oct 26 · 6:00 PM',
+    pills: [
+      { key: 'd', icon: <CalendarIcon size={11} />, label: 'Oct 26' },
+      { key: 't', icon: <ClockIcon size={11} />, label: '6:00 PM' },
+      { key: 'f', dot: true, label: 'Home' },
+    ],
+  },
+]
+
 export function NLDemo() {
-  const phase = useCycle(3, 1700)
-  const text = phase === 2 ? 'gym' : 'gym tomorrow 7am !high #fitness'
-  const pills = [
-    { key: 'd', icon: <CalendarIcon size={11} />, label: 'Tomorrow' },
-    { key: 't', icon: <ClockIcon size={11} />, label: '7:00 AM' },
-    { key: 'p', icon: <FlagIcon size={10} filled />, label: 'High' },
-    { key: 'f', dot: true, label: 'Fitness' },
-  ]
+  const tick = useCycle(NL_EXAMPLES.length * 3, 1700)
+  const ex = NL_EXAMPLES[Math.floor(tick / 3)]
+  const phase = tick % 3
+  const text = phase === 2 ? ex.title : ex.text
   return (
     <div className="demo demo-nl">
       <div className="demo-nl-bar">
@@ -37,13 +59,13 @@ export function NLDemo() {
         <AnimatePresence mode="wait">
           {phase === 1 && (
             <motion.div
-              key="pills"
+              key={`pills-${ex.title}`}
               className="demo-nl-pills"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
             >
-              {pills.map((p, i) => (
+              {ex.pills.map((p, i) => (
                 <motion.span
                   key={p.key}
                   className="demo-pill"
@@ -59,7 +81,7 @@ export function NLDemo() {
           )}
           {phase === 2 && (
             <motion.div
-              key="card"
+              key={`card-${ex.title}`}
               className="demo-mini-card"
               initial={{ opacity: 0, y: 8, scale: 0.96 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
@@ -67,8 +89,8 @@ export function NLDemo() {
               transition={{ type: 'spring', stiffness: 360, damping: 26 }}
             >
               <span className="demo-mini-check on">✓</span>
-              <span className="demo-mini-title">gym</span>
-              <span className="demo-mini-meta">Tomorrow · 7:00 AM</span>
+              <span className="demo-mini-title">{ex.title}</span>
+              <span className="demo-mini-meta">{ex.meta}</span>
             </motion.div>
           )}
         </AnimatePresence>

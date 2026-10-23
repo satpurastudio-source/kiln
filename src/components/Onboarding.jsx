@@ -6,6 +6,7 @@ import AccentPicker from './AccentPicker'
 import { NLDemo, TapDemo } from './OnboardingDemos'
 import { APP_NAME } from '../brand'
 import { FlameIcon, SunIcon, MoonIcon } from './Icons'
+import InstallHint from './InstallHint'
 
 // First-run flow (Duolingo-style): personalize first, ask to sign in last.
 // Also reopened as a quick tour from Settings / palette by flipping `onboarded`.
@@ -234,6 +235,7 @@ export default function Onboarding() {
             Already have an account? <b>Sign in</b>
           </button>
         </div>
+        <InstallHint />
       </>
     ),
   }
@@ -247,6 +249,7 @@ export default function Onboarding() {
         </div>
         <h2 className="onb-title">You’re all set<span className="dot">.</span></h2>
         <p className="onb-sub">That’s the tour. Back to your tasks.</p>
+        <InstallHint />
       </>
     ),
   }

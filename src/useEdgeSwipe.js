@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'react'
+import { markTipSeen } from './components/Tip'
 
 // Mobile drawer gestures: swipe right from the left edge to open the sidebar,
 // swipe left to close it. The drawer tracks the finger, then snaps open/shut
@@ -84,7 +85,10 @@ export default function useEdgeSwipe({ open, setOpen, enabled }) {
       const commit = dist > done.width * 0.35 || speed > FLICK
       // let the CSS transition run from where the finger left it
       reset()
-      if (commit) setOpen(!done.isOpen)
+      if (commit) {
+        setOpen(!done.isOpen)
+        if (!done.isOpen) markTipSeen('swipe-nav') // they've got it
+      }
     }
 
     document.addEventListener('touchstart', onStart, { passive: true })
