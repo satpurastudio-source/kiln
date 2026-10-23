@@ -85,6 +85,9 @@ html,
 body,
 #root {
   height: 100%;
+  /* measured real screen height (src/viewport.js) — CSS 100% falls short
+     of the bottom edge in iPhone home-screen apps */
+  height: var(--app-h, 100%);
 }
 
 body {
@@ -4041,7 +4044,7 @@ kbd,
   inset: 0;
   z-index: 9999;
   height: 100vh;
-  height: 100dvh;
+  height: var(--app-h, 100dvh);
   width: 100vw;
   padding: var(--amb-pad);
   padding-top: max(var(--amb-pad), env(safe-area-inset-top));
@@ -5322,71 +5325,8 @@ kbd,
   }
 }
 
-/* phones: pad down, scroll if the day is long, sheet-style editor */
+/* phones: sheet-style editor (the one-screen layout is .amb-root.compact) */
 @media (max-width: 700px) {
-  .amb-root {
-    /* desktop-sized padding would eat a phone — cap it (inline var wins
-       otherwise) */
-    --amb-pad-m: min(var(--amb-pad), 18px);
-    padding: var(--amb-pad-m);
-    padding-top: max(var(--amb-pad-m), env(safe-area-inset-top));
-    padding-bottom: max(var(--amb-pad-m), env(safe-area-inset-bottom));
-    overflow-y: auto;
-    overscroll-behavior: contain;
-  }
-  .amb-layout {
-    height: auto;
-    min-height: 100%;
-  }
-  .amb-board {
-    grid-template-columns: 1fr;
-  }
-  .amb-widgets {
-    flex-direction: column;
-  }
-  .amb-widgets > * {
-    max-width: none;
-  }
-  .amb-row {
-    font-size: min(var(--amb-row), 18px);
-    padding-block: 10px; /* comfortable tap targets */
-  }
-  .amb-row .checkbox {
-    width: 24px;
-    height: 24px;
-  }
-  /* the page scrolls on a phone, so a floating Ember would always sit on
-     top of something — it settles at the end of the page instead */
-  .amb-right {
-    padding: 0;
-  }
-  .amb-ember-dock,
-  .amb-root.editing .amb-ember-dock.corner-right {
-    position: relative;
-    inset: auto;
-    display: flex;
-    justify-content: flex-end;
-    margin-top: 20px;
-  }
-  .amb-ember-dock.corner-left {
-    justify-content: flex-start;
-  }
-  /* title gets the full width; time/priority drop to a line beneath it */
-  .amb-row {
-    flex-wrap: wrap;
-    row-gap: 2px;
-  }
-  .amb-row-title {
-    flex: 1 1 calc(100% - 60px);
-    white-space: normal;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-  }
-  .amb-row-title + .amb-row-tag {
-    margin-left: 36px;
-  }
-
   .ame {
     top: auto;
     left: 0;
@@ -5414,4 +5354,273 @@ kbd,
   .ame-hours select {
     font-size: 16px; /* no iOS/Android zoom-on-focus */
   }
+}
+
+/* ---------- full-height layers follow the measured screen ----------
+   Fixed layers are sized from the same (short on iPhone home-screen apps)
+   viewport as 100%, so pin them to --app-h instead (src/viewport.js). */
+
+.overlay,
+.palette-wrap,
+.focus-overlay,
+.minical-backdrop,
+.loader,
+.aurora,
+.noise {
+  bottom: auto;
+  height: var(--app-h, 100%);
+}
+
+@media (max-width: 860px) {
+  .sidebar,
+  .mobile-backdrop {
+    bottom: auto;
+    height: var(--app-h, 100%);
+  }
+}
+
+/* ---------- Ambient on phones: one screen, never scrolls ----------
+   .compact is set from JS (max-width 700px or max-height 500px) so the
+   layout and the row-fitting logic always agree. */
+
+.amb-left-info {
+  display: contents; /* desktop: date + widgets stay direct column children */
+}
+
+.amb-root.compact {
+  --amb-pad-m: min(var(--amb-pad), 18px);
+  --amb-screen: var(--app-h, 100dvh);
+  --amb-clock-size: min(var(--amb-clock), 40vw, calc(var(--amb-screen) * 0.24));
+  padding: var(--amb-pad-m);
+  padding-top: max(var(--amb-pad-m), env(safe-area-inset-top));
+  padding-bottom: max(var(--amb-pad-m), env(safe-area-inset-bottom));
+  padding-left: max(var(--amb-pad-m), env(safe-area-inset-left));
+  padding-right: max(var(--amb-pad-m), env(safe-area-inset-right));
+  overflow: hidden;
+}
+
+.amb-root.compact .amb-layout,
+.amb-root.compact.flip .amb-layout {
+  display: flex;
+  flex-direction: column;
+  /* stretch, not the desktop's center — centered flex items size to their
+     longest task title and run off the screen */
+  align-items: stretch;
+  gap: clamp(14px, calc(var(--amb-screen) * 0.024), 24px);
+  height: 100%;
+}
+
+/* top band: watch on the left, date + widgets beside it */
+.amb-root.compact .amb-left,
+.amb-root.compact.flip .amb-left {
+  order: 0;
+  flex: none;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 18px;
+  width: 100%;
+}
+
+.amb-root.compact .amb-left-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.amb-root.compact .amb-date {
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12px;
+  letter-spacing: 0.18em;
+}
+
+.amb-root.compact .amb-date-time {
+  font-family: var(--font-display);
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: 0.04em;
+}
+
+.amb-root.compact .amb-widgets {
+  flex-direction: column;
+  gap: 8px;
+  min-height: 0;
+}
+
+.amb-root.compact .amb-widgets > * {
+  max-width: none;
+}
+
+.amb-root.compact .amb-widget {
+  padding: 8px 12px;
+  gap: 4px;
+}
+
+.amb-root.compact .amb-widget-value {
+  font-size: 18px;
+}
+
+/* the rest of the screen: greeting, progress, then the list fills it */
+.amb-root.compact .amb-right {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+  padding: 0;
+  justify-content: flex-start;
+}
+
+.amb-root.compact .amb-head {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.amb-root.compact .amb-greet {
+  font-size: clamp(20px, calc(var(--amb-row) * 1.2), 28px);
+}
+
+.amb-root.compact .amb-head-ember {
+  margin-left: auto;
+  /* Ember's aura is generous — let it bleed instead of pushing rows down */
+  margin-block: -14px;
+}
+
+.amb-root.compact .amb-progress {
+  order: 2;
+  flex: 1 1 100%;
+  margin-left: 0;
+}
+
+.amb-root.compact .amb-progress-label {
+  font-size: 11px;
+}
+
+.amb-root.compact .amb-board {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch; /* desktop's `start` would size the card to its longest title */
+}
+
+.amb-root.compact .amb-col {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px;
+}
+
+.amb-root.compact .amb-list {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.amb-root.compact .amb-row {
+  font-size: min(var(--amb-row), 17px);
+  padding-block: 9px; /* comfortable tap targets */
+}
+
+.amb-root.compact .amb-row .checkbox {
+  width: 24px;
+  height: 24px;
+}
+
+/* Todo / Done switch */
+.amb-tabs {
+  gap: 6px;
+  margin-bottom: 8px;
+  padding-bottom: 10px;
+}
+
+.amb-tab {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border-radius: 99px;
+  font: inherit;
+  letter-spacing: inherit;
+  color: var(--text-3);
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.amb-tab.on {
+  background: var(--panel-hover);
+  color: var(--text-2);
+}
+
+.amb-tab .amb-col-count {
+  background: transparent;
+}
+
+.amb-tab.on .amb-col-count {
+  background: var(--panel);
+}
+
+/* landscape phone: watch + widgets left, sized to the screen height */
+.amb-root.compact.landscape {
+  --amb-clock-size: min(
+    var(--amb-clock),
+    36vw,
+    calc(var(--amb-screen) - 2 * var(--amb-pad-m) - 44px - var(--amb-slots) * 62px)
+  );
+}
+
+.amb-root.compact.landscape .amb-layout {
+  flex-direction: row;
+  gap: clamp(18px, 4vw, 40px);
+}
+
+.amb-root.compact.landscape .amb-left {
+  flex-direction: column;
+  justify-content: center;
+  gap: 10px;
+  width: auto;
+  height: 100%;
+}
+
+.amb-root.compact.landscape.flip .amb-left {
+  order: 2;
+}
+
+.amb-root.compact.landscape .amb-left-info {
+  align-items: center;
+  width: max(var(--amb-clock-size), 150px);
+  flex: none;
+}
+
+.amb-root.compact.landscape .amb-date {
+  flex-direction: row;
+  align-items: baseline;
+  gap: 0.8em;
+}
+
+.amb-root.compact.landscape .amb-date-time {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+}
+
+.amb-root.compact.landscape .amb-widgets {
+  width: 100%;
+}
+
+.amb-root.compact.landscape .amb-right {
+  height: 100%;
+}
+
+.amb-root.compact.landscape .amb-head {
+  margin-bottom: 8px;
 }

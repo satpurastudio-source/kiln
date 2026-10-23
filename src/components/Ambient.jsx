@@ -16,6 +16,46 @@ const WD = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 const MO = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 const WIDGET_H = 104 // px reserved per slot (≥ the tallest widget) so one leaving can't shift the clock
 const CONTROLS_MS = 2600
+// phones (either orientation) get a one-screen layout that never scrolls
+const COMPACT_MQ = '(max-width: 700px), (max-height: 500px)'
+const LANDSCAPE_MQ = '(orientation: landscape)'
+const MORE_H = 28 // room for the "+N more" line
+
+function useMedia(query) {
+  const [match, setMatch] = useState(() => window.matchMedia(query).matches)
+  useEffect(() => {
+    const mq = window.matchMedia(query)
+    const on = () => setMatch(mq.matches)
+    mq.addEventListener('change', on)
+    return () => mq.removeEventListener('change', on)
+  }, [query])
+  return match
+}
+
+// How many rows fit in the list box — measured, so row size, fonts and the
+// customizer's settings all just work. Falls back to `max` until measured.
+function useFitRows(ref, total, max, active) {
+  const [fit, setFit] = useState(max)
+  useEffect(() => {
+    if (!active) return setFit(max)
+    const el = ref.current
+    if (!el) return
+    const measure = () => {
+      const row = el.querySelector('.amb-row')
+      if (!row) return setFit(max)
+      const rowH = row.offsetHeight
+      const avail = el.clientHeight
+      let n = Math.max(1, Math.floor(avail / rowH))
+      if (total > n) n = Math.max(1, Math.floor((avail - MORE_H) / rowH))
+      setFit(Math.min(max, n))
+    }
+    measure()
+    const ro = new ResizeObserver(measure)
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [ref, total, max, active])
+  return fit
+}
 
 const dateLabel = (d) => `${WD[d.getDay()]} ${String(d.getDate()).padStart(2, '0')} ${MO[d.getMonth()]}`
 const hhmm = (d) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
@@ -205,9 +245,19 @@ export default function Ambient({ onExit }) {
     return { activeToday: active, completedToday: completed, overdueCount: overdue }
   }, [state.tasks])
 
-  const visibleTodo = activeToday.slice(0, cfg.maxRows)
+  const compact = useMedia(COMPACT_MQ)
+  const landscape = useMedia(LANDSCAPE_MQ)
+  // phones show one column at a time behind a Todo/Done switch
+  const [tab, setTab] = useState('todo')
+  const phoneTab = cfg.columns === 'todo' ? 'todo' : tab
+  const listRef = useRef(null)
+  const phoneTotal = phoneTab === 'todo' ? activeToday.length : completedToday.length
+  const fitRows = useFitRows(listRef, phoneTotal, cfg.maxRows, compact)
+  const maxRows = compact ? fitRows : cfg.maxRows
+
+  const visibleTodo = activeToday.slice(0, maxRows)
   const todoOverflow = activeToday.length - visibleTodo.length
-  const visibleDone = completedToday.slice(0, cfg.maxRows)
+  const visibleDone = completedToday.slice(0, maxRows)
   const doneOverflow = completedToday.length - visibleDone.length
 
   const progress = todayProgress(state)
@@ -334,7 +384,64 @@ export default function Ambient({ onExit }) {
     '--amb-glow': cfg.glow / 100,
     '--amb-dim': cfg.nightLevel / 100,
     '--amb-ember-space': cfg.showEmber ? `${Math.round(cfg.emberSize * 0.85)}px` : '0px',
+    '--amb-slots': slots,
   }
+
+  const todoRows =
+    visibleTodo.length === 0 ? (
+      <div className="amb-empty">Nothing due. Rest or plan tomorrow.</div>
+    ) : (
+      <AnimatePresence initial={false}>
+        {visibleTodo.map((t) => (
+          <motion.div
+            key={t.id}
+            layoutId={`amb-${t.id}`}
+            className="amb-row"
+            transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+          >
+            <Checkbox checked={false} color="var(--accent)" onToggle={() => toggle(t.id)} />
+            {isOverdue(t.due) && <span className="amb-overdue-dot" />}
+            <span className="amb-row-title">{t.title}</span>
+            {t.time && <span className="amb-row-tag">{fmtTime(t.time)}</span>}
+            {t.priority !== 'none' && (
+              <span className={`amb-row-tag prio-${t.priority}`}>
+                {PRIORITIES.find((p) => p.id === t.priority)?.label}
+              </span>
+            )}
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    )
+
+  const doneRows =
+    visibleDone.length === 0 ? (
+      <div className="amb-empty">Nothing finished yet.</div>
+    ) : (
+      <AnimatePresence initial={false}>
+        {visibleDone.map((t) => (
+          <motion.div
+            key={t.id}
+            layoutId={`amb-${t.id}`}
+            className="amb-row done"
+            transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+          >
+            <Checkbox checked color="var(--accent)" onToggle={() => toggle(t.id)} />
+            <span className="amb-row-title">{t.title}</span>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    )
+
+  const ember = cfg.showEmber && (
+    <Ember
+      mood={mood}
+      streak={insights.streak}
+      overdueCount={overdueCount}
+      reducedEffects={!!settings.reducedEffects}
+      eyesFollow={cfg.emberEyes}
+      size={compact ? Math.min(cfg.emberSize, 52) : cfg.emberSize}
+    />
+  )
 
   return (
     <div
@@ -345,6 +452,8 @@ export default function Ambient({ onExit }) {
         forcedTheme && `amb-force-${forcedTheme}`,
         cfg.side === 'right' && 'flip',
         editing && 'editing',
+        compact && 'compact',
+        compact && landscape && 'landscape',
       ]
         .filter(Boolean)
         .join(' ')}
@@ -393,26 +502,31 @@ export default function Ambient({ onExit }) {
             seconds={cfg.seconds}
             reducedEffects={!!settings.reducedEffects}
           />
-          {(cfg.showDate || cfg.showDigital) && (
-            <div className="amb-date">
-              {cfg.showDate && dateLabel(now)}
-              {cfg.showDigital && <span className="amb-date-time">{hhmm(now)}</span>}
-            </div>
-          )}
-          {slots > 0 && (
-            <div className="amb-widgets" style={{ minHeight: slots * WIDGET_H + (slots - 1) * 12 }}>
-              <AnimatePresence initial={false}>
-                {[cfg.widget1, cfg.widget2].map((kind, i) => {
-                  const el = renderWidget(kind, widgetProps)
-                  return el ? (
-                    <motion.div key={`${i}-${kind}`} {...widgetMotion}>
-                      {el}
-                    </motion.div>
-                  ) : null
-                })}
-              </AnimatePresence>
-            </div>
-          )}
+          <div className="amb-left-info">
+            {(cfg.showDate || cfg.showDigital) && (
+              <div className="amb-date">
+                {cfg.showDate && dateLabel(now)}
+                {cfg.showDigital && <span className="amb-date-time">{hhmm(now)}</span>}
+              </div>
+            )}
+            {slots > 0 && (
+              <div
+                className="amb-widgets"
+                style={compact ? undefined : { minHeight: slots * WIDGET_H + (slots - 1) * 12 }}
+              >
+                <AnimatePresence initial={false}>
+                  {[cfg.widget1, cfg.widget2].map((kind, i) => {
+                    const el = renderWidget(kind, widgetProps)
+                    return el ? (
+                      <motion.div key={`${i}-${kind}`} {...widgetMotion}>
+                        {el}
+                      </motion.div>
+                    ) : null
+                  })}
+                </AnimatePresence>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="amb-right">
@@ -440,85 +554,73 @@ export default function Ambient({ onExit }) {
                   </span>
                 </div>
               )}
+              {compact && ember && <div className="amb-head-ember">{ember}</div>}
             </div>
           )}
 
           <LayoutGroup>
-            <div className={`amb-board ${cfg.columns === 'todo' ? 'single' : ''}`}>
-              <div className="amb-col">
-                <div className="amb-col-head">
-                  <span className="amb-col-dot todo" />
-                  TODO <span className="amb-col-count">{activeToday.length}</span>
-                </div>
-                {visibleTodo.length === 0 ? (
-                  <div className="amb-empty">Nothing due. Rest or plan tomorrow.</div>
-                ) : (
-                  <AnimatePresence initial={false}>
-                    {visibleTodo.map((t) => (
-                      <motion.div
-                        key={t.id}
-                        layoutId={`amb-${t.id}`}
-                        className="amb-row"
-                        transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+            {compact ? (
+              <div className="amb-board">
+                <div className="amb-col">
+                  <div className="amb-col-head amb-tabs" role="tablist">
+                    <button
+                      role="tab"
+                      aria-selected={phoneTab === 'todo'}
+                      className={`amb-tab ${phoneTab === 'todo' ? 'on' : ''}`}
+                      onClick={() => setTab('todo')}
+                    >
+                      <span className="amb-col-dot todo" />
+                      TODO <span className="amb-col-count">{activeToday.length}</span>
+                    </button>
+                    {cfg.columns !== 'todo' && (
+                      <button
+                        role="tab"
+                        aria-selected={phoneTab === 'done'}
+                        className={`amb-tab ${phoneTab === 'done' ? 'on' : ''}`}
+                        onClick={() => setTab('done')}
                       >
-                        <Checkbox checked={false} color="var(--accent)" onToggle={() => toggle(t.id)} />
-                        {isOverdue(t.due) && <span className="amb-overdue-dot" />}
-                        <span className="amb-row-title">{t.title}</span>
-                        {t.time && <span className="amb-row-tag">{fmtTime(t.time)}</span>}
-                        {t.priority !== 'none' && (
-                          <span className={`amb-row-tag prio-${t.priority}`}>
-                            {PRIORITIES.find((p) => p.id === t.priority)?.label}
-                          </span>
-                        )}
-                      </motion.div>
-                    ))}
-                  </AnimatePresence>
-                )}
-                {todoOverflow > 0 && <div className="amb-more">+{todoOverflow} more</div>}
+                        <span className="amb-col-dot done" />
+                        DONE <span className="amb-col-count">{completedToday.length}</span>
+                      </button>
+                    )}
+                  </div>
+                  <div className="amb-list" ref={listRef}>
+                    {phoneTab === 'todo' ? todoRows : doneRows}
+                    {phoneTab === 'todo'
+                      ? todoOverflow > 0 && <div className="amb-more">+{todoOverflow} more</div>
+                      : doneOverflow > 0 && <div className="amb-more">+{doneOverflow} more</div>}
+                  </div>
+                </div>
               </div>
-
-              {cfg.columns !== 'todo' && (
+            ) : (
+              <div className={`amb-board ${cfg.columns === 'todo' ? 'single' : ''}`}>
                 <div className="amb-col">
                   <div className="amb-col-head">
-                    <span className="amb-col-dot done" />
-                    DONE <span className="amb-col-count">{completedToday.length}</span>
+                    <span className="amb-col-dot todo" />
+                    TODO <span className="amb-col-count">{activeToday.length}</span>
                   </div>
-                  {visibleDone.length === 0 ? (
-                    <div className="amb-empty">Nothing finished yet.</div>
-                  ) : (
-                    <AnimatePresence initial={false}>
-                      {visibleDone.map((t) => (
-                        <motion.div
-                          key={t.id}
-                          layoutId={`amb-${t.id}`}
-                          className="amb-row done"
-                          transition={{ type: 'spring', stiffness: 260, damping: 30 }}
-                        >
-                          <Checkbox checked color="var(--accent)" onToggle={() => toggle(t.id)} />
-                          <span className="amb-row-title">{t.title}</span>
-                        </motion.div>
-                      ))}
-                    </AnimatePresence>
-                  )}
-                  {doneOverflow > 0 && <div className="amb-more">+{doneOverflow} more</div>}
+                  {todoRows}
+                  {todoOverflow > 0 && <div className="amb-more">+{todoOverflow} more</div>}
                 </div>
-              )}
-            </div>
+
+                {cfg.columns !== 'todo' && (
+                  <div className="amb-col">
+                    <div className="amb-col-head">
+                      <span className="amb-col-dot done" />
+                      DONE <span className="amb-col-count">{completedToday.length}</span>
+                    </div>
+                    {doneRows}
+                    {doneOverflow > 0 && <div className="amb-more">+{doneOverflow} more</div>}
+                  </div>
+                )}
+              </div>
+            )}
           </LayoutGroup>
         </div>
       </div>
 
-      {cfg.showEmber && (
-        <div className={`amb-ember-dock corner-${cfg.emberCorner}`}>
-          <Ember
-            mood={mood}
-            streak={insights.streak}
-            overdueCount={overdueCount}
-            reducedEffects={!!settings.reducedEffects}
-            eyesFollow={cfg.emberEyes}
-            size={cfg.emberSize}
-          />
-        </div>
+      {ember && !(compact && (cfg.showGreeting || cfg.showProgress)) && (
+        <div className={`amb-ember-dock corner-${cfg.emberCorner}`}>{ember}</div>
       )}
 
       <AnimatePresence>{adding && <AmbientQuickAdd onClose={() => setAdding(false)} />}</AnimatePresence>
