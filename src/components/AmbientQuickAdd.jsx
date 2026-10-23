@@ -71,7 +71,7 @@ export default function AmbientQuickAdd({ onClose }) {
           value={title}
           maxLength={140}
           enterKeyHint="done"
-          placeholder={'Add a task…  try “call mom 6pm !high”'}
+          placeholder={'Add a task…  try “call mom 26 oct 6pm !high”'}
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={(e) => {
             e.stopPropagation() // typing "n" here must not re-trigger anything

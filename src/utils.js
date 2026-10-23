@@ -253,6 +253,40 @@ export function nextDue(due, repeat) {
 // recognized tokens out of the title. Only fields it finds are returned; the
 // caller falls back to its own defaults for the rest.
 const DOW = { sun: 0, mon: 1, tue: 2, wed: 3, thu: 4, fri: 5, sat: 6 }
+const MON = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 }
+const MONTH_RE =
+  '(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sep(?:t(?:ember)?)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)'
+const WEEKDAY_RE =
+  '(monday|mon|tuesday|tues|tue|wednesday|wed|thursday|thurs|thur|thu|friday|fri|saturday|sat|sunday|sun)'
+const LEAD = '(?:on\\s+|by\\s+|due\\s+)?' // "on 26 oct", "by oct 26", "due 26/10"
+const ORD = '(?:st|nd|rd|th)?'
+
+// A calendar date. With no year it means the next time that date comes round
+// (typing "5 jan" in December is next January, not ten months ago).
+function calendarDate(month, day, year) {
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  let y = year == null ? today.getFullYear() : year < 100 ? 2000 + year : year
+  let d = new Date(y, month, day)
+  if (d.getMonth() !== month) return null // 31 feb, 31 apr…
+  if (year == null && d < today) {
+    d = new Date(y + 1, month, day)
+    if (d.getMonth() !== month) return null // 29 feb into a non-leap year
+  }
+  return toDateStr(d)
+}
+
+// "the 30th" → the next 30th: this month if it hasn't passed, else next month
+function nextDayOfMonth(day) {
+  const now = new Date()
+  for (let i = 0; i < 3; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, day)
+    if (d.getDate() !== day) continue // month too short
+    if (i === 0 && day < now.getDate()) continue
+    return toDateStr(d)
+  }
+  return null
+}
 
 export function parseQuickAdd(raw, projects = []) {
   const original = (raw || '').trim()
@@ -302,8 +336,15 @@ export function parseQuickAdd(raw, projects = []) {
   }
 
   // --- date ---
+  // Relative words first, then calendar dates, then weekdays. Bare numeric
+  // and weekday forms only count at the end of the phrase (or after on/by/
+  // due) so "read 1/2 of the book" or "sat exam prep" stay as titles.
+  let dm
   if ((m = s.match(/\s(today|tonight)\b/i))) {
     res.due = todayStr()
+    remove(m)
+  } else if ((m = s.match(/\s(?:the\s+)?(day after tomorrow|overmorrow)\b/i))) {
+    res.due = addDaysStr(2)
     remove(m)
   } else if ((m = s.match(/\s(tomorrow|tmrw|tmr)\b/i))) {
     res.due = addDaysStr(1)
@@ -311,15 +352,60 @@ export function parseQuickAdd(raw, projects = []) {
   } else if ((m = s.match(/\snext week\b/i))) {
     res.due = addDaysStr(7)
     remove(m)
-  } else if ((m = s.match(/\sin (\d{1,3}) days?\b/i))) {
-    res.due = addDaysStr(Math.min(365, +m[1]))
+  } else if ((m = s.match(/\snext month\b/i))) {
+    const d = new Date()
+    const day = d.getDate()
+    d.setDate(1)
+    d.setMonth(d.getMonth() + 1)
+    // clamp: 31 jan → 28/29 feb, not 3 march
+    d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()))
+    res.due = toDateStr(d)
+    remove(m)
+  } else if ((m = s.match(/\s(?:this\s+)?weekend\b/i))) {
+    const off = (6 - new Date().getDay() + 7) % 7 // upcoming saturday (today if it is one)
+    res.due = addDaysStr(off)
+    remove(m)
+  } else if ((m = s.match(/\sin (\d{1,3}) (days?|weeks?|wks?)\b/i))) {
+    const n = +m[1] * (/^w/i.test(m[2]) ? 7 : 1)
+    res.due = addDaysStr(Math.min(365, n))
     remove(m)
   } else if (
-    // anchored to the end of the phrase (time is already stripped) so a stray
-    // "sat"/"wed" mid-sentence isn't mistaken for a weekday
-    (m = s.match(
-      /\s(next\s+|this\s+|on\s+|by\s+)?(monday|mon|tuesday|tues|tue|wednesday|wed|thursday|thurs|thur|thu|friday|fri|saturday|sat|sunday|sun)\s*$/i
-    ))
+    // 26 oct · 26th october · 26 of oct · 26 oct 2027
+    (m = s.match(new RegExp(`\\s${LEAD}(?:the\\s+)?(\\d{1,2})${ORD}\\s+(?:of\\s+)?${MONTH_RE}(?:,?\\s+(\\d{4}))?\\b`, 'i'))) &&
+    (dm = calendarDate(MON[m[2].slice(0, 3).toLowerCase()], +m[1], m[3] ? +m[3] : null))
+  ) {
+    res.due = dm
+    remove(m)
+  } else if (
+    // oct 26 · october 26th · oct 26, 2027
+    (m = s.match(new RegExp(`\\s${LEAD}${MONTH_RE}\\s+(\\d{1,2})${ORD}(?:,?\\s+(\\d{4}))?\\b`, 'i'))) &&
+    (dm = calendarDate(MON[m[1].slice(0, 3).toLowerCase()], +m[2], m[3] ? +m[3] : null))
+  ) {
+    res.due = dm
+    remove(m)
+  } else if (
+    // 26/10 · 26-10-2026 — day first (Indian/UK order)
+    ((m = s.match(/\s(?:on|by|due)\s+(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2}|\d{4}))?\b/i)) ||
+      (m = s.match(/\s(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2}|\d{4}))?\s*$/))) &&
+    +m[2] >= 1 &&
+    +m[2] <= 12 &&
+    (dm = calendarDate(+m[2] - 1, +m[1], m[3] ? +m[3] : null))
+  ) {
+    res.due = dm
+    remove(m)
+  } else if (
+    // the 30th · on the 30th · by the 5th · 30th (at the end)
+    ((m = s.match(/\s(?:on\s+|by\s+)?the\s+(\d{1,2})(?:st|nd|rd|th)\b/i)) ||
+      (m = s.match(/\s(?:on\s+|by\s+)?(\d{1,2})(?:st|nd|rd|th)\s*$/i))) &&
+    (dm = nextDayOfMonth(+m[1]))
+  ) {
+    res.due = dm
+    remove(m)
+  } else if (
+    // "on friday …" anywhere; a bare weekday only at the end, so a stray
+    // "sat"/"wed" mid-sentence isn't mistaken for one
+    (m = s.match(new RegExp(`\\s(next\\s+|this\\s+|on\\s+|by\\s+)${WEEKDAY_RE}\\b`, 'i'))) ||
+    (m = s.match(new RegExp(`\\s()${WEEKDAY_RE}\\s*$`, 'i')))
   ) {
     const target = DOW[m[2].toLowerCase().slice(0, 3)]
     let off = (target - new Date().getDay() + 7) % 7
