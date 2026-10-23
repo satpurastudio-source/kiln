@@ -25,6 +25,7 @@ import Settings from './components/Settings'
 import Ambient from './components/Ambient'
 import { MenuIcon, XIcon } from './components/Icons'
 import useEdgeSwipe from './useEdgeSwipe'
+import usePullToSearch from './usePullToSearch'
 
 export default function App() {
   const { state } = useStore()
@@ -70,11 +71,10 @@ export default function App() {
 
   const signedIn = !!state.profile
 
-  useEdgeSwipe({
-    open: mobileNav,
-    setOpen: setMobileNav,
-    enabled: booted && signedIn && state.onboarded && !showAmbient && !showReset && !showVerified,
-  })
+  const gesturesOn = booted && signedIn && state.onboarded && !showAmbient && !showReset && !showVerified
+  useEdgeSwipe({ open: mobileNav, setOpen: setMobileNav, enabled: gesturesOn })
+  const openPalette = useCallback(() => setPaletteOpen(true), [])
+  usePullToSearch({ onPull: openPalette, enabled: gesturesOn })
 
   useEffect(() => {
     if (!signedIn) return
