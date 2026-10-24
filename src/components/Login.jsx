@@ -4,6 +4,13 @@ import { useStore, toast } from '../store'
 import { supabase } from '../supabase'
 import { FlameIcon } from './Icons'
 import { APP_NAME, APP_LABEL } from '../brand'
+import { isNative } from '../native'
+
+// Where email links land. Inside the app shell the page lives at kiln://,
+// which a mail app can't open — so links go to the web app instead.
+const WEB_URL = 'https://satpurastudio-source.github.io/kiln/'
+const linkBase = () => (isNative ? WEB_URL : `${window.location.origin}${window.location.pathname}`)
+const RESEND_WAIT = 30 // seconds
 
 // onboarding hands off the chosen name + whether they wanted to sign up
 const readIntent = () => {
@@ -33,6 +40,8 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [code, setCode] = useState('')
+  const [resendIn, setResendIn] = useState(0)
 
   // consume the one-time handoff so it doesn't stick around next visit
   useEffect(() => {
@@ -44,6 +53,13 @@ export default function Login() {
     }
   }, [])
 
+  // countdown before "resend code" unlocks
+  useEffect(() => {
+    if (resendIn <= 0) return
+    const id = setTimeout(() => setResendIn((n) => n - 1), 1000)
+    return () => clearTimeout(id)
+  }, [resendIn])
+
   const switchMode = (m) => {
     setMode(m)
     setError('')
@@ -54,7 +70,7 @@ export default function Login() {
     setBusy(true)
     setError('')
     const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}${window.location.pathname}?reset=1`,
+      redirectTo: `${linkBase()}?reset=1`,
     })
     setBusy(false)
     if (err) return setError(err.message)
@@ -67,13 +83,13 @@ export default function Login() {
     setError('')
     const { error: err } = await supabase.auth.signInWithPassword({ email, password })
     setBusy(false)
-    if (err) {
-      setError(
-        err.message === 'Email not confirmed'
-          ? 'Please verify your email first — check your inbox.'
-          : err.message
-      )
+    if (err?.message === 'Email not confirmed') {
+      // straight to the code screen, with a fresh code on its way
+      setMode('sent')
+      setCode('')
+      return resend()
     }
+    if (err) setError(err.message)
     // success: the store's auth listener takes over and opens the app
   }
 
@@ -89,13 +105,44 @@ export default function Login() {
       options: {
         data: { name: name.trim() },
         // origin + pathname so it works on subpath hosting (GitHub Pages)
-        emailRedirectTo: `${window.location.origin}${window.location.pathname}?verified=1`,
+        emailRedirectTo: `${linkBase()}?verified=1`,
       },
     })
     setBusy(false)
     if (err) return setError(err.message)
     if (data.session) return // email confirmation disabled: signed in immediately
+    setCode('')
+    setResendIn(RESEND_WAIT)
     setMode('sent')
+  }
+
+  // The email carries a 6-digit code as well as the link. Typing the code
+  // signs you in right here — on any device, in the app or the browser —
+  // without the link having to find its way back to this exact screen.
+  const verifyCode = async () => {
+    const token = code.replace(/\D/g, '')
+    if (token.length < 6) return setError('Enter the code from the email.')
+    setBusy(true)
+    setError('')
+    const { error: err } = await supabase.auth.verifyOtp({ email, token, type: 'signup' })
+    setBusy(false)
+    if (err) return setError(/expired|invalid/i.test(err.message) ? 'That code didn’t work — check it, or send a new one.' : err.message)
+    toast('Email verified', '✓')
+    // signed in: the store's auth listener takes over and opens the app
+  }
+
+  async function resend() {
+    setError('')
+    setResendIn(RESEND_WAIT)
+    const { error: err } = await supabase.auth.resend({
+      type: 'signup',
+      email,
+      options: { emailRedirectTo: `${linkBase()}?verified=1` },
+    })
+    if (err) {
+      setResendIn(0)
+      setError(err.message)
+    } else toast('New code sent', '✉')
   }
 
   const guestStart = () => {
@@ -147,22 +194,53 @@ export default function Login() {
         </motion.p>
 
         <AnimatePresence mode="wait" initial={false}>
-          {mode === 'sent' || mode === 'sent-reset' ? (
+          {mode === 'sent' ? (
             <motion.div key="sent" {...fade}>
               <div className="login-sent-icon">✉</div>
               <p className="login-sent-title">Check your inbox</p>
               <p className="login-note">
-                {mode === 'sent' ? (
-                  <>
-                    We sent a verification link to <b>{email}</b>.<br />
-                    Click it, and you’ll land right back here — signed in.
-                  </>
-                ) : (
-                  <>
-                    We sent a password reset link to <b>{email}</b>.<br />
-                    Click it to choose a new password.
-                  </>
-                )}
+                We sent a code to <b>{email}</b>.<br />
+                Type it here — or just tap the link in the email.
+              </p>
+              <input
+                type="text"
+                className="login-input login-code"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                autoFocus
+                maxLength={10}
+                value={code}
+                placeholder="••••••"
+                aria-label="Verification code"
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+                onKeyDown={(e) => e.key === 'Enter' && !busy && verifyCode()}
+              />
+              {error && <p className="login-error">{error}</p>}
+              <motion.button
+                className="btn primary login-btn"
+                onClick={verifyCode}
+                disabled={busy}
+                whileTap={{ scale: 0.97 }}
+                style={{ opacity: busy ? 0.6 : 1 }}
+              >
+                {busy ? 'One moment…' : 'Verify & enter →'}
+              </motion.button>
+              <div className="login-alt">
+                <button className="login-link" onClick={resend} disabled={resendIn > 0}>
+                  {resendIn > 0 ? `Send a new code in ${resendIn}s` : 'Didn’t get it? Send a new code'}
+                </button>
+                <button className="login-link" onClick={() => switchMode('signin')}>
+                  ← back to sign in
+                </button>
+              </div>
+            </motion.div>
+          ) : mode === 'sent-reset' ? (
+            <motion.div key="sent-reset" {...fade}>
+              <div className="login-sent-icon">✉</div>
+              <p className="login-sent-title">Check your inbox</p>
+              <p className="login-note">
+                We sent a password reset link to <b>{email}</b>.<br />
+                Click it to choose a new password.
               </p>
               <button className="login-link" onClick={() => switchMode('signin')}>
                 ← back to sign in

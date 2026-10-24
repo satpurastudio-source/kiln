@@ -84,9 +84,14 @@ team — fine for your first test, useless for real users. Brevo gives you
 3. Save. Then go to **Authentication → Rate Limits** — with custom SMTP the
    email limit unlocks (default 30/hour, raise if you ever need to).
 
-Optional polish: **Authentication → Emails → Templates** → edit the
-"Confirm signup" template (custom SMTP unlocks template editing on free tier).
-Keep the `{{ .ConfirmationURL }}` variable — that's the magic link.
+**Confirm signup template (required — the app expects a code):**
+**Authentication → Emails → Templates → Confirm signup** → subject
+`Your kiln code`, body: paste all of `supabase/templates/confirm-signup.html`.
+The email carries a 6-digit code (`{{ .Token }}`) and a one-tap link
+(`{{ .ConfirmationURL }}`). People type the code into kiln on the device they
+signed up on — this is what makes verification work inside the iPhone/Android
+app, where a link would open in the browser instead. Custom SMTP unlocks
+template editing on the free tier.
 
 ## 4. Account deletion (required for the app stores)
 
@@ -117,8 +122,8 @@ local data and signs out — deploy it before you publish.)
 
 1. `npm run dev`, open http://localhost:5173
 2. **Create an account** with a real email of yours
-3. You should see the "Check your inbox" screen → open the email → click the link
-4. You land on **"Email verified."** with confetti → *Enter kiln*
+3. You should see the "Check your inbox" screen → open the email → type the
+   6-digit code (or click the link: you land on **"Email verified."** → *Enter kiln*)
 5. Add a task, then open the site in another browser / your phone, sign in —
    the task is there. That's the sync working.
 6. Ctrl+K → **Sign out** when you want to switch accounts.

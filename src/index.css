@@ -5739,3 +5739,12 @@ kbd,
   border: 1px solid rgba(217, 142, 50, 0.25);
 }
 .sync-badge .sync-dot { margin-top: 0; background: #d98e32; }
+
+/* verification code: big, spaced digits */
+.login-code {
+  height: 54px;
+  font-family: var(--font-mono);
+  font-size: 24px;
+  letter-spacing: 0.4em;
+  padding-left: calc(14px + 0.4em); /* letter-spacing trails — keep it centred */
+}
