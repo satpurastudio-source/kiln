@@ -1,8 +1,21 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useStore, toast } from '../store'
-import { iconGlyph } from '../utils'
-import { supabase } from '../supabase'
+import { iconGlyph, exportData, parseQuickAdd, fmtDue, todayStr, addDaysStr } from '../utils'
+import { playAdd } from '../sound'
+
+// same rule as the main quick add: the Today view means today, otherwise
+// the "new task defaults" setting decides
+const defaultDue = ({ view, settings }) =>
+  view.type === 'today'
+    ? todayStr()
+    : view.type === 'upcoming'
+      ? addDaysStr(1)
+      : settings.defaultDue === 'today'
+        ? todayStr()
+        : settings.defaultDue === 'tomorrow'
+          ? addDaysStr(1)
+          : null
 import { remindersOptedIn, enableReminders, disableReminders } from '../reminders'
 import {
   SunIcon,
@@ -25,8 +38,8 @@ import {
   FlameIcon,
 } from './Icons'
 
-export default function CommandPalette({ onClose, onNewProject, onOpenSettings }) {
-  const { state, dispatch } = useStore()
+export default function CommandPalette({ onClose, onNewProject, onOpenSettings, onOpenTask }) {
+  const { state, dispatch, signOut } = useStore()
   const [q, setQ] = useState('')
   const [sel, setSel] = useState(0)
   const inputRef = useRef(null)
@@ -83,26 +96,22 @@ export default function CommandPalette({ onClose, onNewProject, onOpenSettings }
         label: 'Clear all completed tasks',
         hint: 'Action',
         fn: () => {
-          const n = state.tasks.filter((t) => t.done).length
-          dispatch({ type: 'CLEAR_COMPLETED' })
-          toast(n > 0 ? `Cleared ${n} completed task${n === 1 ? '' : 's'}` : 'Nothing to clear', '🧹')
+          const ids = state.tasks.filter((t) => t.done && !t.archived).map((t) => t.id)
+          if (!ids.length) return toast('Nothing to clear', '🧹')
+          dispatch({ type: 'DELETE_TASKS', ids })
+          toast(`Cleared ${ids.length} completed task${ids.length === 1 ? '' : 's'}`, '🧹', {
+            label: 'Undo',
+            fn: () => dispatch({ type: 'RESTORE_TASKS', ids }),
+          })
         },
       },
       {
         icon: <DownloadIcon size={14} />,
-        label: 'Export my data (JSON)',
+        label: 'Download a backup (JSON)',
         hint: 'Account',
         fn: () => {
-          const blob = new Blob(
-            [JSON.stringify({ projects: state.projects, tasks: state.tasks }, null, 2)],
-            { type: 'application/json' }
-          )
-          const a = document.createElement('a')
-          a.href = URL.createObjectURL(blob)
-          a.download = `kiln-export-${new Date().toISOString().slice(0, 10)}.json`
-          a.click()
-          URL.revokeObjectURL(a.href)
-          toast('Data exported', '⬇')
+          exportData(state)
+          toast('Backup downloaded', '⬇')
         },
       },
       {
@@ -123,15 +132,76 @@ export default function CommandPalette({ onClose, onNewProject, onOpenSettings }
         icon: <XIcon size={14} />,
         label: 'Sign out',
         hint: 'Account',
-        fn: () => {
-          supabase.auth.signOut()
-          dispatch({ type: 'SIGN_OUT' })
+        fn: async () => {
+          if (!state.profile?.cloud) return dispatch({ type: 'SIGN_OUT' })
+          const ok = await signOut()
+          // couldn't sync first — Settings explains and offers the choices
+          if (!ok) {
+            toast('Some changes haven’t synced yet — sign out from Settings', '⚠')
+            onOpenSettings()
+          }
         },
       },
     ]
     const ql = q.trim().toLowerCase()
-    return ql ? base.filter((i) => i.label.toLowerCase().includes(ql)) : base
-  }, [q, state.projects, state.theme, state.sound, state.tasks, dispatch, onNewProject, onOpenSettings])
+    if (!ql) return base
+    const commands = base.filter((i) => i.label.toLowerCase().includes(ql))
+
+    // tasks matching the query — the pull-down search on phones lands here,
+    // so it has to find tasks, not just commands
+    const projectOf = (id) => state.projects.find((p) => p.id === id)
+    const tasks = state.tasks
+      .filter(
+        (t) =>
+          !t.archived &&
+          ((t.title || '').toLowerCase().includes(ql) || (t.notes || '').toLowerCase().includes(ql))
+      )
+      .sort((a, b) => Number(a.done) - Number(b.done))
+      .slice(0, 6)
+      .map((t) => {
+        const p = projectOf(t.projectId)
+        return {
+          key: `task-${t.id}`,
+          icon: <span style={{ color: p?.color ?? 'var(--accent)' }}>{t.done ? '✓' : '○'}</span>,
+          label: t.title,
+          hint: [p?.name, t.due && !t.done ? fmtDue(t.due) : null, t.done ? 'done' : null]
+            .filter(Boolean)
+            .join(' · '),
+          fn: () => onOpenTask(t),
+        }
+      })
+
+    // nothing typed matches exactly? one Enter turns it into a task
+    const parsed = parseQuickAdd(q, state.projects)
+    const add = parsed.title.trim()
+      ? [
+          {
+            key: 'add-task',
+            icon: <PlusIcon size={14} />,
+            label: `Add task “${parsed.title.trim()}”`,
+            hint: parsed.due ? fmtDue(parsed.due) : 'Task',
+            fn: () => {
+              const pid =
+                parsed.projectId ??
+                (state.view.type === 'project' ? state.view.projectId : state.projects[0]?.id)
+              dispatch({
+                type: 'ADD_TASK',
+                title: parsed.title,
+                projectId: pid,
+                newFolder: parsed.newFolder,
+                due: parsed.due ?? defaultDue(state),
+                time: parsed.time ?? (state.settings.defaultTime || null),
+                priority: parsed.priority ?? state.settings.defaultPriority,
+              })
+              playAdd()
+              const folder = parsed.newFolder ?? state.projects.find((p) => p.id === pid)?.name ?? 'Inbox'
+              toast(`Added to ${folder}${parsed.due ? ` · ${fmtDue(parsed.due)}` : ''}`, '✓')
+            },
+          },
+        ]
+      : []
+    return [...tasks, ...commands, ...add]
+  }, [q, state.projects, state.theme, state.sound, state.tasks, state.view, state.settings, state.profile, dispatch, signOut, onNewProject, onOpenSettings, onOpenTask])
 
   useEffect(() => {
     setSel(0)
@@ -187,21 +257,21 @@ export default function CommandPalette({ onClose, onNewProject, onOpenSettings }
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={onKey}
-            placeholder="Type a command…"
+            placeholder="Search tasks, run a command, or add a task…"
           />
           <span className="kbd">esc</span>
         </div>
         <div className="palette-list" ref={listRef}>
-          {items.length === 0 && <div className="palette-empty">No commands match.</div>}
+          {items.length === 0 && <div className="palette-empty">Nothing matches.</div>}
           {items.map((item, i) => (
             <button
-              key={item.label}
+              key={item.key ?? item.label}
               className={`palette-item ${i === sel ? 'sel' : ''}`}
               onMouseEnter={() => setSel(i)}
               onClick={() => run(item)}
             >
               <span className="pi-icon">{item.icon}</span>
-              {item.label}
+              <span className="pi-label">{item.label}</span>
               <span className="pi-hint">{item.hint}</span>
             </button>
           ))}

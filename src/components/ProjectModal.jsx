@@ -4,7 +4,7 @@ import { useStore, toast } from '../store'
 import { PROJECT_COLORS, PROJECT_ICONS, iconGlyph } from '../utils'
 
 export default function ProjectModal({ mode, project, onClose }) {
-  const { dispatch } = useStore()
+  const { state, dispatch } = useStore()
   const editing = mode === 'edit'
   const [name, setName] = useState(editing ? project.name : '')
   const [color, setColor] = useState(editing ? project.color : PROJECT_COLORS[0])
@@ -17,13 +17,20 @@ export default function ProjectModal({ mode, project, onClose }) {
     return () => clearTimeout(t)
   }, [])
 
+  // Escape closes, like every other overlay
+  useEffect(() => {
+    const onKey = (e) => e.key === 'Escape' && onClose()
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
+
   const submit = () => {
     if (!name.trim()) {
       inputRef.current?.focus()
       return
     }
     if (editing) {
-      dispatch({ type: 'UPDATE_PROJECT', id: project.id, patch: { name, color, icon } })
+      dispatch({ type: 'UPDATE_PROJECT', id: project.id, patch: { name: name.trim(), color, icon } })
       toast('Folder updated', '✓')
     } else {
       dispatch({ type: 'ADD_PROJECT', name, color, icon })
@@ -37,8 +44,14 @@ export default function ProjectModal({ mode, project, onClose }) {
       setConfirmDelete(true)
       return
     }
+    const index = state.projects.findIndex((p) => p.id === project.id)
+    const taskIds = state.tasks.filter((t) => t.projectId === project.id).map((t) => t.id)
     dispatch({ type: 'DELETE_PROJECT', id: project.id })
-    toast('Folder deleted', '🗑')
+    toast(
+      taskIds.length ? `Folder deleted — ${taskIds.length} task${taskIds.length === 1 ? '' : 's'} moved to Trash` : 'Folder deleted',
+      '🗑',
+      { label: 'Undo', fn: () => dispatch({ type: 'RESTORE_PROJECT', project, index, taskIds }) }
+    )
     onClose()
   }
 
@@ -119,7 +132,7 @@ export default function ProjectModal({ mode, project, onClose }) {
         <div className="modal-actions">
           {editing && (
             <button className="danger-btn" style={{ marginRight: 'auto', height: 38 }} onClick={remove}>
-              {confirmDelete ? 'Delete folder & tasks?' : 'Delete'}
+              {confirmDelete ? 'Delete folder? Tasks go to Trash' : 'Delete'}
             </button>
           )}
           <button className="btn ghost" onClick={onClose}>

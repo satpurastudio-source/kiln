@@ -7,11 +7,19 @@ export default function Toasts() {
 
   useEffect(() => {
     return onToast((t) => {
-      setToasts((prev) => [...prev.slice(-2), t])
+      setToasts((prev) => {
+        // the same message twice in a row just refreshes it instead of stacking
+        const rest = prev.filter((x) => !(x.message === t.message && !x.sticky))
+        // at most 3 on screen; sticky ones (e.g. "update ready") are never pushed out
+        const sticky = rest.filter((x) => x.sticky)
+        const loose = rest.filter((x) => !x.sticky).slice(-Math.max(0, 2 - sticky.length))
+        return [...sticky, ...loose, t]
+      })
       if (t.sticky) return
+      // give undo a fair chance — a reading-speed window, not a blink
       setTimeout(() => {
         setToasts((prev) => prev.filter((x) => x.id !== t.id))
-      }, 2800)
+      }, t.action ? 5000 : 2800)
     })
   }, [])
 
@@ -22,7 +30,9 @@ export default function Toasts() {
           <motion.div
             key={t.id}
             className="toast"
-            style={{ pointerEvents: t.action ? 'auto' : 'none' }}
+            style={{ pointerEvents: t.action || t.sticky ? 'auto' : 'none' }}
+            // a sticky notice without a button is dismissed by tapping it
+            onClick={t.sticky && !t.action ? () => setToasts((prev) => prev.filter((x) => x.id !== t.id)) : undefined}
             initial={{ opacity: 0, y: 24, scale: 0.9 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 10, scale: 0.92 }}

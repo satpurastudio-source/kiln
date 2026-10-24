@@ -51,8 +51,24 @@ export default class ErrorBoundary extends Component {
           </button>
           <button
             onClick={() => {
-              localStorage.removeItem('zenith-v1')
-              window.location.reload()
+              // last resort — and it erases tasks that may not have synced,
+              // so save a copy to the device before wiping anything
+              if (!window.confirm('Reset kiln on this device? A backup file of your local data downloads first.')) return
+              try {
+                const raw = localStorage.getItem('zenith-v1')
+                if (raw) {
+                  const a = document.createElement('a')
+                  a.href = URL.createObjectURL(new Blob([raw], { type: 'application/json' }))
+                  a.download = `kiln-local-backup-${Date.now()}.json`
+                  document.body.appendChild(a)
+                  a.click()
+                }
+                localStorage.removeItem('zenith-v1')
+                if (raw) localStorage.setItem(`zenith-v1-unreadable-${Date.now()}`, raw)
+              } catch {
+                /* ignore */
+              }
+              setTimeout(() => window.location.reload(), 600)
             }}
             style={{
               padding: '10px 22px',

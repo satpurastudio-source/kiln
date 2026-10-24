@@ -107,8 +107,12 @@ export default function TaskList({ query }) {
               className="clear-btn"
               onClick={(e) => {
                 e.stopPropagation()
-                dispatch({ type: 'DELETE_TASKS', ids: completed.map((t) => t.id) })
-                toast(`Cleared ${completed.length} completed`, '🧹')
+                const ids = completed.map((t) => t.id)
+                dispatch({ type: 'DELETE_TASKS', ids })
+                toast(`Cleared ${ids.length} completed`, '🧹', {
+                  label: 'Undo',
+                  fn: () => dispatch({ type: 'RESTORE_TASKS', ids }),
+                })
               }}
             >
               Clear

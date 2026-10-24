@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useReducer, useRef } from 'react'
+import { createContext, useContext, useEffect, useReducer, useRef, useState } from 'react'
 import {
   uid,
   todayStr,
@@ -15,7 +15,9 @@ import {
 } from './utils'
 import { setSoundEnabled } from './sound'
 import { setFxLite } from './fx'
-import { supabase, pullCloud, pushCloud } from './supabase'
+import { supabase } from './supabase'
+import { stableStringify } from './merge'
+import { createSync, clearBase, BASE_KEY } from './sync'
 
 export const STORAGE_KEY = 'zenith-v1'
 // Deleted tasks linger here before being purged.
@@ -88,18 +90,7 @@ const TUTORIAL_TITLES = new Set([
 const stripTutorialDues = (tasks) =>
   tasks.map((t) => (t.due && TUTORIAL_TITLES.has(t.title) ? { ...t, due: null } : t))
 
-// Deterministic serialization (jsonb reorders keys) — used to tell real
-// changes apart from our own sync echoes.
-export function stableStringify(value) {
-  if (Array.isArray(value)) return `[${value.map(stableStringify).join(',')}]`
-  if (value && typeof value === 'object') {
-    return `{${Object.keys(value)
-      .sort()
-      .map((k) => `${JSON.stringify(k)}:${stableStringify(value[k])}`)
-      .join(',')}}`
-  }
-  return JSON.stringify(value)
-}
+export { stableStringify }
 
 // Colors from the old violet theme → warm portfolio palette
 const COLOR_MIGRATION = {
@@ -156,25 +147,41 @@ function buildStatsFromTasks(tasks) {
 
 /* --------------------------------- reducer -------------------------------- */
 
+// Edit time on every synced item, so a true clash between two devices editing
+// the same field can be settled by whichever edit came last.
+const stamp = (x) => ({ ...x, updatedAt: Date.now() })
+
+function newFolder(projects, name) {
+  const n = projects.length
+  return {
+    id: uid(),
+    name,
+    color: PROJECT_COLORS[n % PROJECT_COLORS.length],
+    icon: PROJECT_ICONS[n % PROJECT_ICONS.length],
+  }
+}
+
+// Somewhere for a task to live: its own folder if it still exists, else the
+// first folder, else a fresh Inbox (all folders were deleted).
+function homeFor(projects, projectId) {
+  if (projects.some((p) => p.id === projectId)) return { projects, projectId }
+  if (projects.length) return { projects, projectId: projects[0].id }
+  const inbox = newFolder(projects, 'Inbox')
+  return { projects: [inbox], projectId: inbox.id }
+}
+
 function reducer(state, action) {
   switch (action.type) {
     case 'ADD_TASK': {
+      if (!action.title?.trim()) return state
       // `newFolder` (from typing "#name" for a folder that doesn't exist yet)
       // creates the folder on the fly and drops the task into it
-      let projects = state.projects
-      let projectId = action.projectId
+      let { projects, projectId } = homeFor(state.projects, action.projectId)
       if (action.newFolder?.trim()) {
-        const n = state.projects.length
-        const folder = {
-          id: uid(),
-          name: action.newFolder.trim(),
-          color: PROJECT_COLORS[n % PROJECT_COLORS.length],
-          icon: PROJECT_ICONS[n % PROJECT_ICONS.length],
-        }
+        const folder = newFolder(state.projects, action.newFolder.trim())
         projects = [...state.projects, folder]
         projectId = folder.id
       }
-      if (!projectId) return state
       const task = {
         id: uid(),
         projectId,
@@ -182,10 +189,11 @@ function reducer(state, action) {
         notes: '',
         priority: action.priority || 'none',
         due: action.due ?? null,
-        time: action.time ?? null,
+        time: action.time || null,
         done: false,
         doneAt: null,
         createdAt: Date.now(),
+        updatedAt: Date.now(),
       }
       return { ...state, projects, tasks: [task, ...state.tasks] }
     }
@@ -193,26 +201,42 @@ function reducer(state, action) {
       const target = state.tasks.find((t) => t.id === action.id)
       if (!target) return state
       const completing = !target.done
-      let tasks = state.tasks.map((t) =>
-        t.id === action.id
-          ? {
+      const repeats = completing && target.repeat && target.repeat !== 'none'
+      const nextId = repeats ? uid() : null
+      // un-completing a repeating task by mistake takes back the occurrence it
+      // spawned (if untouched) and makes it repeat again — no duplicates
+      const spawned =
+        !completing && target.nextId ? state.tasks.find((t) => t.id === target.nextId) : null
+      const takeBack = spawned && !spawned.done && spawned.updatedAt === spawned.createdAt
+      let tasks = state.tasks
+        .filter((t) => !(takeBack && t.id === spawned.id))
+        .map((t) => {
+          if (t.id !== action.id) return t
+          if (completing) {
+            // completed copy stops repeating so un-toggling can't double-spawn
+            return stamp({
               ...t,
-              done: completing,
-              doneAt: completing ? Date.now() : null,
-              // completed copy stops repeating so un-toggling can't double-spawn
-              repeat: completing ? 'none' : t.repeat,
-            }
-          : t
-      )
+              done: true,
+              doneAt: Date.now(),
+              repeat: repeats ? 'none' : t.repeat,
+              ...(repeats ? { repeatWas: t.repeat, nextId } : {}),
+            })
+          }
+          const { repeatWas, nextId: _n, ...rest } = t
+          return stamp({ ...rest, done: false, doneAt: null, repeat: takeBack ? repeatWas : t.repeat })
+        })
       // repeating task: completing it forges the next occurrence
-      if (completing && target.repeat && target.repeat !== 'none') {
+      if (repeats) {
+        const now = Date.now()
+        const { repeatWas: _r, nextId: _n, ...clean } = target
         tasks = [
           {
-            ...target,
-            id: uid(),
+            ...clean,
+            id: nextId,
             done: false,
             doneAt: null,
-            createdAt: Date.now(),
+            createdAt: now,
+            updatedAt: now,
             due: nextDue(target.due, target.repeat),
             pomos: 0,
             subs: (target.subs ?? []).map((s) => ({ ...s, done: false })),
@@ -234,19 +258,19 @@ function reducer(state, action) {
     case 'UPDATE_TASK': {
       return {
         ...state,
-        tasks: state.tasks.map((t) => (t.id === action.id ? { ...t, ...action.patch } : t)),
+        tasks: state.tasks.map((t) => (t.id === action.id ? stamp({ ...t, ...action.patch }) : t)),
       }
     }
     case 'ARCHIVE_TASK': {
       return {
         ...state,
-        tasks: state.tasks.map((t) => (t.id === action.id ? { ...t, archived: true } : t)),
+        tasks: state.tasks.map((t) => (t.id === action.id ? stamp({ ...t, archived: true }) : t)),
       }
     }
     case 'UNARCHIVE_TASK': {
       return {
         ...state,
-        tasks: state.tasks.map((t) => (t.id === action.id ? { ...t, archived: false } : t)),
+        tasks: state.tasks.map((t) => (t.id === action.id ? stamp({ ...t, archived: false }) : t)),
       }
     }
     case 'DELETE_TASK': {
@@ -259,16 +283,30 @@ function reducer(state, action) {
         trash: [{ ...target, deletedAt: Date.now() }, ...state.trash],
       }
     }
-    case 'RESTORE_TASK': {
-      // pull a task back out of the trash
-      const item = state.trash.find((t) => t.id === action.id)
-      if (!item) return state
-      const { deletedAt, ...task } = item
+    case 'RESTORE_TASK':
+    case 'RESTORE_TASKS': {
+      // pull tasks back out of the trash (one id, or several for a bulk undo)
+      const ids = new Set(action.ids ?? [action.id])
+      const items = state.trash.filter((t) => ids.has(t.id))
+      if (!items.length) return state
+      let projects = state.projects
+      const restored = items.map(({ deletedAt, ...task }) => {
+        // its folder may have been deleted since — rehome instead of orphaning
+        const home = homeFor(projects, task.projectId)
+        projects = home.projects
+        return stamp({ ...task, projectId: home.projectId })
+      })
       return {
         ...state,
-        tasks: [task, ...state.tasks],
-        trash: state.trash.filter((t) => t.id !== action.id),
+        projects,
+        tasks: [...restored, ...state.tasks.filter((t) => !ids.has(t.id))],
+        trash: state.trash.filter((t) => !ids.has(t.id)),
       }
+    }
+    case 'RESTORE_TRASH': {
+      // undo "Empty trash"
+      const have = new Set(state.trash.map((t) => t.id))
+      return { ...state, trash: [...state.trash, ...(action.items ?? []).filter((t) => !have.has(t.id))] }
     }
     case 'PURGE_TRASH': {
       // one id → delete forever; no id → drop everything past its TTL window
@@ -311,6 +349,7 @@ function reducer(state, action) {
       }
     }
     case 'ADD_PROJECT': {
+      if (!action.name?.trim()) return state
       const project = { id: uid(), name: action.name.trim(), color: action.color, icon: action.icon }
       return {
         ...state,
@@ -321,7 +360,7 @@ function reducer(state, action) {
     case 'UPDATE_PROJECT': {
       return {
         ...state,
-        projects: state.projects.map((p) => (p.id === action.id ? { ...p, ...action.patch } : p)),
+        projects: state.projects.map((p) => (p.id === action.id ? stamp({ ...p, ...action.patch }) : p)),
       }
     }
     case 'SET_PROJECTS': {
@@ -348,14 +387,14 @@ function reducer(state, action) {
           const log = { ...h.log }
           if (log[date]) delete log[date]
           else log[date] = true
-          return { ...h, log }
+          return stamp({ ...h, log })
         }),
       }
     }
     case 'UPDATE_HABIT': {
       return {
         ...state,
-        habits: state.habits.map((h) => (h.id === action.id ? { ...h, ...action.patch } : h)),
+        habits: state.habits.map((h) => (h.id === action.id ? stamp({ ...h, ...action.patch }) : h)),
       }
     }
     case 'DELETE_HABIT': {
@@ -366,15 +405,34 @@ function reducer(state, action) {
       return { ...state, stats: { ...state.stats, pomos: (state.stats?.pomos || 0) + 1 } }
     }
     case 'DELETE_PROJECT': {
+      // the folder's tasks go to the trash (recoverable), never straight to oblivion
       const view =
         state.view.type === 'project' && state.view.projectId === action.id
           ? { type: 'today', projectId: null }
           : state.view
+      const now = Date.now()
+      const removed = state.tasks.filter((t) => t.projectId === action.id)
       return {
         ...state,
         projects: state.projects.filter((p) => p.id !== action.id),
         tasks: state.tasks.filter((t) => t.projectId !== action.id),
+        trash: [...removed.map((t) => ({ ...t, deletedAt: now })), ...state.trash],
         view,
+      }
+    }
+    case 'RESTORE_PROJECT': {
+      // undo a folder delete: the folder back in its old slot, its tasks out of the trash
+      const { project, index = state.projects.length, taskIds = [] } = action
+      if (!project || state.projects.some((p) => p.id === project.id)) return state
+      const projects = [...state.projects]
+      projects.splice(Math.min(index, projects.length), 0, project)
+      const ids = new Set(taskIds)
+      const back = state.trash.filter((t) => ids.has(t.id)).map(({ deletedAt, ...t }) => t)
+      return {
+        ...state,
+        projects,
+        tasks: [...back, ...state.tasks],
+        trash: state.trash.filter((t) => !ids.has(t.id)),
       }
     }
     case 'SET_VIEW':
@@ -394,6 +452,21 @@ function reducer(state, action) {
       return { ...state, onboarded: false, replayTour: true }
     case 'SIGN_OUT':
       return { ...state, profile: null }
+    case 'RESET_CONTENT': {
+      // a deliberate sign-out (or a different account on this device): clear
+      // this person's tasks off the device, keep look & feel preferences
+      const fresh = seed()
+      return {
+        ...state,
+        projects: fresh.projects,
+        tasks: fresh.tasks,
+        habits: [],
+        trash: [],
+        stats: emptyStats(),
+        view: fresh.view,
+        profile: null,
+      }
+    }
     case 'HYDRATE': {
       // replace local projects/tasks with the cloud copy
       if (!Array.isArray(action.data?.projects) || !Array.isArray(action.data?.tasks)) return state
@@ -401,7 +474,9 @@ function reducer(state, action) {
       return {
         ...state,
         projects: action.data.projects,
-        tasks: cloudSeedV < 3 ? stripTutorialDues(action.data.tasks) : action.data.tasks,
+        tasks: (cloudSeedV < 3 ? stripTutorialDues(action.data.tasks) : action.data.tasks)
+          .filter((t) => t && t.id)
+          .map(cleanTask),
         // habits arrived with sync in a later version — keep local ones if an
         // older cloud payload doesn't carry the key yet
         habits: Array.isArray(action.data.habits) ? action.data.habits : state.habits,
@@ -415,7 +490,10 @@ function reducer(state, action) {
       // the ambient window and the main window stay in sync with each other
       // (separate from HYDRATE, which pulls from the cloud)
       if (!action.data || typeof action.data !== 'object') return state
-      return { ...state, ...action.data }
+      if (!Array.isArray(action.data.projects) || !Array.isArray(action.data.tasks)) return state
+      // each window keeps its own place — only the data is mirrored
+      const { view: _view, ...data } = action.data
+      return { ...state, ...data, view: sanitizeView(state.view, data.projects) }
     }
     case 'SET_THEME':
       return { ...state, theme: action.theme }
@@ -436,14 +514,31 @@ function sanitizeView(view, projects) {
   return view?.type ? view : { type: 'today', projectId: null }
 }
 
-function load() {
+// Never silently replace unreadable data with the starter set — park a copy
+// first so it can still be recovered by hand.
+function quarantine(raw) {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY)
+    localStorage.setItem(`${STORAGE_KEY}-unreadable-${Date.now()}`, raw)
+  } catch {
+    /* no room even for that */
+  }
+}
+
+// Tolerate partial/old records instead of crashing on them later.
+const cleanTask = (t) => ({ notes: '', priority: 'none', due: null, done: false, ...t, title: String(t.title ?? '') })
+
+function load() {
+  let raw = null
+  try {
+    raw = localStorage.getItem(STORAGE_KEY)
     if (!raw) return seed()
     const data = JSON.parse(raw)
-    if (!Array.isArray(data.projects) || !Array.isArray(data.tasks)) return seed()
+    if (!Array.isArray(data?.projects) || !Array.isArray(data?.tasks)) {
+      quarantine(raw)
+      return seed()
+    }
     const seedV = data.seedV ?? 1
-    let tasks = data.tasks
+    let tasks = data.tasks.filter((t) => t && t.id).map(cleanTask)
     if (seedV < 2) tasks = tasks.filter((t) => !RETIRED_SEED_TASKS.has(t.title))
     if (seedV < 3) tasks = stripTutorialDues(tasks)
     return {
@@ -469,20 +564,64 @@ function load() {
       view: sanitizeView(data.view, data.projects),
     }
   } catch {
+    if (raw) quarantine(raw)
     return seed()
   }
 }
 
+// What's actually written to localStorage — everything except in-memory flags.
+const persisted = (s) => {
+  const { projects, tasks, habits, stats, trash, theme, sound, view, profile, settings, onboarded, seedV } = s
+  return { projects, tasks, habits, stats, trash, theme, sound, view, profile, settings, onboarded, seedV }
+}
+
+let warnedStorage = false
+function save(state) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(persisted(state)))
+  } catch (e) {
+    // full disk / private mode: keep working in memory, say so once
+    console.warn('[kiln] could not save locally:', e?.message)
+    if (!warnedStorage) {
+      warnedStorage = true
+      toast('This device’s storage is full — recent changes may not survive a reload', '⚠', null, {
+        sticky: true,
+      })
+    }
+  }
+}
+
+// Ask for persistent storage so the browser doesn't evict an installed app's
+// data under disk pressure (Chrome/Firefox honor it; Safari ignores it).
+if (typeof navigator !== 'undefined') navigator.storage?.persist?.().catch(() => {})
+
 export function StoreProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, null, load)
+  const [syncStatus, setSyncStatus] = useState('idle')
 
+  // Save on every change, but at most once per frame — typing in a note no
+  // longer serializes the whole state per keystroke. Flushed before the page
+  // goes away so nothing is lost on close.
+  const latest = useRef(state)
+  latest.current = state
+  const saveFrame = useRef(0)
   useEffect(() => {
-    const { projects, tasks, habits, stats, trash, theme, sound, view, profile, settings, onboarded, seedV } = state
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ projects, tasks, habits, stats, trash, theme, sound, view, profile, settings, onboarded, seedV })
-    )
+    cancelAnimationFrame(saveFrame.current)
+    saveFrame.current = requestAnimationFrame(() => save(latest.current))
   }, [state])
+  useEffect(() => {
+    const flush = () => {
+      cancelAnimationFrame(saveFrame.current)
+      save(latest.current)
+    }
+    const onHide = () => document.visibilityState === 'hidden' && flush()
+    window.addEventListener('pagehide', flush)
+    document.addEventListener('visibilitychange', onHide)
+    return () => {
+      window.removeEventListener('pagehide', flush)
+      document.removeEventListener('visibilitychange', onHide)
+    }
+  }, [])
 
   // Smooth theme switch: briefly turn on transitions for every element,
   // then remove the class so it doesn't fight other animations.
@@ -523,12 +662,34 @@ export function StoreProvider({ children }) {
     setFxLite(on)
   }, [state.settings.reducedEffects])
 
+  // Trash auto-purge: fire exactly when the soonest item expires, then reschedule.
+  // (Capped so a 30-day timer doesn't overflow setTimeout's 24.8-day limit.)
+  useEffect(() => {
+    if (!state.trash.length) return
+    const soonest = Math.min(...state.trash.map((t) => t.deletedAt + TRASH_TTL))
+    const wait = Math.min(Math.max(0, soonest - Date.now()) + 80, 2 ** 31 - 1)
+    const id = setTimeout(() => dispatch({ type: 'PURGE_TRASH' }), wait)
+    return () => clearTimeout(id)
+  }, [state.trash])
+
+  /* ------------------------- cloud auth + sync ------------------------- */
+
+  // Always-fresh snapshot of what should be synced, without re-running effects.
+  // The sync engine also writes it directly when it applies a merge, so a
+  // follow-up push sees the merged data before React has re-rendered.
+  const snapshotRef = useRef(null)
+  snapshotRef.current = { projects: state.projects, tasks: state.tasks, habits: state.habits, seedV: 3 }
+  const syncRef = useRef(null)
+  // who was signed in on this device last time (to spot a different account)
+  const lastUserRef = useRef(state.profile?.cloud ? state.profile.userId : null)
+
   // Cross-window sync: pick up another same-origin tab's save (e.g. the
   // ambient view ticking a task, or the main window completing one while
   // ambient is open elsewhere). The browser never fires this in the tab
   // that made the write, so there's no echo to guard against here.
   useEffect(() => {
     const onStorage = (e) => {
+      if (e.key === BASE_KEY) return syncRef.current?.reloadBase()
       if (e.key !== STORAGE_KEY || !e.newValue) return
       try {
         dispatch({ type: 'HYDRATE_LOCAL', data: JSON.parse(e.newValue) })
@@ -540,157 +701,128 @@ export function StoreProvider({ children }) {
     return () => window.removeEventListener('storage', onStorage)
   }, [])
 
-  // Trash auto-purge: fire exactly when the soonest item expires, then reschedule.
   useEffect(() => {
-    if (!state.trash.length) return
-    const soonest = Math.min(...state.trash.map((t) => t.deletedAt + TRASH_TTL))
-    const id = setTimeout(() => dispatch({ type: 'PURGE_TRASH' }), Math.max(0, soonest - Date.now()) + 80)
-    return () => clearTimeout(id)
-  }, [state.trash])
-
-  /* ------------------------- cloud auth + sync ------------------------- */
-
-  // Always-fresh snapshot of what should be synced, without re-running effects.
-  const snapshotRef = useRef(null)
-  snapshotRef.current = { projects: state.projects, tasks: state.tasks, habits: state.habits, seedV: 3 }
-
-  // Fingerprint of the last state we know the cloud has — used to skip
-  // no-op pushes and to recognize our own realtime echoes.
-  const lastSyncedRef = useRef('')
-  const channelRef = useRef(null)
-
-  const hasPendingLocalChanges = () =>
-    stableStringify(snapshotRef.current) !== lastSyncedRef.current
-
-  const applyIncoming = (incoming) => {
-    if (!incoming?.projects || !incoming?.tasks) return
-    const json = stableStringify({
-      projects: incoming.projects,
-      tasks: incoming.tasks,
-      habits: incoming.habits ?? [],
-      seedV: incoming.seedV ?? 3,
-    })
-    if (json === lastSyncedRef.current) return // our own echo
-    // local edits not yet pushed win (they'll overwrite the cloud shortly)
-    if (hasPendingLocalChanges() && lastSyncedRef.current !== '') return
-    lastSyncedRef.current = json
-    dispatch({ type: 'HYDRATE', data: incoming })
-  }
-
-  useEffect(() => {
-    let alive = true
-
-    const startRealtime = (userId) => {
-      if (channelRef.current) return
-      channelRef.current = supabase
-        .channel(`kiln-sync-${userId}`)
-        .on(
-          'postgres_changes',
-          { event: '*', schema: 'public', table: 'kiln_data', filter: `user_id=eq.${userId}` },
-          (payload) => applyIncoming(payload.new?.data)
-        )
-        .subscribe()
+    const stopSync = () => {
+      syncRef.current?.stop()
+      syncRef.current = null
     }
 
-    const stopRealtime = () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current)
-        channelRef.current = null
-      }
-    }
-
-    const applySession = async (session) => {
+    const applySession = (session) => {
       const u = session?.user
       if (!u) return
+      // SIGNED_IN also fires on token refresh / tab refocus — don't restart
+      if (syncRef.current?.userId === u.id) return syncRef.current.refresh()
+      stopSync()
       const name = u.user_metadata?.name || u.email?.split('@')[0] || 'there'
+      // a different account than last time on this device: don't hand the
+      // previous person's tasks to this one
+      if (lastUserRef.current && lastUserRef.current !== u.id) {
+        dispatch({ type: 'RESET_CONTENT' })
+        clearBase()
+      }
+      lastUserRef.current = u.id
+      // keep a display name changed in Settings rather than resetting it to
+      // the sign-up name on every load
+      const prev = latest.current.profile?.userId === u.id ? latest.current.profile : null
       dispatch({
         type: 'SET_PROFILE',
-        profile: { name, email: u.email, userId: u.id, cloud: true },
+        profile: { name: prev?.name || name, email: u.email, userId: u.id, cloud: true },
       })
       // a real account means they're not a first-run user — skip the tour
       dispatch({ type: 'SET_ONBOARDED', value: true })
-      try {
-        const cloud = await pullCloud(u.id)
-        if (!alive) return
-        if (cloud) {
-          lastSyncedRef.current = stableStringify({
-            projects: cloud.projects,
-            tasks: cloud.tasks,
-            habits: cloud.habits ?? [],
-            seedV: cloud.seedV ?? 3,
-          })
-          dispatch({ type: 'HYDRATE', data: cloud })
-        } else {
-          // first sign-in on this account: adopt whatever is on this device
-          await pushCloud(u.id, snapshotRef.current)
-          lastSyncedRef.current = stableStringify(snapshotRef.current)
-        }
-        startRealtime(u.id)
-      } catch (e) {
-        console.warn('[kiln] cloud sync unavailable:', e.message)
-        toast('Cloud sync unavailable — working locally', '⚠')
-      }
+      const sync = createSync({
+        userId: u.id,
+        getLocal: () => snapshotRef.current,
+        applyRemote: (data) => {
+          snapshotRef.current = data
+          dispatch({ type: 'HYDRATE', data })
+        },
+        onStatus: setSyncStatus,
+      })
+      sync.userId = u.id
+      syncRef.current = sync
+      sync.start()
     }
 
-    supabase.auth.getSession().then(({ data }) => applySession(data.session))
+    supabase.auth
+      .getSession()
+      .then(({ data }) => applySession(data.session))
+      .catch(() => setSyncStatus('offline'))
     const { data: sub } = supabase.auth.onAuthStateChange((event, session) => {
       // deferred: calling other supabase APIs synchronously inside this
       // callback can deadlock the client's internal auth lock
       setTimeout(() => {
         if (event === 'SIGNED_IN') applySession(session)
         if (event === 'SIGNED_OUT') {
-          stopRealtime()
-          lastSyncedRef.current = ''
+          stopSync()
+          setSyncStatus('idle')
           dispatch({ type: 'SIGN_OUT' })
         }
       }, 0)
     })
     return () => {
-      alive = false
-      stopRealtime()
+      stopSync()
       sub.subscription.unsubscribe()
     }
   }, [])
 
-  // Debounced push: any task/project change lands in the cloud ~1s later.
-  const pushTimer = useRef(null)
+  // Debounced push: any task/project change lands in the cloud shortly after.
   useEffect(() => {
-    const p = state.profile
-    if (!p?.cloud || !p.userId) return
-    clearTimeout(pushTimer.current)
-    pushTimer.current = setTimeout(() => {
-      const json = stableStringify(snapshotRef.current)
-      if (json === lastSyncedRef.current) return // nothing actually changed
-      pushCloud(p.userId, snapshotRef.current)
-        .then(() => {
-          lastSyncedRef.current = json
-        })
-        .catch((e) => console.warn('[kiln] sync push failed:', e.message))
-    }, 1200)
-    return () => clearTimeout(pushTimer.current)
-  }, [state.projects, state.tasks, state.habits, state.profile])
+    const sync = syncRef.current
+    if (!sync || !sync.pending()) return
+    const id = setTimeout(() => sync.push(), 800)
+    return () => clearTimeout(id)
+  }, [state.projects, state.tasks, state.habits])
 
-  // Fallback freshness: re-pull when the tab regains focus (covers devices
-  // where realtime isn't enabled and long-suspended phone tabs).
+  // Freshness: re-check the cloud when the app comes back, push right away
+  // when it's being hidden (phones kill backgrounded tabs without warning),
+  // and catch up as soon as the network returns.
   useEffect(() => {
-    const p = state.profile
-    if (!p?.cloud || !p.userId) return
-    const refresh = () => {
-      if (document.visibilityState !== 'visible') return
-      if (hasPendingLocalChanges()) return // our push will win — don't clobber
-      pullCloud(p.userId)
-        .then((cloud) => cloud && applyIncoming(cloud))
-        .catch(() => {})
+    const onVisible = () => {
+      const sync = syncRef.current
+      if (!sync) return
+      if (document.visibilityState === 'hidden') {
+        if (sync.pending()) sync.push()
+      } else sync.refresh()
     }
-    window.addEventListener('focus', refresh)
-    document.addEventListener('visibilitychange', refresh)
+    const onOnline = () => syncRef.current?.refresh()
+    const onOffline = () => syncRef.current && setSyncStatus('offline')
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('focus', onVisible)
+    window.addEventListener('online', onOnline)
+    window.addEventListener('offline', onOffline)
     return () => {
-      window.removeEventListener('focus', refresh)
-      document.removeEventListener('visibilitychange', refresh)
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('focus', onVisible)
+      window.removeEventListener('online', onOnline)
+      window.removeEventListener('offline', onOffline)
     }
-  }, [state.profile])
+  }, [])
 
-  return <StoreCtx.Provider value={{ state, dispatch }}>{children}</StoreCtx.Provider>
+  // Sign out without stranding unsynced work, then clear this person's tasks
+  // off the device so the next person to sign in doesn't inherit them.
+  const signOut = async ({ force = false } = {}) => {
+    const sync = syncRef.current
+    if (sync && !force) {
+      const ok = await sync.flush()
+      if (!ok) return false
+    }
+    stopAndClear()
+    await supabase.auth.signOut().catch(() => {})
+    return true
+  }
+  const stopAndClear = () => {
+    syncRef.current?.stop()
+    syncRef.current = null
+    clearBase()
+    lastUserRef.current = null
+    setSyncStatus('idle')
+    dispatch({ type: 'RESET_CONTENT' })
+  }
+
+  return (
+    <StoreCtx.Provider value={{ state, dispatch, syncStatus, signOut }}>{children}</StoreCtx.Provider>
+  )
 }
 
 export const useStore = () => useContext(StoreCtx)
@@ -716,7 +848,11 @@ export function taskInView(task, view) {
 function matches(task, query) {
   if (!query) return true
   const q = query.toLowerCase()
-  return task.title.toLowerCase().includes(q) || task.notes.toLowerCase().includes(q)
+  return (
+    (task.title || '').toLowerCase().includes(q) ||
+    (task.notes || '').toLowerCase().includes(q) ||
+    (task.subs ?? []).some((s) => (s.text || '').toLowerCase().includes(q))
+  )
 }
 
 export function selectActive(state, query = '') {

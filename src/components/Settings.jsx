@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useStore, toast } from '../store'
 import { supabase } from '../supabase'
-import { PRIORITIES } from '../utils'
+import { BASE_KEY } from '../sync'
+import { PRIORITIES, exportData as downloadBackup, parseBackup } from '../utils'
 import AccentPicker from './AccentPicker'
 import { remindersOptedIn, enableReminders, disableReminders } from '../reminders'
 import {
@@ -24,17 +25,34 @@ const DUE_OPTS = [
   { id: 'tomorrow', label: 'Tomorrow' },
 ]
 
-const LOCAL_KEYS = ['zenith-v1', 'kiln-focus', 'kiln-tips', 'kiln-reminders', 'kiln-reminded-on']
+const LOCAL_KEYS = ['zenith-v1', BASE_KEY, 'kiln-focus', 'kiln-tips', 'kiln-reminders', 'kiln-reminded-on']
+
+const SYNC_LABEL = {
+  synced: 'All changes synced',
+  syncing: 'Syncing…',
+  offline: 'Offline — changes are saved on this device and will sync when you’re back',
+  error: 'Can’t reach the server right now — changes are saved on this device, retrying',
+}
 
 export default function Settings({ onClose }) {
-  const { state, dispatch } = useStore()
+  const { state, dispatch, syncStatus, signOut: storeSignOut } = useStore()
   const { settings, profile } = state
   const [name, setName] = useState(profile?.name ?? '')
   const [reminders, setReminders] = useState(remindersOptedIn())
   const [confirmDel, setConfirmDel] = useState(false)
   const [busy, setBusy] = useState(false)
+  const [signOutStuck, setSignOutStuck] = useState(false)
+  const [restore, setRestore] = useState(null) // parsed backup awaiting confirmation
+  const fileRef = useRef(null)
 
   const set = (patch) => dispatch({ type: 'SET_SETTINGS', patch })
+
+  // Escape closes, like every other overlay
+  useEffect(() => {
+    const onKey = (e) => e.key === 'Escape' && onClose()
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose])
 
   const commitName = () => {
     const clean = name.trim()
@@ -64,21 +82,38 @@ export default function Settings({ onClose }) {
   }
 
   const exportData = () => {
-    const blob = new Blob(
-      [JSON.stringify({ projects: state.projects, tasks: state.tasks, habits: state.habits }, null, 2)],
-      { type: 'application/json' }
-    )
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = `kiln-export-${new Date().toISOString().slice(0, 10)}.json`
-    a.click()
-    URL.revokeObjectURL(a.href)
-    toast('Data exported', '⬇')
+    downloadBackup(state)
+    toast('Backup downloaded', '⬇')
   }
 
-  const signOut = () => {
-    supabase.auth.signOut()
-    dispatch({ type: 'SIGN_OUT' })
+  const pickBackup = async (e) => {
+    const file = e.target.files?.[0]
+    e.target.value = '' // picking the same file again should still fire
+    if (!file) return
+    try {
+      setRestore(parseBackup(await file.text()))
+    } catch (err) {
+      toast(err.message, '⚠')
+    }
+  }
+
+  const applyRestore = () => {
+    // current tasks are swapped out, not destroyed — they go to the trash
+    const incoming = new Set(restore.tasks.map((t) => t.id))
+    dispatch({ type: 'DELETE_TASKS', ids: state.tasks.filter((t) => !incoming.has(t.id)).map((t) => t.id) })
+    dispatch({ type: 'HYDRATE', data: { ...restore, seedV: 3 } })
+    toast(`Restored ${restore.tasks.length} task${restore.tasks.length === 1 ? '' : 's'}`, '↩')
+    setRestore(null)
+    onClose()
+  }
+
+  // Waits for unsynced changes to reach the cloud first. If they can't
+  // (offline), say so instead of quietly throwing them away.
+  const signOut = async (force = false) => {
+    setBusy(true)
+    const ok = await storeSignOut({ force })
+    setBusy(false)
+    if (!ok) setSignOutStuck(true)
   }
 
   const wipeLocal = () => {
@@ -144,6 +179,13 @@ export default function Settings({ onClose }) {
               onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
             />
             <p className="set-hint">Used in your greeting on the Today screen.</p>
+            {profile?.cloud && (
+              <p className={`set-hint sync-line ${syncStatus}`}>
+                <span className="sync-dot" />
+                {profile.email ? `${profile.email} · ` : ''}
+                {SYNC_LABEL[syncStatus] ?? 'Connecting…'}
+              </p>
+            )}
           </section>
 
           {/* Accent */}
@@ -315,12 +357,52 @@ export default function Settings({ onClose }) {
               <InfoIcon size={14} /> Replay welcome tour
             </button>
             <button className="set-action" onClick={exportData}>
-              <DownloadIcon size={14} /> Export my data (JSON)
+              <DownloadIcon size={14} /> Download a backup (JSON)
             </button>
-            {profile?.cloud && (
-              <button className="set-action danger" onClick={signOut}>
-                Sign out
+            <button className="set-action" onClick={() => fileRef.current?.click()}>
+              <DownloadIcon size={14} style={{ transform: 'rotate(180deg)' }} /> Restore from a backup…
+            </button>
+            <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={pickBackup} />
+            {restore && (
+              <div className="danger-confirm">
+                <p>
+                  Replace your current tasks with this backup ({restore.projects.length} folder
+                  {restore.projects.length === 1 ? '' : 's'}, {restore.tasks.length} task
+                  {restore.tasks.length === 1 ? '' : 's'})? What you have now moves to the Trash.
+                </p>
+                <div className="danger-confirm-row">
+                  <button className="mini-btn" onClick={() => setRestore(null)}>
+                    Cancel
+                  </button>
+                  <button className="mini-btn danger" onClick={applyRestore}>
+                    Restore backup
+                  </button>
+                </div>
+              </div>
+            )}
+            {profile?.cloud && !signOutStuck && (
+              <button className="set-action danger" onClick={() => signOut()} disabled={busy}>
+                {busy ? 'Saving your changes…' : 'Sign out'}
               </button>
+            )}
+            {signOutStuck && (
+              <div className="danger-confirm">
+                <p>
+                  Some changes haven’t reached the cloud yet (you may be offline). Signing out now
+                  removes them from this device.
+                </p>
+                <div className="danger-confirm-row">
+                  <button className="mini-btn" onClick={() => setSignOutStuck(false)}>
+                    Stay signed in
+                  </button>
+                  <button className="mini-btn" onClick={exportData}>
+                    Download backup
+                  </button>
+                  <button className="mini-btn danger" onClick={() => signOut(true)}>
+                    Sign out anyway
+                  </button>
+                </div>
+              </div>
             )}
           </section>
 

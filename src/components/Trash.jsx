@@ -42,8 +42,12 @@ export default function Trash() {
         <button
           className="mini-btn danger"
           onClick={() => {
+            const items = state.trash
             dispatch({ type: 'EMPTY_TRASH' })
-            toast('Trash emptied', '🗑')
+            toast(`Erased ${items.length} task${items.length === 1 ? '' : 's'}`, '🗑', {
+              label: 'Undo',
+              fn: () => dispatch({ type: 'RESTORE_TRASH', items }),
+            })
           }}
         >
           Empty now

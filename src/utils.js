@@ -240,12 +240,78 @@ export const REPEATS = [
   { id: 'monthly', label: 'Monthly' },
 ]
 
+// Next occurrence of a repeating task. Keeps the original rhythm (a Monday
+// task stays on Mondays, the 31st stays month-end) but never lands in the
+// past — finishing a daily task that was 5 days overdue queues today's, not
+// another overdue one.
 export function nextDue(due, repeat) {
-  const base = due ? parseDateStr(due) : new Date()
-  if (repeat === 'daily') base.setDate(base.getDate() + 1)
-  else if (repeat === 'weekly') base.setDate(base.getDate() + 7)
-  else if (repeat === 'monthly') base.setMonth(base.getMonth() + 1)
-  return toDateStr(base)
+  const anchor = due ? parseDateStr(due) : new Date()
+  anchor.setHours(0, 0, 0, 0)
+  const day = anchor.getDate()
+  const today = parseDateStr(todayStr())
+  const step = (d, n) => {
+    if (repeat === 'daily') return new Date(d.getFullYear(), d.getMonth(), d.getDate() + n)
+    if (repeat === 'weekly') return new Date(d.getFullYear(), d.getMonth(), d.getDate() + 7 * n)
+    // monthly: clamp so 31 jan → 28/29 feb, not 3 march
+    const m = new Date(anchor.getFullYear(), anchor.getMonth() + n, 1)
+    const last = new Date(m.getFullYear(), m.getMonth() + 1, 0).getDate()
+    return new Date(m.getFullYear(), m.getMonth(), Math.min(day, last))
+  }
+  let n = 1
+  let next = step(anchor, n)
+  while (next < today && n < 1000) next = step(anchor, ++n)
+  return toDateStr(next)
+}
+
+/* ------------------------------ backup / restore ----------------------------- */
+
+export function downloadJSON(data, filename) {
+  const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+  const url = URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  a.remove()
+  // revoking right away can cancel the download in some browsers
+  setTimeout(() => URL.revokeObjectURL(url), 1000)
+}
+
+export function exportData(state) {
+  downloadJSON(
+    {
+      app: 'kiln',
+      version: 1,
+      exportedAt: new Date().toISOString(),
+      projects: state.projects,
+      tasks: state.tasks,
+      habits: state.habits,
+    },
+    `kiln-backup-${todayStr()}.json`
+  )
+}
+
+// Validate a backup file's contents. Returns { projects, tasks, habits } or
+// throws with a human-readable reason.
+export function parseBackup(text) {
+  let data
+  try {
+    data = JSON.parse(text)
+  } catch {
+    throw new Error('That file isn’t a kiln backup (not valid JSON).')
+  }
+  if (!Array.isArray(data?.projects) || !Array.isArray(data?.tasks)) {
+    throw new Error('That file doesn’t look like a kiln backup.')
+  }
+  const projects = data.projects.filter((p) => p && p.id && p.name)
+  if (!projects.length) throw new Error('That backup has no folders in it.')
+  const ids = new Set(projects.map((p) => p.id))
+  const tasks = data.tasks
+    .filter((t) => t && t.id && typeof t.title === 'string')
+    .map((t) => ({ ...t, projectId: ids.has(t.projectId) ? t.projectId : projects[0].id }))
+  const habits = Array.isArray(data.habits) ? data.habits.filter((h) => h && h.id) : []
+  return { projects, tasks, habits }
 }
 
 /* --------------------------- natural-language add --------------------------- */
@@ -301,13 +367,20 @@ export function parseQuickAdd(raw, projects = []) {
   let m = s.match(/\s#([\p{L}\p{N}_][\p{L}\p{N}_-]*)/u)
   if (m) {
     const q = m[1].toLowerCase()
-    const p = projects.find((pr) => {
-      const n = pr.name.toLowerCase()
-      return n.replace(/\s+/g, '').startsWith(q) || n.startsWith(q) || n.includes(q)
-    })
-    if (p) res.projectId = p.id
-    else res.newFolder = m[1].charAt(0).toUpperCase() + m[1].slice(1) // e.g. #fitness → Fitness
-    remove(m)
+    // best match first: exact name, then prefix, then anywhere in the name
+    const norm = (pr) => pr.name.toLowerCase().replace(/\s+/g, '')
+    const p =
+      projects.find((pr) => norm(pr) === q) ||
+      projects.find((pr) => norm(pr).startsWith(q) || pr.name.toLowerCase().startsWith(q)) ||
+      projects.find((pr) => pr.name.toLowerCase().includes(q))
+    if (p) {
+      res.projectId = p.id
+      remove(m)
+    } else if (/^\p{L}/u.test(m[1])) {
+      // "#12" in "fix bug #12" is an issue number, not a new folder
+      res.newFolder = m[1].charAt(0).toUpperCase() + m[1].slice(1) // e.g. #fitness → Fitness
+      remove(m)
+    }
   }
 
   // --- priority: p1..p3, !1..!3, !high/!med/!low ---
@@ -319,7 +392,7 @@ export function parseQuickAdd(raw, projects = []) {
   }
 
   // --- time: 5pm, 7:30 am, at 14:00, noon, midnight ---
-  if ((m = s.match(/\s(?:at\s+)?(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b/i))) {
+  if ((m = s.match(/\s(?:at\s+)?(1[0-2]|0?[1-9])(?::([0-5]\d))?\s*(am|pm)\b/i))) {
     let h = parseInt(m[1], 10) % 12
     if (/pm/i.test(m[3])) h += 12
     res.time = `${String(h).padStart(2, '0')}:${m[2] ?? '00'}`

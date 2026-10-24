@@ -27,9 +27,31 @@ import { MenuIcon, XIcon } from './components/Icons'
 import useEdgeSwipe from './useEdgeSwipe'
 import GestureTips from './components/GestureTips'
 import usePullToSearch from './usePullToSearch'
+import { todayStr } from './utils'
+
+// Re-render when the date changes — a phone app resumed the next morning (or
+// a tab left open overnight) would otherwise keep showing yesterday's Today.
+function useDayRollover() {
+  const [day, setDay] = useState(todayStr)
+  useEffect(() => {
+    const check = () => setDay(todayStr())
+    const now = new Date()
+    const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 5)
+    const id = setTimeout(check, midnight - now)
+    document.addEventListener('visibilitychange', check)
+    window.addEventListener('focus', check)
+    return () => {
+      clearTimeout(id)
+      document.removeEventListener('visibilitychange', check)
+      window.removeEventListener('focus', check)
+    }
+  }, [day])
+  return day
+}
 
 export default function App() {
-  const { state } = useStore()
+  const { state, dispatch } = useStore()
+  useDayRollover()
   // ?ambient=1 opens straight into the ambient view — skip the typewriter
   // boot screen for it (a second-monitor kiosk shouldn't wait on that)
   const [showAmbient, setShowAmbient] = useState(() =>
@@ -65,10 +87,25 @@ export default function App() {
 
   const viewKey = `${state.view.type}-${state.view.projectId ?? ''}`
 
-  // reset search when switching views
+  // reset search when switching views (unless we switched *to* show a search)
+  const pendingQuery = useRef('')
   useEffect(() => {
-    setQuery('')
+    setQuery(pendingQuery.current)
+    pendingQuery.current = ''
   }, [viewKey])
+
+  // picking a task in the command palette: open its folder, filtered to it
+  const openTask = useCallback(
+    (t) => {
+      const view = { type: 'project', projectId: t.projectId }
+      if (`${view.type}-${view.projectId}` === viewKey) setQuery(t.title)
+      else {
+        pendingQuery.current = t.title
+        dispatch({ type: 'SET_VIEW', view })
+      }
+    },
+    [dispatch, viewKey]
+  )
 
   const signedIn = !!state.profile
 
@@ -234,6 +271,7 @@ export default function App() {
             onClose={() => setPaletteOpen(false)}
             onNewProject={() => setProjectModal({ mode: 'new' })}
             onOpenSettings={() => setSettingsOpen(true)}
+            onOpenTask={openTask}
           />
         )}
       </AnimatePresence>

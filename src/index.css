@@ -1281,8 +1281,20 @@ kbd,
   font-size: 14px;
 }
 
+.palette-item .pi-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .palette-item .pi-hint {
   margin-left: auto;
+  flex: none;
+  max-width: 45%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.04em;
@@ -5691,3 +5703,39 @@ kbd,
   vertical-align: -2px;
   color: var(--accent);
 }
+
+/* ---------------------------- sync status ---------------------------- */
+.sync-line {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+}
+.sync-dot {
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-top: 4px;
+  border-radius: 50%;
+  background: var(--text-3);
+}
+.sync-line.synced .sync-dot { background: #6f9b7a; }
+.sync-line.syncing .sync-dot { background: var(--accent); animation: sync-pulse 1s ease-in-out infinite; }
+.sync-line.offline .sync-dot,
+.sync-line.error .sync-dot { background: #d98e32; }
+@keyframes sync-pulse { 50% { opacity: 0.35; } }
+
+/* sidebar footer: only says something when changes are waiting to sync */
+.sync-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 4px 8px;
+  padding: 6px 10px;
+  border-radius: 9px;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--text-2);
+  background: rgba(217, 142, 50, 0.1);
+  border: 1px solid rgba(217, 142, 50, 0.25);
+}
+.sync-badge .sync-dot { margin-top: 0; background: #d98e32; }

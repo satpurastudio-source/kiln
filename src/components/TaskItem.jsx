@@ -62,7 +62,16 @@ const TaskItem = forwardRef(function TaskItem(
   const project = state.projects.find((p) => p.id === task.projectId)
   const visualDone = task.done || checking
 
-  useEffect(() => () => clearTimeout(timer.current), [])
+  // If the row unmounts mid-animation (view switch, filter), still complete it
+  // — a tap on the checkbox must never be silently dropped.
+  const pendingToggle = useRef(null)
+  useEffect(
+    () => () => {
+      clearTimeout(timer.current)
+      pendingToggle.current?.()
+    },
+    []
+  )
 
   const toggle = () => {
     if (task.done) {
@@ -75,11 +84,21 @@ const TaskItem = forwardRef(function TaskItem(
     playComplete()
     const rep = task.repeat && task.repeat !== 'none' ? task.repeat : null
     const remaining = state.tasks.filter(
-      (t) => t.projectId === task.projectId && !t.done && t.id !== task.id
+      (t) => t.projectId === task.projectId && !t.done && !t.archived && t.id !== task.id
     ).length
-    timer.current = setTimeout(() => {
+    const commit = () => {
+      pendingToggle.current = null
       dispatch({ type: 'TOGGLE_TASK', id: task.id })
+    }
+    pendingToggle.current = commit
+    timer.current = setTimeout(() => {
+      commit()
       if (rep) toast(`Repeats ${rep} — next one queued`, '↻')
+      else if (remaining > 0)
+        toast('Completed', '✓', {
+          label: 'Undo',
+          fn: () => dispatch({ type: 'TOGGLE_TASK', id: task.id }),
+        })
       if (remaining === 0 && !rep) {
         playFanfare()
         if (!heavyFxOff()) fireProjectConfetti(project?.color ?? '#d85a30')
@@ -104,12 +123,13 @@ const TaskItem = forwardRef(function TaskItem(
   }, [open, dragging])
 
   const remove = () => {
-    const snapshot = { ...task }
+    clearTimeout(timer.current)
+    pendingToggle.current = null
     dispatch({ type: 'DELETE_TASK', id: task.id })
     playPop()
     toast('Task deleted', '🗑', {
       label: 'Undo',
-      fn: () => dispatch({ type: 'RESTORE_TASK', task: snapshot }),
+      fn: () => dispatch({ type: 'RESTORE_TASK', id: task.id }),
     })
   }
 
@@ -333,9 +353,37 @@ function Editor({ task, project, onDelete }) {
   const patch = (p) => dispatch({ type: 'UPDATE_TASK', id: task.id, patch: p })
   const subs = task.subs ?? []
 
+  // Title and notes save as you type (debounced), not only on blur — closing
+  // the app or collapsing the row mid-sentence used to lose the edit.
+  const draft = useRef({ title, notes })
+  draft.current = { title, notes }
+  const saveTimer = useRef(null)
+  const latestTask = useRef(task)
+  latestTask.current = task
+  const saveDrafts = () => {
+    clearTimeout(saveTimer.current)
+    const t = latestTask.current
+    const p = {}
+    const cleanTitle = draft.current.title.trim()
+    if (cleanTitle && cleanTitle !== t.title) p.title = cleanTitle
+    if (draft.current.notes !== (t.notes ?? '')) p.notes = draft.current.notes
+    if (Object.keys(p).length) dispatch({ type: 'UPDATE_TASK', id: t.id, patch: p })
+  }
+  const scheduleSave = () => {
+    clearTimeout(saveTimer.current)
+    saveTimer.current = setTimeout(saveDrafts, 500)
+  }
+  useEffect(() => {
+    window.addEventListener('pagehide', saveDrafts)
+    return () => {
+      window.removeEventListener('pagehide', saveDrafts)
+      saveDrafts() // collapsing the editor commits whatever was typed
+    }
+  }, []) // eslint-disable-line
+
   const commitTitle = () => {
-    if (title.trim() && title !== task.title) patch({ title: title.trim() })
-    else setTitle(task.title)
+    if (!title.trim()) setTitle(task.title)
+    saveDrafts()
   }
 
   const addSub = () => {
@@ -360,6 +408,7 @@ function Editor({ task, project, onDelete }) {
           rows={1}
           onChange={(e) => {
             setTitle(e.target.value)
+            scheduleSave()
             e.target.style.height = 'auto'
             e.target.style.height = `${e.target.scrollHeight}px`
           }}
@@ -408,15 +457,20 @@ function Editor({ task, project, onDelete }) {
             maxLength={80}
             placeholder="Add a step…"
             onChange={(e) => setSubText(e.target.value)}
+            enterKeyHint="done"
             onKeyDown={(e) => e.key === 'Enter' && addSub()}
+            onBlur={addSub}
           />
         </div>
 
         <textarea
           placeholder="Add a note…"
           value={notes}
-          onChange={(e) => setNotes(e.target.value)}
-          onBlur={() => notes !== task.notes && patch({ notes })}
+          onChange={(e) => {
+            setNotes(e.target.value)
+            scheduleSave()
+          }}
+          onBlur={saveDrafts}
         />
         <div className="editor-row">
           <input
@@ -470,6 +524,7 @@ function Editor({ task, project, onDelete }) {
           <button
             className="mini-btn"
             onClick={() => {
+              saveDrafts()
               dispatch({ type: 'ARCHIVE_TASK', id: task.id })
               toast('Archived', '🗄', {
                 label: 'Undo',
@@ -479,7 +534,13 @@ function Editor({ task, project, onDelete }) {
           >
             Archive
           </button>
-          <button className="danger-btn" onClick={onDelete}>
+          <button
+            className="danger-btn"
+            onClick={() => {
+              saveDrafts()
+              onDelete()
+            }}
+          >
             Delete
           </button>
         </div>

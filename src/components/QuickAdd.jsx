@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useStore, toast } from '../store'
+import { useStore, toast, taskInView } from '../store'
 import { todayStr, addDaysStr, PRIORITIES, fmtDue, fmtTime, iconGlyph, parseQuickAdd } from '../utils'
 import { playAdd } from '../sound'
 import { SunIcon, FlagIcon, PlusIcon, ClockIcon, CalendarIcon } from './Icons'
@@ -40,6 +40,11 @@ const QuickAdd = forwardRef(function QuickAdd(_, inputRef) {
     setProjectId(defaultProject())
   }, [view.type, view.projectId]) // eslint-disable-line
 
+  // the picked folder was deleted (here or on another device) → fall back
+  useEffect(() => {
+    if (!state.projects.some((p) => p.id === projectId)) setProjectId(defaultProject())
+  }, [state.projects]) // eslint-disable-line
+
   // live natural-language parse ("gym tomorrow 7am !high #fitness")
   const parsed = useMemo(() => parseQuickAdd(title, state.projects), [title, state.projects])
   const parsedProject = parsed.projectId
@@ -55,7 +60,7 @@ const QuickAdd = forwardRef(function QuickAdd(_, inputRef) {
       type: 'ADD_TASK',
       title: finalTitle,
       due: p.due ?? due,
-      time: p.time ?? time ?? null,
+      time: p.time || time || null,
       priority: p.priority ?? priority,
     }
     if (p.newFolder) {
@@ -63,9 +68,16 @@ const QuickAdd = forwardRef(function QuickAdd(_, inputRef) {
       dispatch({ ...base, newFolder: p.newFolder })
       toast(`Created folder “${p.newFolder}”`, '📁')
     } else {
+      // with no folders left at all, the store files it into a new Inbox
       const pid = p.projectId ?? projectId
-      if (!pid) return
       dispatch({ ...base, projectId: pid })
+      // the task went somewhere this view doesn't show — say where, so it
+      // doesn't look like it vanished
+      if (!taskInView({ due: base.due, projectId: pid }, view)) {
+        const folder = state.projects.find((x) => x.id === pid)?.name
+        const when = base.due ? fmtDue(base.due) : 'no date'
+        toast(`Added to ${folder ?? 'Inbox'} · ${when}`, '✓')
+      }
     }
     setTitle('')
     setPriority(settings.defaultPriority)

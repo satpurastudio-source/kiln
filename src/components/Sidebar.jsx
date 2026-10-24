@@ -48,8 +48,9 @@ function NavItem({ active, onClick, icon, label, right, editBtn, order = 0 }) {
 }
 
 export default function Sidebar({ onNewProject, onEditProject, onOpenSettings, mobileOpen, closeMobile }) {
-  const { state, dispatch } = useStore()
+  const { state, dispatch, syncStatus } = useStore()
   const { view } = state
+  const unsynced = state.profile?.cloud && (syncStatus === 'offline' || syncStatus === 'error')
 
   const go = (v) => {
     dispatch({ type: 'SET_VIEW', view: v })
@@ -159,7 +160,7 @@ export default function Sidebar({ onNewProject, onEditProject, onOpenSettings, m
                     e.stopPropagation()
                     onEditProject(p)
                   }}
-                  title="Edit project"
+                  title="Edit folder"
                 >
                   <PencilIcon size={11} />
                 </span>
@@ -191,6 +192,12 @@ export default function Sidebar({ onNewProject, onEditProject, onOpenSettings, m
         />
       </div>
 
+      {unsynced && (
+        <div className="sync-badge" role="status">
+          <span className="sync-dot" />
+          {syncStatus === 'offline' ? 'Offline — saved on this device' : 'Not synced yet — retrying'}
+        </div>
+      )}
       <div className="sidebar-footer">
         <ProgressRing size={34} stroke={3.4} pct={tp.pct} color="var(--accent)" />
         <div className="footer-stat">

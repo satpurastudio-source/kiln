@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useStore } from '../store'
-import { toDateStr, todayStr, parseDateStr } from '../utils'
+import { toDateStr, todayStr, parseDateStr, parseQuickAdd, iconGlyph } from '../utils'
 import { playAdd } from '../sound'
 import TaskItem from './TaskItem'
 import Tip from './Tip'
@@ -64,9 +64,26 @@ export default function Calendar() {
   const selDate = parseDateStr(selected)
   const selLabel = `${WEEKDAYS[(selDate.getDay() + 6) % 7]}, ${MONTHS[selDate.getMonth()].slice(0, 3)} ${selDate.getDate()}`
 
+  // same smart parsing as the main add bar ("call mom 6pm !high #home");
+  // the date is the selected day unless one is typed
   const addTask = () => {
-    if (!title.trim() || !projectId) return
-    dispatch({ type: 'ADD_TASK', title, projectId, due: selected, priority: 'none' })
+    const p = parseQuickAdd(title, state.projects)
+    if (!p.title.trim()) return
+    dispatch({
+      type: 'ADD_TASK',
+      title: p.title,
+      projectId: p.projectId ?? projectId,
+      newFolder: p.newFolder,
+      due: p.due ?? selected,
+      time: p.time ?? (state.settings.defaultTime || null),
+      priority: p.priority ?? state.settings.defaultPriority,
+    })
+    if (p.due && p.due !== selected) {
+      // jump to where it went so it doesn't look lost
+      const d = parseDateStr(p.due)
+      setCursor({ y: d.getFullYear(), m: d.getMonth() })
+      setSelected(p.due)
+    }
     setTitle('')
     playAdd()
   }
@@ -74,7 +91,7 @@ export default function Calendar() {
   return (
     <div className="calendar">
       <Tip id="calendar">
-        Any task with a due date shows up here. Tap a day to add one, or drag a task onto a date.
+        Any task with a due date shows up here. Tap a day to see it, and add tasks straight onto it.
       </Tip>
       <div className="cal-head">
         <div className="cal-title">
@@ -172,12 +189,17 @@ export default function Calendar() {
             placeholder={`Add a task for ${selLabel}…`}
             maxLength={120}
             onChange={(e) => setTitle(e.target.value)}
+            enterKeyHint="done"
             onKeyDown={(e) => e.key === 'Enter' && addTask()}
           />
-          <select className="select" value={projectId} onChange={(e) => setProjectId(e.target.value)}>
+          <select
+            className="select"
+            value={state.projects.some((p) => p.id === projectId) ? projectId : (state.projects[0]?.id ?? '')}
+            onChange={(e) => setProjectId(e.target.value)}
+          >
             {state.projects.map((p) => (
               <option key={p.id} value={p.id}>
-                {p.icon} {p.name}
+                {iconGlyph(p.icon)} {p.name}
               </option>
             ))}
           </select>
