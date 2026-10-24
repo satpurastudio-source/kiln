@@ -14,7 +14,7 @@ import Focus from './components/Focus'
 import CompleteZone from './components/CompleteZone'
 import MiniCalendar from './components/MiniCalendar'
 import Reset from './components/Reset'
-import { maybeNotifyDueToday } from './reminders'
+import { maybeNotifyDueToday, scheduleNative } from './reminders'
 import ProjectModal from './components/ProjectModal'
 import CommandPalette from './components/CommandPalette'
 import Toasts from './components/Toasts'
@@ -27,6 +27,7 @@ import { MenuIcon, XIcon } from './components/Icons'
 import useEdgeSwipe from './useEdgeSwipe'
 import GestureTips from './components/GestureTips'
 import usePullToSearch from './usePullToSearch'
+import useBackGesture from './useBackGesture'
 import { todayStr } from './utils'
 
 // Re-render when the date changes — a phone app resumed the next morning (or
@@ -113,6 +114,24 @@ export default function App() {
   useEdgeSwipe({ open: mobileNav, setOpen: setMobileNav, enabled: gesturesOn })
   const openPalette = useCallback(() => setPaletteOpen(true), [])
   usePullToSearch({ onPull: openPalette, enabled: gesturesOn })
+
+  // Android back / edge swipe: close what's on top, else toggle into the drawer
+  useBackGesture(() => {
+    // overlays owned by child components mark their close control
+    const closers = document.querySelectorAll('[data-back-close]')
+    if (paletteOpen) setPaletteOpen(false)
+    else if (projectModal) setProjectModal(null)
+    else if (settingsOpen) setSettingsOpen(false)
+    else if (closers.length) closers[closers.length - 1].click()
+    else if (!mobileNav) setMobileNav(true)
+    else return false
+    return true
+  }, gesturesOn)
+
+  // keep the OS reminder schedule (app shell only) in step with the tasks
+  useEffect(() => {
+    if (signedIn) scheduleNative(state.tasks)
+  }, [signedIn, state.tasks])
 
   useEffect(() => {
     if (!signedIn) return

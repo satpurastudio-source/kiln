@@ -47,6 +47,7 @@ export default function MiniCalendar() {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               onClick={() => setOpen(false)}
+              data-back-close
             />
             <motion.div
               className="minical"

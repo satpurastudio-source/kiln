@@ -124,7 +124,7 @@ export default function CommandPalette({ onClose, onNewProject, onOpenSettings, 
             toast('Reminders off', '🔕')
           } else {
             const ok = await enableReminders()
-            toast(ok ? 'Reminders on — you’ll get a nudge when tasks are due' : 'Notifications blocked by the browser', ok ? '🔔' : '⚠')
+            toast(ok ? 'Reminders on — you’ll get a nudge when tasks are due' : 'Notifications are blocked — allow them for kiln in settings', ok ? '🔔' : '⚠')
           }
         },
       },

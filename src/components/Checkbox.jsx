@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { heavyFxOff } from '../fx'
+import { tick } from '../native'
 
 const PARTICLES = 7
 
@@ -11,6 +12,7 @@ export default function Checkbox({ checked, color = '#d85a30', onToggle }) {
     e.stopPropagation()
     // the particle burst is the main jank source on phones — skip it there
     if (!checked && !heavyFxOff()) setBurst(Date.now())
+    if (!checked) tick()
     onToggle()
   }
 

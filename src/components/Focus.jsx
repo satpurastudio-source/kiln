@@ -226,7 +226,7 @@ export default function Focus() {
                     Custom
                   </button>
                 </div>
-                <button className="icon-btn" onClick={() => setOpen(false)} title="Minimize">
+                <button className="icon-btn" onClick={() => setOpen(false)} title="Minimize" data-back-close>
                   —
                 </button>
               </div>

@@ -1,0 +1,19 @@
+{
+  "appId": "com.satpurastudio.kiln",
+  "appName": "kiln",
+  "webDir": "dist",
+  "backgroundColor": "#0e0b08",
+  "ios": {
+    "contentInset": "never",
+    "scheme": "kiln"
+  },
+  "android": {
+    "backgroundColor": "#0e0b08"
+  },
+  "plugins": {
+    "LocalNotifications": {
+      "smallIcon": "ic_stat_kiln",
+      "iconColor": "#c8643c"
+    }
+  }
+}

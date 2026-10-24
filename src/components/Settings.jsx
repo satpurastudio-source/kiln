@@ -72,7 +72,7 @@ export default function Settings({ onClose }) {
     } else {
       const ok = await enableReminders()
       setReminders(ok)
-      toast(ok ? 'Reminders on' : 'Notifications blocked by the browser', ok ? '🔔' : '⚠')
+      toast(ok ? 'Reminders on' : 'Notifications are blocked — allow them for kiln in settings', ok ? '🔔' : '⚠')
     }
   }
 

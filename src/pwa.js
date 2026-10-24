@@ -1,5 +1,6 @@
 import { registerSW } from 'virtual:pwa-register'
 import { toast } from './store'
+import { isNative } from './native'
 
 // When a new deploy lands, the service worker downloads it in the background.
 // If the app was just opened/resumed (or is in the background) we swap it in
@@ -21,7 +22,8 @@ const typing = () => {
 }
 
 export function initPWA() {
-  if (!('serviceWorker' in navigator)) return
+  // the app shell ships its web files inside the app — updates come via the stores
+  if (isNative || !('serviceWorker' in navigator)) return
 
   let asked = false
   const updateSW = registerSW({
