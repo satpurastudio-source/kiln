@@ -5,6 +5,7 @@ import { supabase } from '../supabase'
 import { BASE_KEY } from '../sync'
 import { PRIORITIES, TEXT_SCALE, exportData as downloadBackup, parseBackup } from '../utils'
 import AccentPicker from './AccentPicker'
+import Account from './Account'
 import { remindersOptedIn, enableReminders, disableReminders } from '../reminders'
 import {
   UserIcon,
@@ -17,6 +18,9 @@ import {
   DownloadIcon,
   FlagIcon,
   FlameIcon,
+  MailIcon,
+  KeyboardIcon,
+  GiftIcon,
 } from './Icons'
 
 const DUE_OPTS = [
@@ -34,7 +38,7 @@ const SYNC_LABEL = {
   error: 'Can’t reach the server right now — changes are saved on this device, retrying',
 }
 
-export default function Settings({ onClose }) {
+export default function Settings({ onClose, onOpenSheet }) {
   const { state, dispatch, syncStatus, signOut: storeSignOut } = useStore()
   const { settings, profile } = state
   const [name, setName] = useState(profile?.name ?? '')
@@ -186,6 +190,7 @@ export default function Settings({ onClose }) {
                 {SYNC_LABEL[syncStatus] ?? 'Connecting…'}
               </p>
             )}
+            {profile?.cloud && <Account email={profile.email} />}
           </section>
 
           {/* Accent */}
@@ -385,6 +390,22 @@ export default function Settings({ onClose }) {
                 Reset ambient customizations
               </button>
             )}
+          </section>
+
+          {/* Help */}
+          <section className="set-section">
+            <div className="set-head">
+              <InfoIcon size={12} /> Help & feedback
+            </div>
+            <button className="set-action" onClick={() => onOpenSheet('help')}>
+              <KeyboardIcon size={14} /> Help, shortcuts & gestures
+            </button>
+            <button className="set-action" onClick={() => onOpenSheet('feedback')}>
+              <MailIcon size={14} /> Send feedback or report a bug
+            </button>
+            <button className="set-action" onClick={() => onOpenSheet('whatsnew')}>
+              <GiftIcon size={14} /> What’s new
+            </button>
           </section>
 
           {/* Actions */}

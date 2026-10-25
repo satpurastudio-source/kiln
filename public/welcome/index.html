@@ -1,922 +1,1237 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-IN" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>kiln — a calm, pretty to-do app</title>
+    <title>kiln — your day, sorted</title>
     <meta
       name="description"
-      content="kiln is a free to-do and habit app. Type tasks the way you'd say them — it sorts the date, time, priority and folder. Works offline, syncs across devices."
+      content="kiln is the free to-do app that understands how you talk. Tasks, habits, focus timer and calendar. Works offline, syncs everywhere. By Satpura Studio."
     />
-    <meta property="og:title" content="kiln — a calm, pretty to-do app" />
-    <meta property="og:description" content="Type tasks the way you'd say them. Free, works offline, syncs everywhere." />
+    <meta property="og:title" content="kiln — your day, sorted" />
+    <meta property="og:description" content="The free to-do app that understands how you talk." />
     <meta property="og:image" content="img/desktop.webp" />
-    <meta name="theme-color" content="#f4efe6" media="(prefers-color-scheme: light)" />
-    <meta name="theme-color" content="#0e0b08" media="(prefers-color-scheme: dark)" />
+    <meta property="og:site_name" content="Satpura Studio" />
     <link rel="icon" href="../icons/icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png" />
+    <script>
+      ;(function () {
+        var t = 'light'
+        try {
+          t =
+            localStorage.getItem('kiln-site-theme') ||
+            (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        } catch (e) {}
+        document.documentElement.dataset.theme = t
+      })()
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..800;1,9..144,400..800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap"
       rel="stylesheet"
     />
     <style>
+      /* Satpura Studio's world (satpurastudio.com) — sky, hills, paper —
+         turned up loud for kiln: fired-clay color, big type, real screens */
       :root {
-        --bg: #f4efe6;
-        --bg-2: #ece4d6;
-        --panel: #fffdf9;
-        --text: #2a2620;
-        --text-2: rgba(42, 38, 32, 0.72);
-        --text-3: rgba(42, 38, 32, 0.52);
-        --accent: #d85a30;
-        --accent-ink: #b8461f; /* accent dark enough for text on cream */
-        --border: rgba(42, 38, 32, 0.12);
-        --shadow: 0 30px 60px -30px rgba(80, 40, 20, 0.35);
-        --chip-work: #5f7c8a;
-        --chip-high: #c0392b;
+        --bg: #f5f1e8;
+        --surface: #fffcf5;
+        --ink: #201c13;
+        --ink-soft: rgba(32, 28, 19, 0.62);
+        --line: rgba(32, 28, 19, 0.12);
+        --clay: #d85a30;
+        --clay-deep: #b8461f;
+        --clay-ink: #c24e27;
+        --sand: #f3d9b8;
+        --sage: #6e6951;
+        --night: #170f0a;
+        --sky-top: #f2e7cb;
+        --sky-mid: #f6d6b6;
+        --g1: #e6dec6;
+        --g2: #cfc7aa;
+        --g3: #a9a284;
+        --g4: #6e6951;
+        --frame: #1b1410;
+        --serif: 'Fraunces', serif;
+        --sans: 'Figtree', sans-serif;
+        --mono: 'IBM Plex Mono', monospace;
       }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg: #0e0b08;
-          --bg-2: #15100c;
-          --panel: #181310;
-          --text: #f4efe6;
-          --text-2: rgba(244, 239, 230, 0.72);
-          --text-3: rgba(244, 239, 230, 0.52);
-          --accent-ink: #ef7d55;
-          --border: rgba(244, 239, 230, 0.1);
-          --shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.8);
-          --chip-work: #8fb0bf;
-          --chip-high: #f0766a;
-        }
+      [data-theme='dark'] {
+        --bg: #0d0c08;
+        --surface: #17130e;
+        --ink: #f3ecdc;
+        --ink-soft: rgba(243, 236, 220, 0.62);
+        --line: rgba(243, 236, 220, 0.1);
+        --clay-ink: #f08a5d;
+        --sand: #3a2618;
+        --sky-top: #0a0b10;
+        --sky-mid: #22140d;
+        --g1: #2a2519;
+        --g2: #1e1b12;
+        --g3: #15130c;
+        --g4: #0d0c08;
+        --frame: #2f2620;
       }
 
-      * {
+      *,
+      *::before,
+      *::after {
+        box-sizing: border-box;
         margin: 0;
         padding: 0;
-        box-sizing: border-box;
       }
       html {
         scroll-behavior: smooth;
+        overflow-x: clip;
       }
       body {
-        font-family: 'DM Mono', ui-monospace, monospace;
+        font-family: var(--sans);
         background: var(--bg);
-        color: var(--text);
-        font-size: 15px;
-        line-height: 1.6;
+        color: var(--ink);
+        line-height: 1.5;
         -webkit-font-smoothing: antialiased;
-        overflow-x: hidden;
-      }
-      a {
-        color: inherit;
+        overflow-x: clip;
       }
       img {
         display: block;
         max-width: 100%;
         height: auto;
       }
+      a {
+        color: inherit;
+      }
+      em {
+        font-family: var(--serif);
+        font-style: italic;
+      }
+      body::after {
+        content: '';
+        position: fixed;
+        inset: 0;
+        z-index: 900;
+        pointer-events: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)'/%3E%3C/svg%3E");
+        background-size: 200px;
+        opacity: 0.035;
+      }
       .wrap {
-        max-width: 1120px;
+        width: min(1180px, 100% - 32px);
         margin: 0 auto;
-        padding: 0 20px;
       }
-      .display {
-        font-family: 'Bebas Neue', 'Arial Narrow', sans-serif;
-        font-weight: 400;
-        letter-spacing: 0.02em;
-        line-height: 0.95;
+      .label {
+        font-family: var(--mono);
+        font-size: 0.7rem;
+        font-weight: 500;
+        letter-spacing: 0.22em;
+        text-transform: uppercase;
       }
-      .dot {
-        color: var(--accent);
+      .big {
+        font-family: var(--serif);
+        font-weight: 700;
+        line-height: 0.98;
+        letter-spacing: -0.02em;
+        font-variation-settings: 'opsz' 144;
+      }
+      .big em {
+        font-weight: 500;
+        color: var(--clay-ink);
+      }
+
+      /* ---------- buttons ---------- */
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 18px 30px;
+        border-radius: 99px;
+        background: var(--clay);
+        color: #fff8ee;
+        font-weight: 700;
+        font-size: 1.05rem;
+        text-decoration: none;
+        box-shadow:
+          0 1px 0 rgba(255, 255, 255, 0.25) inset,
+          0 14px 30px -10px rgba(216, 90, 48, 0.7);
+        transition:
+          transform 0.2s cubic-bezier(0.2, 0.8, 0.2, 1),
+          box-shadow 0.2s ease,
+          background 0.2s;
+      }
+      .btn:hover {
+        background: var(--clay-deep);
+        transform: translateY(-2px);
+      }
+      .btn:active {
+        transform: scale(0.97);
+      }
+      .btn.small {
+        padding: 10px 18px;
+        font-size: 0.9rem;
+      }
+      .btn.light {
+        background: #fff8ee;
+        color: var(--clay-deep);
+        box-shadow: 0 14px 30px -12px rgba(0, 0, 0, 0.35);
+      }
+      .btn.light:hover {
+        background: #fff;
+      }
+      .btn-note {
+        font-size: 0.85rem;
+        color: var(--ink-soft);
       }
 
       /* ---------- nav ---------- */
-      .nav {
+      #nav {
         position: sticky;
         top: 0;
-        z-index: 10;
-        background: color-mix(in srgb, var(--bg) 86%, transparent);
-        backdrop-filter: blur(12px);
-        -webkit-backdrop-filter: blur(12px);
-        border-bottom: 1px solid transparent;
+        z-index: 800;
+        background: color-mix(in srgb, var(--sky-top) 82%, transparent);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
       }
-      .nav .wrap {
+      #nav .wrap {
         display: flex;
         align-items: center;
         justify-content: space-between;
         height: 64px;
+        gap: 12px;
       }
-      .logo {
+      .mark {
         display: flex;
         align-items: center;
         gap: 10px;
         text-decoration: none;
-        font-size: 19px;
-        font-weight: 500;
-        letter-spacing: 0.02em;
       }
-      .logo img {
-        width: 30px;
-        height: 30px;
-        border-radius: 8px;
+      .mark img {
+        width: 32px;
+        height: 32px;
+        border-radius: 9px;
       }
-      .nav-links {
+      .mark b {
+        font-family: var(--serif);
+        font-style: italic;
+        font-weight: 600;
+        font-size: 1.45rem;
+      }
+      .mark b span {
+        color: var(--clay);
+      }
+      .nav-right {
         display: flex;
         align-items: center;
-        gap: 26px;
-        font-size: 13.5px;
+        gap: 22px;
       }
-      .nav-links a:not(.btn) {
+      .nav-link {
+        font-weight: 600;
+        font-size: 0.92rem;
+        color: var(--ink-soft);
         text-decoration: none;
-        color: var(--text-2);
       }
-      .nav-links a:not(.btn):hover {
-        color: var(--text);
+      .nav-link:hover {
+        color: var(--ink);
       }
-      @media (max-width: 640px) {
-        .nav-links a:not(.btn) {
+      .theme-btn {
+        width: 36px;
+        height: 36px;
+        flex: none;
+        border-radius: 50%;
+        border: 1px solid var(--line);
+        background: transparent;
+        color: var(--ink-soft);
+        display: grid;
+        place-items: center;
+        cursor: pointer;
+      }
+      [data-theme='light'] .icon-sun,
+      [data-theme='dark'] .icon-moon,
+      [data-theme='light'] .only-dark,
+      [data-theme='dark'] .only-light {
+        display: none;
+      }
+      @media (max-width: 720px) {
+        .nav-link {
           display: none;
         }
-      }
-
-      .btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        padding: 11px 20px;
-        border-radius: 99px;
-        background: var(--accent);
-        color: #fff;
-        text-decoration: none;
-        font-size: 14px;
-        font-weight: 500;
-        border: 1px solid var(--accent);
-        transition:
-          transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
-          box-shadow 0.2s ease;
-        box-shadow: 0 8px 20px -10px rgba(216, 90, 48, 0.8);
-      }
-      .btn:hover {
-        transform: translateY(-1px);
-      }
-      .btn:active {
-        transform: translateY(0) scale(0.98);
-      }
-      .btn.ghost {
-        background: transparent;
-        color: var(--text);
-        border-color: var(--border);
-        box-shadow: none;
-      }
-      .btn.small {
-        padding: 8px 16px;
-        font-size: 13px;
+        .nav-right {
+          gap: 10px;
+        }
       }
 
       /* ---------- hero ---------- */
       .hero {
-        padding-block: 64px 40px;
         position: relative;
+        overflow: hidden;
+        background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-mid) 55%, var(--bg) 100%);
+        padding-top: clamp(28px, 5vh, 64px);
+        text-align: center;
       }
-      .hero::before {
-        content: '';
-        position: absolute;
-        inset: -120px 0 auto;
-        height: 620px;
-        background: radial-gradient(60% 50% at 70% 40%, rgba(216, 90, 48, 0.16), transparent 70%);
-        pointer-events: none;
-        z-index: -1;
-      }
-      .hero-grid {
-        display: grid;
-        grid-template-columns: 1.1fr 0.9fr;
-        gap: 48px;
+      .hero .label {
+        display: inline-flex;
         align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 99px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        color: var(--ink-soft);
+        text-decoration: none;
       }
-      .eyebrow {
-        font-size: 12px;
-        letter-spacing: 0.16em;
-        text-transform: uppercase;
-        color: var(--accent-ink);
-        margin-bottom: 18px;
+      .hero .label b {
+        color: var(--clay-ink);
+        font-weight: 500;
       }
       .hero h1 {
-        font-size: clamp(56px, 9vw, 112px);
-        margin-bottom: 22px;
+        margin-top: 20px;
+        font-size: clamp(3.4rem, min(10vw, 13vh), 7.4rem);
       }
-      .hero .lede {
-        font-size: 16px;
-        color: var(--text-2);
-        max-width: 46ch;
-        margin-bottom: 30px;
+      .hero .sub {
+        margin: 20px auto 0;
+        max-width: 30ch;
+        font-size: clamp(1.1rem, 2.2vw, 1.4rem);
+        font-weight: 500;
+        color: var(--ink-soft);
       }
-      .cta-row {
+      .hero .cta {
+        margin-top: 30px;
         display: flex;
-        flex-wrap: wrap;
-        gap: 12px;
+        flex-direction: column;
         align-items: center;
+        gap: 12px;
       }
-      .fine {
-        margin-top: 16px;
-        font-size: 12.5px;
-        color: var(--text-3);
-      }
-      .hero-shot {
+
+      .stage {
         position: relative;
-        justify-self: center;
-        width: min(330px, 100%);
+        margin-top: 36px;
+        height: clamp(420px, 62vw, 640px);
       }
-      .phone {
-        display: block;
-        border-radius: 38px;
-        border: 8px solid #1a1411;
-        overflow: hidden;
-        box-shadow: var(--shadow);
-        background: #1a1411;
-        transform: rotate(2.5deg);
-      }
-      .hero-shot .chip-float {
+      .ridges {
         position: absolute;
-        left: -40px;
-        bottom: 80px;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 78%;
+        z-index: 0;
+      }
+      .ridges .g1 {
+        fill: var(--g1);
+      }
+      .ridges .g2 {
+        fill: var(--g2);
+      }
+      .ridges .g3 {
+        fill: var(--g3);
+      }
+      .ridges .g4 {
+        fill: var(--g4);
+      }
+      .ember {
+        position: absolute;
+        z-index: 0;
+        left: 50%;
+        top: 8%;
+        width: clamp(180px, 26vw, 320px);
+        aspect-ratio: 1;
+        transform: translateX(-50%);
+        border-radius: 50%;
+        background: radial-gradient(circle at 40% 36%, #f9c59f, #d85a30 70%);
+        box-shadow: 0 0 120px 30px rgba(216, 90, 48, 0.35);
+      }
+
+      .phone {
+        position: absolute;
+        bottom: -40px;
+        width: clamp(200px, 23vw, 290px);
+        border-radius: 34px;
+        border: 8px solid var(--frame);
+        background: var(--frame);
+        overflow: hidden;
+        box-shadow: 0 40px 70px -30px rgba(40, 20, 8, 0.6);
+      }
+      .phone img {
+        width: 100%;
+      }
+      .phone.mid {
+        left: 50%;
+        z-index: 3;
+        transform: translateX(-50%);
+        bottom: -70px;
+        width: clamp(230px, 26vw, 320px);
+      }
+      .phone.left {
+        left: 50%;
+        z-index: 2;
+        transform: translateX(-118%) rotate(-8deg);
+      }
+      .phone.right {
+        left: 50%;
+        z-index: 2;
+        transform: translateX(18%) rotate(8deg);
+      }
+
+      .sticker {
+        position: absolute;
+        z-index: 4;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 12px 16px;
+        border-radius: 16px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        box-shadow: 0 18px 40px -18px rgba(40, 20, 8, 0.45);
+        font-weight: 600;
+        font-size: 0.95rem;
+        white-space: nowrap;
+        text-align: left;
+      }
+      .sticker small {
+        display: block;
+        font-weight: 500;
+        font-size: 0.78rem;
+        color: var(--ink-soft);
+      }
+      .sticker .dot {
+        flex: none;
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        font-size: 0.9rem;
+        background: var(--clay);
+      }
+      .s1 {
+        left: max(16px, calc(50% - 520px));
+        top: 22%;
         transform: rotate(-4deg);
       }
-      @media (max-width: 860px) {
-        .hero {
-          padding-block-start: 36px;
+      .s2 {
+        right: max(16px, calc(50% - 520px));
+        top: 12%;
+        transform: rotate(3deg);
+      }
+      .s2 .dot {
+        background: #d9a441;
+      }
+      .s3 {
+        right: max(16px, calc(50% - 470px));
+        top: 58%;
+        transform: rotate(-2deg);
+      }
+      .s3 .dot {
+        background: #6f9b7a;
+      }
+
+      @media (max-width: 760px) {
+        .stage {
+          height: 470px;
+          margin-top: 40px;
         }
-        .hero-grid {
-          grid-template-columns: 1fr;
-          gap: 40px;
+        .phone {
+          width: 170px;
         }
-        .hero-shot {
-          width: min(280px, 80%);
+        .phone.mid {
+          width: 214px;
+          bottom: -60px;
         }
-        .hero-shot .chip-float {
-          left: -24px;
+        .phone.left {
+          transform: translateX(-112%) rotate(-9deg);
+          bottom: -10px;
+        }
+        .phone.right {
+          transform: translateX(12%) rotate(9deg);
+          bottom: -10px;
+        }
+        .sticker {
+          font-size: 0.82rem;
+          padding: 9px 12px;
+        }
+        .sticker .dot {
+          width: 24px;
+          height: 24px;
+          font-size: 0.75rem;
+        }
+        .s1 {
+          left: 10px;
+          top: 6%;
+        }
+        .s2 {
+          right: 10px;
+          top: 0;
+        }
+        .s3 {
+          display: none;
         }
       }
 
-      /* ---------- quick-add demo ---------- */
-      .qa {
-        background: var(--panel);
-        border: 1px solid var(--border);
-        border-radius: 18px;
-        padding: 16px 18px;
-        box-shadow: var(--shadow);
-        max-width: 560px;
-      }
-      .qa-input {
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        font-size: 15px;
-        min-height: 28px;
-      }
-      .qa-plus {
-        flex: none;
-        width: 28px;
-        height: 28px;
-        border-radius: 8px;
-        background: var(--accent);
-        color: #fff;
-        display: grid;
-        place-items: center;
-        font-size: 18px;
-        line-height: 1;
-      }
-      .qa-text {
-        white-space: nowrap;
+      /* ---------- loud band ---------- */
+      .band {
+        position: relative;
+        z-index: 5;
+        background: var(--clay);
+        color: #fff8ee;
+        padding: 26px 0;
         overflow: hidden;
       }
-      .qa-text::after {
-        content: '';
-        display: inline-block;
-        width: 2px;
-        height: 1.1em;
-        margin-left: 2px;
-        vertical-align: -0.18em;
-        background: var(--accent);
-        animation: blink 1s steps(1) infinite;
-      }
-      @keyframes blink {
-        50% {
-          opacity: 0;
-        }
-      }
-      .qa-chips {
+      .band .wrap {
         display: flex;
         flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 12px;
-        min-height: 30px;
+        justify-content: center;
+        gap: 6px 34px;
+        font-family: var(--serif);
+        font-style: italic;
+        font-weight: 600;
+        font-size: clamp(1.4rem, 3.4vw, 2.4rem);
+        line-height: 1.2;
       }
-      .chip {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 4px 11px;
-        border-radius: 99px;
-        border: 1px solid var(--border);
-        background: var(--bg);
-        font-size: 12.5px;
-        color: var(--text-2);
-        opacity: 0;
-        transform: translateY(6px) scale(0.96);
-        transition:
-          opacity 0.35s ease,
-          transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
-      }
-      .chip.in {
-        opacity: 1;
-        transform: none;
-      }
-      .chip i {
-        width: 7px;
-        height: 7px;
-        border-radius: 50%;
-        background: var(--accent);
-      }
-      .chip.high i {
-        background: var(--chip-high);
-      }
-      .chip.folder i {
-        background: var(--chip-work);
-      }
-      .chip-float {
-        background: var(--panel);
-        border: 1px solid var(--border);
-        border-radius: 14px;
-        padding: 10px 14px;
-        font-size: 12.5px;
-        box-shadow: var(--shadow);
-        white-space: nowrap;
-      }
-      .chip-float b {
-        color: var(--accent-ink);
-        font-weight: 500;
+      .band span::before {
+        content: '✦';
+        font-style: normal;
+        font-size: 0.6em;
+        margin-right: 14px;
+        vertical-align: 0.2em;
+        opacity: 0.7;
       }
 
       /* ---------- sections ---------- */
       section {
-        padding: 72px 0;
+        padding: clamp(80px, 12vw, 140px) 0;
       }
-      .sec-head {
-        max-width: 640px;
-        margin-bottom: 36px;
+      .head {
+        text-align: center;
+        margin-bottom: clamp(36px, 6vw, 64px);
       }
-      .sec-head h2 {
-        font-size: clamp(40px, 6vw, 64px);
-        margin-bottom: 12px;
+      .head .label {
+        color: var(--clay-ink);
       }
-      .sec-head p {
-        color: var(--text-2);
+      .head h2 {
+        margin-top: 14px;
+        font-size: clamp(2.6rem, 7vw, 5.4rem);
+      }
+      .head p {
+        margin: 14px auto 0;
+        font-size: 1.15rem;
+        font-weight: 500;
+        color: var(--ink-soft);
+        max-width: 34ch;
       }
 
-      .speak {
-        display: grid;
-        grid-template-columns: 0.9fr 1.1fr;
-        gap: 48px;
+      /* type it → done */
+      .typebar {
+        max-width: 860px;
+        margin: 0 auto;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 26px;
+        padding: 16px;
+        box-shadow: 0 40px 80px -40px rgba(60, 30, 10, 0.45);
+      }
+      .typebar-in {
+        display: flex;
         align-items: center;
+        gap: 16px;
+        padding: 10px 12px;
+        font-family: var(--mono);
+        font-size: clamp(1.05rem, 2.8vw, 1.7rem);
+        overflow: hidden;
       }
-      .examples {
-        list-style: none;
-        display: grid;
-        gap: 10px;
-        margin-top: 22px;
-        font-size: 13.5px;
-        color: var(--text-2);
-      }
-      .examples code {
-        font-family: inherit;
-        color: var(--text);
-        background: var(--bg-2);
-        padding: 2px 8px;
-        border-radius: 6px;
-      }
-      @media (max-width: 860px) {
-        .speak {
-          grid-template-columns: 1fr;
-          gap: 28px;
-        }
-      }
-
-      .features {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 14px;
-      }
-      .feat {
-        background: var(--panel);
-        border: 1px solid var(--border);
-        border-radius: 18px;
-        padding: 24px;
-      }
-      .feat .glyph {
-        width: 38px;
-        height: 38px;
-        border-radius: 11px;
+      .plus {
+        flex: none;
+        width: clamp(40px, 6vw, 54px);
+        aspect-ratio: 1;
+        border-radius: 14px;
+        background: var(--clay);
+        color: #fff;
         display: grid;
         place-items: center;
-        background: color-mix(in srgb, var(--accent) 14%, transparent);
-        color: var(--accent-ink);
-        font-size: 17px;
-        margin-bottom: 16px;
+        font-family: var(--sans);
+        font-size: 1.6em;
+        font-weight: 400;
       }
-      .feat h3 {
-        font-size: 15px;
+      .typebar-in > span:last-child {
+        min-width: 0;
+        overflow-wrap: anywhere;
+      }
+      .typebar-in mark {
+        background: none;
+        color: var(--clay-ink);
+      }
+      .typebar-out {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        padding: 16px 12px 6px;
+        border-top: 1px dashed var(--line);
+        margin-top: 8px;
+      }
+      .pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 16px;
+        border-radius: 99px;
+        font-weight: 700;
+        font-size: clamp(0.92rem, 2vw, 1.1rem);
+        background: var(--sand);
+        color: var(--ink);
+      }
+      .pill.hot {
+        background: var(--clay);
+        color: #fff8ee;
+      }
+      .pill.task {
+        background: var(--ink);
+        color: var(--bg);
+      }
+      .pill i {
+        font-style: normal;
+        opacity: 0.7;
+      }
+
+      /* bento */
+      .bento {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        gap: 16px;
+      }
+      .tile {
+        position: relative;
+        overflow: hidden;
+        border-radius: 30px;
+        padding: 30px 30px 0;
+        min-height: 420px;
+        display: flex;
+        flex-direction: column;
+        transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+      .tile:hover {
+        transform: translateY(-4px);
+      }
+      .tile h3 {
+        font-family: var(--serif);
+        font-weight: 700;
+        font-size: clamp(1.9rem, 3.4vw, 2.7rem);
+        line-height: 1;
+        letter-spacing: -0.02em;
+      }
+      .tile p {
+        margin-top: 10px;
         font-weight: 500;
-        margin-bottom: 6px;
+        font-size: 1.02rem;
+        opacity: 0.75;
+        max-width: 26ch;
       }
-      .feat p {
-        font-size: 13.5px;
-        color: var(--text-2);
+      .tile .screen {
+        margin: 28px auto 0;
+        width: min(78%, 300px);
+        border-radius: 26px 26px 0 0;
+        border: 7px solid var(--frame);
+        border-bottom: 0;
+        overflow: hidden;
+        background: var(--frame);
+        box-shadow: 0 -10px 40px -20px rgba(0, 0, 0, 0.4);
+        flex: 1;
+        max-height: 420px;
       }
-      @media (max-width: 860px) {
-        .features {
+      .tile .screen img {
+        width: 100%;
+      }
+      .t-cal {
+        grid-column: span 3;
+        background: var(--sand);
+      }
+      .t-focus {
+        grid-column: span 3;
+        background: var(--night);
+        color: #f6eddc;
+      }
+      .t-focus h3 em {
+        color: #f08a5d;
+      }
+      .t-habits {
+        grid-column: span 2;
+        background: var(--clay);
+        color: #fff8ee;
+      }
+      .t-offline {
+        grid-column: span 2;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        justify-content: space-between;
+        padding-bottom: 30px;
+      }
+      .t-sync {
+        grid-column: span 2;
+        background: var(--sage);
+        color: #f6eddc;
+        justify-content: space-between;
+        padding-bottom: 30px;
+      }
+      .t-habits .screen {
+        width: min(86%, 260px);
+      }
+      .big-glyph {
+        font-family: var(--serif);
+        font-weight: 700;
+        font-size: clamp(5rem, 10vw, 7.5rem);
+        line-height: 1;
+        letter-spacing: -0.03em;
+      }
+      .offline-ico {
+        width: clamp(90px, 11vw, 130px);
+        color: var(--clay-ink);
+      }
+      .devices {
+        display: flex;
+        align-items: flex-end;
+        gap: 10px;
+      }
+      .devices span {
+        display: block;
+        border: 3px solid rgba(246, 237, 220, 0.85);
+        border-radius: 10px;
+      }
+      .devices .d-lap {
+        width: 120px;
+        height: 76px;
+      }
+      .devices .d-tab {
+        width: 62px;
+        height: 84px;
+      }
+      .devices .d-ph {
+        width: 34px;
+        height: 64px;
+        border-radius: 8px;
+        background: rgba(246, 237, 220, 0.18);
+      }
+      @media (max-width: 900px) {
+        .bento {
           grid-template-columns: 1fr 1fr;
+        }
+        .t-cal,
+        .t-focus {
+          grid-column: span 2;
+        }
+        .t-habits {
+          grid-column: span 2;
+        }
+        .t-offline,
+        .t-sync {
+          grid-column: span 1;
+          min-height: 300px;
         }
       }
       @media (max-width: 560px) {
-        .features {
+        .bento {
           grid-template-columns: 1fr;
         }
-      }
-
-      .band {
-        background: #0e0b08;
-        color: #f4efe6;
-        border-radius: 28px;
-        border: 1px solid rgba(244, 239, 230, 0.08);
-        padding: 56px 44px;
-        overflow: hidden;
-      }
-      .band .eyebrow {
-        color: #ef7d55;
-      }
-      .band h2 {
-        font-size: clamp(40px, 6vw, 64px);
-        margin-bottom: 12px;
-      }
-      .band p {
-        color: rgba(244, 239, 230, 0.72);
-        max-width: 56ch;
-      }
-      .band img {
-        margin-top: 36px;
-        border-radius: 16px;
-        border: 1px solid rgba(244, 239, 230, 0.1);
-      }
-      @media (max-width: 640px) {
-        .band {
-          padding: 40px 22px;
-          border-radius: 22px;
+        .tile,
+        .t-offline,
+        .t-sync {
+          grid-column: span 1;
+        }
+        .tile {
+          min-height: 0;
+          padding: 26px 22px 0;
+        }
+        .t-offline,
+        .t-sync {
+          padding-bottom: 26px;
+          gap: 24px;
+        }
+        .tile .screen {
+          max-height: 340px;
         }
       }
 
-      .desk {
-        border-radius: 16px;
-        border: 1px solid var(--border);
-        box-shadow: var(--shadow);
+      /* desktop */
+      .laptop {
+        max-width: 1040px;
+        margin: 0 auto;
+        border-radius: 20px;
+        border: 10px solid var(--frame);
+        background: var(--frame);
         overflow: hidden;
+        box-shadow: 0 50px 90px -40px rgba(40, 20, 8, 0.55);
+      }
+      .keys {
+        margin-top: 30px;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 12px 26px;
+        font-weight: 600;
+        color: var(--ink-soft);
+      }
+      kbd {
+        display: inline-block;
+        min-width: 34px;
+        padding: 6px 10px;
+        margin-right: 8px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        border-bottom-width: 3px;
+        background: var(--surface);
+        color: var(--ink);
+        font-family: var(--mono);
+        font-size: 0.85rem;
+        text-align: center;
       }
 
-      /* ---------- pricing ---------- */
-      .price {
+      /* ambient — the dusk band from the studio site */
+      .dusk {
+        position: relative;
+        overflow: hidden;
+        background: linear-gradient(180deg, #2b1a11 0%, #170e09 100%);
+        color: #f6eddc;
+        padding-bottom: 0;
+      }
+      .dusk::before {
+        content: '';
+        position: absolute;
+        inset: auto 0 0;
+        height: 60%;
+        background: radial-gradient(60% 90% at 50% 100%, rgba(216, 90, 48, 0.3), transparent 70%);
+      }
+      .dusk .head .label {
+        color: #f08a5d;
+      }
+      .dusk .head p {
+        color: rgba(246, 237, 220, 0.7);
+      }
+      .dusk .big em {
+        color: #f08a5d;
+      }
+      .dusk-shot {
+        position: relative;
+        z-index: 2;
+        max-width: 1040px;
+        margin: 0 auto;
+        border-radius: 20px 20px 0 0;
+        overflow: hidden;
+        border: 1px solid rgba(246, 237, 220, 0.12);
+        border-bottom: 0;
+      }
+      .dusk-svg {
+        position: absolute;
+        z-index: 3;
+        left: 0;
+        right: 0;
+        bottom: -2px;
+        width: 100%;
+        height: 130px;
+      }
+      .dusk-svg .d1 {
+        fill: #4a2e1f;
+      }
+      .dusk-svg .d2 {
+        fill: #331f15;
+      }
+      .dusk-svg .d3 {
+        fill: var(--bg);
+      }
+
+      /* free */
+      .free {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 40px;
+        grid-template-columns: 1.1fr 1fr;
         align-items: center;
-        background: var(--panel);
-        border: 1px solid var(--border);
-        border-radius: 24px;
-        padding: 44px;
+        gap: 40px;
+        background: var(--clay);
+        color: #fff8ee;
+        border-radius: 36px;
+        padding: clamp(36px, 6vw, 72px);
+        overflow: hidden;
+        position: relative;
       }
-      .price .amount {
-        font-size: clamp(80px, 12vw, 140px);
+      .free::after {
+        content: '';
+        position: absolute;
+        right: -120px;
+        bottom: -160px;
+        width: 420px;
+        aspect-ratio: 1;
+        border-radius: 50%;
+        background: radial-gradient(circle at 40% 40%, rgba(255, 220, 190, 0.35), transparent 65%);
       }
-      .price ul {
+      .free .zero {
+        font-family: var(--serif);
+        font-weight: 800;
+        font-size: clamp(7rem, 20vw, 15rem);
+        line-height: 0.85;
+        letter-spacing: -0.04em;
+      }
+      .free .rs {
+        /* Fraunces has no rupee glyph — use the UI face for it */
+        font-family: var(--sans);
+        font-weight: 700;
+        font-size: 0.82em;
+        margin-right: 0.04em;
+      }
+      .free h2 {
+        font-size: clamp(2.2rem, 5vw, 3.6rem);
+      }
+      .free h2 em {
+        color: #fff8ee;
+      }
+      .free ul {
         list-style: none;
-        display: grid;
+        margin: 24px 0 30px;
+        display: flex;
+        flex-wrap: wrap;
         gap: 10px;
-        font-size: 14px;
-        color: var(--text-2);
       }
-      .price li::before {
-        content: '✦';
-        color: var(--accent);
-        margin-right: 10px;
+      .free li {
+        padding: 9px 15px;
+        border-radius: 99px;
+        background: rgba(255, 248, 238, 0.16);
+        font-weight: 600;
       }
       @media (max-width: 760px) {
-        .price {
+        .free {
           grid-template-columns: 1fr;
-          padding: 30px 22px;
-          gap: 20px;
+          gap: 10px;
+          border-radius: 28px;
         }
       }
 
-      /* ---------- faq ---------- */
-      .faq {
-        max-width: 760px;
-      }
-      .faq details {
-        border-bottom: 1px solid var(--border);
-        padding: 18px 0;
-      }
-      .faq summary {
-        cursor: pointer;
-        list-style: none;
-        display: flex;
-        justify-content: space-between;
-        gap: 16px;
-        font-weight: 500;
-      }
-      .faq summary::-webkit-details-marker {
-        display: none;
-      }
-      .faq summary::after {
-        content: '+';
-        color: var(--accent);
-        font-size: 20px;
-        line-height: 1;
-        transition: transform 0.25s ease;
-      }
-      .faq details[open] summary::after {
-        transform: rotate(45deg);
-      }
-      .faq details p {
-        margin-top: 10px;
-        color: var(--text-2);
-        font-size: 14px;
-      }
-
-      /* ---------- final cta + footer ---------- */
+      /* final */
       .final {
+        position: relative;
+        overflow: hidden;
         text-align: center;
-        padding-block: 96px;
+        background: linear-gradient(180deg, var(--bg) 0%, var(--sky-mid) 60%, var(--sky-top) 100%);
+        padding-bottom: 0;
       }
       .final h2 {
-        font-size: clamp(52px, 9vw, 110px);
-        margin-bottom: 26px;
+        font-size: clamp(3.2rem, 10vw, 8rem);
       }
-      .final .cta-row {
-        justify-content: center;
+      .final .cta {
+        margin-top: 30px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 12px;
+      }
+      .final .ridges {
+        position: relative;
+        display: block;
+        height: clamp(140px, 22vw, 260px);
+        margin-top: 60px;
+      }
+      .studio {
+        background: var(--g4);
+        color: #f6eddc;
+      }
+      [data-theme='dark'] .studio {
+        background: #15130c;
+      }
+      .studio .wrap {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        padding: 34px 0;
+      }
+      .studio a.card {
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+      }
+      .studio .mk {
+        font-family: var(--serif);
+        font-style: italic;
+        font-size: clamp(1.5rem, 3vw, 2rem);
+      }
+      .studio .mk sup {
+        color: #e9ae5e;
+        font-size: 0.45em;
+        font-style: normal;
+      }
+      .studio .go {
+        padding: 10px 18px;
+        border-radius: 99px;
+        border: 1px solid rgba(246, 237, 220, 0.3);
+        font-weight: 600;
+        font-size: 0.92rem;
+        transition:
+          background 0.2s,
+          color 0.2s;
+      }
+      .studio a.card:hover .go {
+        background: #f6eddc;
+        color: var(--g4);
       }
       footer {
-        border-top: 1px solid var(--border);
-        padding: 28px 0 40px;
-        font-size: 12.5px;
-        color: var(--text-3);
+        background: var(--g4);
+        color: rgba(246, 237, 220, 0.6);
+        border-top: 1px solid rgba(246, 237, 220, 0.12);
+        font-size: 0.88rem;
+      }
+      [data-theme='dark'] footer {
+        background: #15130c;
       }
       footer .wrap {
         display: flex;
         flex-wrap: wrap;
-        gap: 14px 28px;
         justify-content: space-between;
+        gap: 12px 24px;
+        padding: 22px 0 30px;
       }
       footer nav {
         display: flex;
         flex-wrap: wrap;
-        gap: 18px;
+        gap: 8px 20px;
       }
       footer a {
-        color: var(--text-2);
         text-decoration: none;
       }
       footer a:hover {
-        color: var(--text);
+        color: #f6eddc;
       }
 
-      /* scroll reveal */
-      .reveal {
-        opacity: 0;
-        transform: translateY(18px);
-        transition:
-          opacity 0.7s ease,
-          transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
-      }
-      .reveal.in {
-        opacity: 1;
-        transform: none;
-      }
       @media (prefers-reduced-motion: reduce) {
+        * {
+          transition: none !important;
+        }
         html {
           scroll-behavior: auto;
-        }
-        .reveal,
-        .chip {
-          opacity: 1;
-          transform: none;
-          transition: none;
-        }
-        .qa-text::after {
-          animation: none;
         }
       }
     </style>
   </head>
   <body>
-    <header class="nav">
+    <nav id="nav">
       <div class="wrap">
-        <a class="logo" href="./"><img src="../icons/icon.svg" alt="" /><span>kiln<span class="dot">.</span></span></a>
-        <nav class="nav-links">
-          <a href="#features">Features</a>
-          <a href="#pricing">Pricing</a>
-          <a href="#faq">FAQ</a>
+        <a class="mark" href="#top"><img src="../icons/icon.svg" alt="" /><b>kiln<span>.</span></b></a>
+        <div class="nav-right">
+          <a class="nav-link" href="#features">Features</a>
+          <a class="nav-link" href="#free">Pricing</a>
+          <a class="nav-link" href="https://www.satpurastudio.com">Satpura Studio ↗</a>
+          <button class="theme-btn" id="themeToggle" aria-label="Switch light / dark">
+            <svg class="icon-moon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>
+            <svg class="icon-sun" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" /></svg>
+          </button>
           <a class="btn small" href="../">Open kiln</a>
-        </nav>
+        </div>
       </div>
-    </header>
+    </nav>
 
     <main>
-      <div class="wrap hero">
-        <div class="hero-grid">
-          <div>
-            <p class="eyebrow">Shape · fire · ship</p>
-            <h1 class="display">A to-do list that feels good to open<span class="dot">.</span></h1>
-            <p class="lede">
-              kiln is a calm, pretty home for your tasks and habits. Type things the way you'd say them, and it
-              files the date, time, priority and folder for you.
-            </p>
-            <div class="cta-row">
-              <a class="btn" href="../">Start free →</a>
-              <a class="btn ghost" href="#features">See what it does</a>
-            </div>
-            <p class="fine">Free · no ads · works offline · no account needed to try</p>
+      <!-- HERO -->
+      <header class="hero" id="top">
+        <div class="wrap">
+          <a class="label" href="https://www.satpurastudio.com">New from <b>Satpura Studio</b> ↗</a>
+          <h1 class="big">Your day,<br /><em>sorted.</em></h1>
+          <p class="sub">The free to-do app that understands how you talk.</p>
+          <div class="cta">
+            <a class="btn" href="../">Start free →</a>
+            <span class="btn-note">No signup needed · works on any phone</span>
           </div>
-          <div class="hero-shot">
-            <picture class="phone">
-              <source srcset="img/phone-dark.webp" media="(prefers-color-scheme: dark)" />
-              <img
-                src="img/phone-light.webp"
-                width="780"
-                height="1688"
-                alt="kiln on a phone: today's tasks with times and folders"
-              />
-            </picture>
-            <div class="chip-float" aria-hidden="true"><b>✓</b> Call mom · 6:30 PM</div>
+        </div>
+        <div class="stage" aria-hidden="true">
+          <div class="ember"></div>
+          <svg class="ridges" viewBox="0 0 1440 400" preserveAspectRatio="xMidYMax slice">
+            <path class="g1" d="M0,120 Q120,80 250,106 T520,88 Q650,52 780,84 T1040,70 Q1180,40 1300,74 L1440,60 V400 H0 Z" />
+            <path class="g2" d="M0,190 Q140,148 280,180 T560,162 Q700,124 840,158 T1120,142 Q1260,114 1440,148 V400 H0 Z" />
+            <path class="g3" d="M0,266 Q160,222 320,256 T640,238 Q800,202 960,242 T1260,226 Q1350,212 1440,230 V400 H0 Z" />
+            <path class="g4" d="M0,334 Q180,294 360,324 T720,310 Q900,276 1080,314 T1440,300 V400 H0 Z" />
+          </svg>
+          <div class="phone left"><img src="img/calendar.webp" width="780" height="1688" alt="" /></div>
+          <div class="phone right"><img src="img/focus.webp" width="780" height="1688" alt="" /></div>
+          <div class="phone mid">
+            <img class="only-light" src="img/phone-light.webp" width="780" height="1688" alt="" />
+            <img class="only-dark" src="img/phone-dark.webp" width="780" height="1688" alt="" />
           </div>
+          <div class="sticker s1"><span class="dot">✓</span><span>Call mom<small>Today · 6:30 PM</small></span></div>
+          <div class="sticker s2"><span class="dot">🔥</span><span>20-day streak<small>Read 20 pages</small></span></div>
+          <div class="sticker s3"><span class="dot">▲</span><span>Evening run<small>Fitness · 7:00 PM</small></span></div>
+        </div>
+      </header>
+
+      <div class="band">
+        <div class="wrap">
+          <span>Free</span>
+          <span>No ads</span>
+          <span>Works offline</span>
+          <span>Every device</span>
         </div>
       </div>
 
-      <section id="speak">
-        <div class="wrap speak">
-          <div class="reveal">
-            <p class="eyebrow">Natural quick add</p>
-            <h2 class="display" style="font-size: clamp(40px, 6vw, 64px); margin-bottom: 12px">
-              Just say it<span class="dot">.</span>
-            </h2>
-            <p style="color: var(--text-2)">
-              No date pickers, no dropdowns. kiln reads plain English, including dates written the Indian way.
-            </p>
-            <ul class="examples">
-              <li><code>gym tomorrow 7am</code></li>
-              <li><code>pay rent friday 5pm !high</code></li>
-              <li><code>dentist 12/11 4:30pm #health</code></li>
-            </ul>
-          </div>
-          <div class="qa reveal" aria-label="Animated example of quick add">
-            <div class="qa-input">
-              <span class="qa-plus" aria-hidden="true">+</span>
-              <span class="qa-text" id="qa-text"></span>
-            </div>
-            <div class="qa-chips" id="qa-chips"></div>
-          </div>
-        </div>
-      </section>
-
-      <section id="features">
+      <!-- TYPE IT -->
+      <section id="say">
         <div class="wrap">
-          <div class="sec-head reveal">
-            <p class="eyebrow">Everything you need, nothing you don't</p>
-            <h2 class="display">Simple on the surface<span class="dot">.</span></h2>
-            <p>The power is there when you want it, and out of the way when you don't.</p>
+          <div class="head">
+            <p class="label">Quick add</p>
+            <h2 class="big">Type it. <em>Done.</em></h2>
+            <p>kiln picks out the day, time, priority and folder.</p>
           </div>
-          <div class="features">
-            <div class="feat reveal">
-              <div class="glyph">◆</div>
-              <h3>Today, upcoming, calendar</h3>
-              <p>See what's due now, what's next, and your whole month. Repeating tasks reschedule themselves.</p>
+          <div class="typebar">
+            <div class="typebar-in">
+              <span class="plus" aria-hidden="true">+</span>
+              <span>pay rent <mark>friday 5pm</mark> <mark>!high</mark> <mark>#home</mark></span>
             </div>
-            <div class="feat reveal">
-              <div class="glyph">◷</div>
-              <h3>Focus timer</h3>
-              <p>A built-in Pomodoro (25·5, 50·10 or your own) that counts the sessions you put into each task.</p>
-            </div>
-            <div class="feat reveal">
-              <div class="glyph">✦</div>
-              <h3>Habits & insights</h3>
-              <p>Daily habits with streaks, plus a weekly look at what you got done and where your time went.</p>
-            </div>
-            <div class="feat reveal">
-              <div class="glyph">⇄</div>
-              <h3>Syncs everywhere</h3>
-              <p>Tick something off on your phone and it's gone on your laptop a second later.</p>
-            </div>
-            <div class="feat reveal">
-              <div class="glyph">⌁</div>
-              <h3>Works offline</h3>
-              <p>Install it to your home screen. No signal? Keep going, and it catches up when you're back.</p>
-            </div>
-            <div class="feat reveal">
-              <div class="glyph">◐</div>
-              <h3>Make it yours</h3>
-              <p>Light or dark, six accents or your own color, adjustable text size, and a lighter mode for older phones.</p>
+            <div class="typebar-out">
+              <span class="pill task">Pay rent</span>
+              <span class="pill"><i>📅</i> Friday</span>
+              <span class="pill"><i>⏰</i> 5:00 PM</span>
+              <span class="pill hot">High</span>
+              <span class="pill"><i>✦</i> Home</span>
             </div>
           </div>
         </div>
       </section>
 
-      <section id="desktop">
+      <!-- BENTO -->
+      <section id="features" style="padding-top: 0">
         <div class="wrap">
-          <div class="sec-head reveal">
-            <p class="eyebrow">On a big screen</p>
-            <h2 class="display">Built for the keyboard too<span class="dot">.</span></h2>
-            <p>
-              <code>N</code> to add, <code>/</code> to search, <code>Ctrl K</code> to jump anywhere. Drag to
-              reorder, drop to complete.
-            </p>
+          <div class="head">
+            <p class="label">Everything in one place</p>
+            <h2 class="big">Small app. <em>Big help.</em></h2>
           </div>
-          <img
-            class="desk reveal"
-            src="img/desktop.webp"
-            width="1800"
-            height="1125"
-            loading="lazy"
-            alt="kiln on a laptop: sidebar of folders and today's task list"
-          />
+          <div class="bento">
+            <div class="tile t-cal">
+              <h3>Plan the month</h3>
+              <p>Every date in one calendar.</p>
+              <div class="screen"><img src="img/calendar.webp" width="780" height="1688" loading="lazy" alt="kiln's calendar view" /></div>
+            </div>
+            <div class="tile t-focus">
+              <h3>Focus <em>mode</em></h3>
+              <p>A built-in timer for deep work.</p>
+              <div class="screen"><img src="img/focus.webp" width="780" height="1688" loading="lazy" alt="kiln's focus timer" /></div>
+            </div>
+            <div class="tile t-habits">
+              <h3>Build streaks</h3>
+              <p>Habits you'll actually keep.</p>
+              <div class="screen"><img src="img/insights.webp" width="780" height="1688" loading="lazy" alt="kiln's habits and weekly insights" /></div>
+            </div>
+            <div class="tile t-offline">
+              <div>
+                <h3>No signal? No problem.</h3>
+                <p>It keeps working offline.</p>
+              </div>
+              <svg class="offline-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M2 2l20 20" /><path d="M8.5 16.4a5 5 0 0 1 7 0" /><path d="M5 12.9a10 10 0 0 1 5.2-2.8" /><path d="M14 10.2a10 10 0 0 1 5 2.7" /><path d="M1.4 9.3a15 15 0 0 1 4.3-2.8" /><path d="M10.7 5.1A15 15 0 0 1 22.6 9.3" /><circle cx="12" cy="20" r="1" fill="currentColor" />
+              </svg>
+            </div>
+            <div class="tile t-sync">
+              <div>
+                <h3>Phone. Laptop. Tablet.</h3>
+                <p>One list, synced in a second.</p>
+              </div>
+              <div class="devices" aria-hidden="true"><span class="d-lap"></span><span class="d-tab"></span><span class="d-ph"></span></div>
+            </div>
+          </div>
         </div>
       </section>
 
-      <section id="ambient">
+      <!-- DESKTOP -->
+      <section style="padding-top: 0">
         <div class="wrap">
-          <div class="band reveal">
-            <p class="eyebrow">Ambient mode</p>
-            <h2 class="display">Your day, at a glance<span class="dot">.</span></h2>
-            <p>
-              Put kiln on a second monitor or a docked phone: a quiet clock, today's to-do and done, your focus
-              session, and Ember the flame keeping you company. You can tune every part of it.
-            </p>
-            <img
-              src="img/ambient.webp"
-              width="1800"
-              height="1125"
-              loading="lazy"
-              alt="Ambient mode: analog clock beside today's to-do and done lists"
-            />
+          <div class="head">
+            <p class="label">On a computer</p>
+            <h2 class="big">Fast with a <em>keyboard.</em></h2>
+          </div>
+          <div class="laptop"><img src="img/desktop.webp" width="1800" height="1125" loading="lazy" alt="kiln on a laptop" /></div>
+          <div class="keys">
+            <span><kbd>N</kbd>New task</span>
+            <span><kbd>/</kbd>Search</span>
+            <span><kbd>Ctrl K</kbd>Jump anywhere</span>
           </div>
         </div>
       </section>
 
-      <section id="pricing">
+      <!-- AMBIENT -->
+      <section class="dusk" id="ambient">
         <div class="wrap">
-          <div class="price reveal">
+          <div class="head">
+            <p class="label">Ambient mode</p>
+            <h2 class="big">Your desk, <em>glowing.</em></h2>
+            <p>A calm clock and today's list for a second screen.</p>
+          </div>
+          <div class="dusk-shot"><img src="img/ambient.webp" width="1800" height="1125" loading="lazy" alt="Ambient mode: an analog clock beside today's list" /></div>
+        </div>
+        <svg class="dusk-svg" viewBox="0 0 1440 130" preserveAspectRatio="none" aria-hidden="true">
+          <path class="d1" d="M0,60 Q140,26 290,50 T590,36 Q740,8 890,34 T1180,22 Q1310,4 1440,24 V130 H0 Z" />
+          <path class="d2" d="M0,88 Q170,56 340,80 T690,66 Q860,40 1030,66 T1440,54 V130 H0 Z" />
+          <path class="d3" d="M0,112 Q200,90 400,106 T800,96 Q1000,78 1200,98 T1440,90 V130 H0 Z" />
+        </svg>
+      </section>
+
+      <!-- FREE -->
+      <section id="free">
+        <div class="wrap">
+          <div class="free">
+            <div class="zero"><span class="rs">₹</span>0</div>
             <div>
-              <p class="eyebrow">Pricing</p>
-              <div class="amount display">Free<span class="dot">.</span></div>
-              <p style="color: var(--text-2)">No trial, no card, no ads. Your data is never sold.</p>
+              <h2 class="big">Free. <em>No catch.</em></h2>
+              <ul>
+                <li>Unlimited tasks</li>
+                <li>Habits</li>
+                <li>Focus timer</li>
+                <li>Sync</li>
+                <li>Reminders</li>
+                <li>No ads</li>
+              </ul>
+              <a class="btn light" href="../">Get kiln free →</a>
             </div>
-            <ul>
-              <li>Unlimited tasks, folders & habits</li>
-              <li>Sync across all your devices</li>
-              <li>Focus timer & weekly insights</li>
-              <li>Ambient mode</li>
-              <li>Reminders</li>
-              <li>Export your data anytime</li>
-            </ul>
           </div>
         </div>
       </section>
 
-      <section id="faq">
+      <!-- FINAL -->
+      <section class="final">
         <div class="wrap">
-          <div class="sec-head reveal">
-            <h2 class="display">Questions<span class="dot">.</span></h2>
-          </div>
-          <div class="faq">
-            <details>
-              <summary>Do I need an account?</summary>
-              <p>
-                No. Choose “continue on this device” and everything stays in your browser. Make a free account when
-                you want your tasks on more than one device.
-              </p>
-            </details>
-            <details>
-              <summary>Is there an app?</summary>
-              <p>
-                kiln runs in your browser on any phone or computer. On a phone, use “Add to Home Screen” and it opens
-                full-screen like an app, works offline and can send reminders.
-              </p>
-            </details>
-            <details>
-              <summary>Where is my data stored?</summary>
-              <p>
-                Guest data stays on your device. With an account, it's stored securely with Supabase, and only you
-                can read it. See the <a href="../privacy.html">privacy policy</a>.
-              </p>
-            </details>
-            <details>
-              <summary>Can I take my data out?</summary>
-              <p>
-                Yes. Settings → Export downloads everything as a file, and you can delete your account and all its
-                data from Settings at any time.
-              </p>
-            </details>
-            <details>
-              <summary>Who makes kiln?</summary>
-              <p>
-                <a href="https://satpurastudio.com">Satpura Studio</a>, a small studio in India. Questions or ideas?
-                Email <a href="mailto:hello@satpurastudio.com">hello@satpurastudio.com</a>.
-              </p>
-            </details>
+          <h2 class="big">Start <em>today.</em></h2>
+          <div class="cta">
+            <a class="btn" href="../">Open kiln →</a>
+            <span class="btn-note">Takes ten seconds</span>
           </div>
         </div>
+        <svg class="ridges" viewBox="0 0 1440 260" preserveAspectRatio="xMidYMax slice" aria-hidden="true">
+          <path class="g1" d="M0,70 Q120,40 250,60 T520,48 Q650,22 780,44 T1040,34 Q1180,12 1300,36 L1440,26 V260 H0 Z" />
+          <path class="g2" d="M0,120 Q140,88 280,112 T560,98 Q700,70 840,96 T1120,84 Q1260,62 1440,88 V260 H0 Z" />
+          <path class="g3" d="M0,172 Q160,140 320,164 T640,150 Q800,124 960,154 T1260,142 Q1350,132 1440,146 V260 H0 Z" />
+          <path class="g4" d="M0,220 Q180,192 360,214 T720,204 Q900,180 1080,208 T1440,198 V260 H0 Z" />
+        </svg>
       </section>
-
-      <div class="wrap final reveal">
-        <h2 class="display">Start shaping your day<span class="dot">.</span></h2>
-        <div class="cta-row">
-          <a class="btn" href="../">Open kiln — it's free →</a>
-        </div>
-      </div>
     </main>
 
+    <div class="studio">
+      <div class="wrap">
+        <a class="card" href="https://www.satpurastudio.com">
+          <span class="mk">Made by Satpura Studio<sup>®</sup></span>
+        </a>
+        <a class="card" href="https://www.satpurastudio.com"><span class="go">Visit satpurastudio.com ↗</span></a>
+      </div>
+    </div>
     <footer>
       <div class="wrap">
-        <span>© Satpura Studio</span>
+        <span>© 2026 Satpura Studio · Khandwa, MP</span>
         <nav>
           <a href="../">Open kiln</a>
           <a href="../privacy.html">Privacy</a>
           <a href="../terms.html">Terms</a>
-          <a href="mailto:hello@satpurastudio.com">Contact</a>
-          <a href="https://satpurastudio.com">satpurastudio.com</a>
+          <a href="mailto:satpurastudio@gmail.com">Contact</a>
         </nav>
       </div>
     </footer>
 
     <script>
-      // scroll reveal
-      const io = new IntersectionObserver(
-        (es) =>
-          es.forEach((e) => {
-            if (e.isIntersecting) {
-              e.target.classList.add('in')
-              io.unobserve(e.target)
-            }
-          }),
-        { threshold: 0.12 }
-      )
-      document.querySelectorAll('.reveal').forEach((el) => io.observe(el))
-
-      // quick-add demo: type a sentence, then show what kiln understood
-      const DEMOS = [
-        {
-          text: 'pay rent friday 5pm !high #home',
-          chips: [['Friday', ''], ['5:00 PM', ''], ['High', 'high'], ['Home', 'folder']],
-        },
-        { text: 'call mom tomorrow 6:30pm', chips: [['Tomorrow', ''], ['6:30 PM', '']] },
-        {
-          text: 'dentist 12/11 4:30pm #health',
-          chips: [['12 Nov', ''], ['4:30 PM', ''], ['Health', 'folder']],
-        },
-      ]
-      const textEl = document.getElementById('qa-text')
-      const chipsEl = document.getElementById('qa-chips')
-      const still = matchMedia('(prefers-reduced-motion: reduce)').matches
-      const wait = (ms) => new Promise((r) => setTimeout(r, ms))
-      const showChips = async (chips, stagger) => {
-        chipsEl.innerHTML = ''
-        for (const [label, kind] of chips) {
-          const c = document.createElement('span')
-          c.className = `chip ${kind}`
-          c.innerHTML = '<i></i>'
-          c.append(label)
-          chipsEl.append(c)
-          requestAnimationFrame(() => c.classList.add('in'))
-          if (stagger) await wait(140)
-        }
-      }
-      async function run() {
-        if (still) {
-          textEl.textContent = DEMOS[0].text
-          return showChips(DEMOS[0].chips, false)
-        }
-        for (let i = 0; ; i = (i + 1) % DEMOS.length) {
-          const d = DEMOS[i]
-          chipsEl.innerHTML = ''
-          textEl.textContent = ''
-          for (const ch of d.text) {
-            textEl.textContent += ch
-            await wait(45 + Math.random() * 50)
-          }
-          await wait(350)
-          await showChips(d.chips, true)
-          await wait(2600)
-        }
-      }
-      run()
+      document.getElementById('themeToggle').addEventListener('click', function () {
+        var next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'
+        document.documentElement.dataset.theme = next
+        try {
+          localStorage.setItem('kiln-site-theme', next)
+        } catch (e) {}
+      })
     </script>
   </body>
 </html>

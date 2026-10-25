@@ -1,88 +1,90 @@
 <!doctype html>
-<html lang="en">
+<html lang="en-IN" data-theme="light">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Terms of Service — kiln</title>
-    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M50 6 L61 39 L94 50 L61 61 L50 94 L39 61 L6 50 L39 39 Z' fill='%23d85a30'/%3E%3C/svg%3E" />
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <script>
+      ;(function () {
+        var t = 'light'
+        try {
+          t = localStorage.getItem('kiln-site-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        } catch (e) {}
+        document.documentElement.dataset.theme = t
+      })()
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..800;1,9..144,400..800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap"
       rel="stylesheet"
     />
     <style>
       :root {
-        --bg: #f4efe6;
-        --panel: #fffdf9;
-        --text: #2a2620;
-        --text-2: rgba(42, 38, 32, 0.68);
-        --text-3: rgba(42, 38, 32, 0.5);
-        --accent: #d85a30;
-        --border: rgba(42, 38, 32, 0.12);
+        --bg: #f5f1e8; --surface: #fffcf5; --ink: #201c13; --ink-soft: rgba(32, 28, 19, 0.66);
+        --line: rgba(32, 28, 19, 0.12); --clay: #d85a30; --clay-ink: #b8461f;
+        --sky-top: #f2e7cb; --sky-mid: #f6d6b6; --g1: #e6dec6; --g2: #cfc7aa; --g3: #a9a284; --g4: #6e6951;
+        --serif: 'Fraunces', serif; --sans: 'Figtree', sans-serif; --mono: 'IBM Plex Mono', monospace;
       }
-      @media (prefers-color-scheme: dark) {
-        :root {
-          --bg: #0e0b08;
-          --panel: #181310;
-          --text: #f4efe6;
-          --text-2: rgba(244, 239, 230, 0.68);
-          --text-3: rgba(244, 239, 230, 0.5);
-          --border: rgba(244, 239, 230, 0.1);
-        }
+      [data-theme='dark'] {
+        --bg: #0d0c08; --surface: #17130e; --ink: #f3ecdc; --ink-soft: rgba(243, 236, 220, 0.66);
+        --line: rgba(243, 236, 220, 0.1); --clay-ink: #f08a5d;
+        --sky-top: #0a0b10; --sky-mid: #22140d; --g1: #2a2519; --g2: #1e1b12; --g3: #15130c; --g4: #0d0c08;
       }
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      body {
-        font-family: 'DM Mono', ui-monospace, monospace;
-        background: var(--bg);
-        color: var(--text-2);
-        line-height: 1.65;
-        font-size: 14px;
-        padding: 48px 20px 80px;
-      }
-      .wrap { max-width: 720px; margin: 0 auto; }
-      .brand {
-        font-family: 'Bebas Neue', sans-serif;
-        font-size: 30px;
-        letter-spacing: 0.04em;
-        color: var(--text);
-      }
-      .brand .dot { color: var(--accent); }
-      .tag { font-size: 11px; color: var(--text-3); margin-bottom: 34px; letter-spacing: 0.04em; }
-      h1 {
-        font-family: 'Bebas Neue', sans-serif;
-        font-weight: 400;
-        font-size: 44px;
-        letter-spacing: 0.03em;
-        color: var(--text);
-        line-height: 1.05;
-        margin-bottom: 6px;
-      }
-      .updated { font-size: 12px; color: var(--text-3); margin-bottom: 30px; }
-      h2 {
-        font-family: 'Bebas Neue', sans-serif;
-        font-weight: 400;
-        font-size: 22px;
-        letter-spacing: 0.03em;
-        color: var(--text);
-        margin: 30px 0 8px;
-      }
-      p { margin-bottom: 12px; }
-      ul { margin: 0 0 12px 20px; }
-      li { margin-bottom: 6px; }
-      a { color: var(--accent); }
-      strong { color: var(--text); font-weight: 500; }
-      footer { margin-top: 40px; font-size: 12px; color: var(--text-3); }
-      footer a { color: var(--text-3); }
+      body { font-family: var(--sans); background: var(--bg); color: var(--ink-soft); line-height: 1.75; font-size: 16px; -webkit-font-smoothing: antialiased; }
+      a { color: var(--clay-ink); }
+      .nav { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--sky-top) 82%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+      .nav .in { width: min(1180px, 100% - 32px); margin: 0 auto; height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+      .mark { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
+      .mark img { width: 32px; height: 32px; border-radius: 9px; }
+      .mark b { font-family: var(--serif); font-style: italic; font-weight: 600; font-size: 1.45rem; }
+      .mark b span { color: var(--clay); }
+      .open { padding: 10px 18px; border-radius: 99px; background: var(--clay); color: #fff8ee; font-weight: 700; font-size: 0.9rem; text-decoration: none; }
+      .open:hover { background: #b8461f; }
+      .top { background: linear-gradient(180deg, var(--sky-top), var(--sky-mid) 70%, var(--bg)); text-align: center; padding-top: 56px; overflow: hidden; }
+      .top .label { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase; color: var(--clay-ink); }
+      .top h1 { margin-top: 12px; font-family: var(--serif); font-weight: 700; font-size: clamp(2.6rem, 8vw, 4.6rem); line-height: 1; letter-spacing: -0.02em; color: var(--ink); }
+      .top .updated { margin-top: 12px; font-size: 0.92rem; }
+      .top svg { display: block; width: 100%; height: clamp(70px, 10vw, 120px); margin-top: 40px; }
+      .g1 { fill: var(--g1); } .g2 { fill: var(--g2); } .g3 { fill: var(--g3); } .g4 { fill: var(--g4); }
+      .doc { width: min(720px, 100% - 32px); margin: 0 auto; padding: 56px 0 96px; }
+      .doc > p:first-child { font-size: 1.12rem; color: var(--ink); }
+      .doc h2 { font-family: var(--serif); font-weight: 650; font-size: 1.55rem; line-height: 1.2; letter-spacing: -0.01em; color: var(--ink); margin: 44px 0 10px; }
+      .doc p, .doc ul { margin-bottom: 12px; }
+      .doc ul { padding-left: 20px; }
+      .doc li { margin-bottom: 8px; }
+      .doc li::marker { color: var(--clay); }
+      .doc strong { color: var(--ink); font-weight: 600; }
+      .studio { background: var(--g4); color: #f6eddc; }
+      [data-theme='dark'] .studio { background: #15130c; }
+      .studio .in { width: min(1180px, 100% - 32px); margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px 24px; padding: 26px 0; font-size: 0.9rem; }
+      .studio a { color: #f6eddc; text-decoration: none; }
+      .studio .mk { font-family: var(--serif); font-style: italic; font-size: 1.4rem; }
+      .studio nav { display: flex; flex-wrap: wrap; gap: 8px 20px; color: rgba(246, 237, 220, 0.7); }
+      .studio nav a { color: inherit; } .studio nav a:hover { color: #f6eddc; }
     </style>
   </head>
   <body>
-    <div class="wrap">
-      <div class="brand">kiln<span class="dot">.</span></div>
-      <div class="tag">a Satpura Studio product</div>
-
+    <nav class="nav">
+      <div class="in">
+        <a class="mark" href="welcome/"><img src="icons/icon.svg" alt="" /><b>kiln<span>.</span></b></a>
+        <a class="open" href="./">Open kiln</a>
+      </div>
+    </nav>
+    <header class="top">
+      <p class="label">kiln · Satpura Studio</p>
       <h1>Terms of Service</h1>
-      <p class="updated">Last updated: 24 July 2026</p>
+      <p class="updated">Last updated: 25 October 2026</p>
+      <svg viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+          <path class="g1" d="M0,40 Q120,18 250,32 T520,24 Q650,6 780,22 T1040,16 Q1180,2 1300,18 L1440,10 V120 H0 Z" />
+          <path class="g2" d="M0,66 Q140,44 280,60 T560,52 Q700,32 840,50 T1120,42 Q1260,28 1440,44 V120 H0 Z" />
+          <path class="g3" d="M0,90 Q160,70 320,86 T640,78 Q800,62 960,80 T1260,72 Q1350,66 1440,74 V120 H0 Z" />
+          <path class="g4" d="M0,110 Q180,96 360,106 T720,100 Q900,88 1080,102 T1440,96 V120 H0 Z" />
+        </svg>
+    </header>
+    <main class="doc">
 
       <p>
         These terms cover your use of kiln (“the app”), provided by <strong>Satpura Studio</strong>.
@@ -128,11 +130,18 @@
       <p>We may update these terms; we’ll change the date above and note significant updates in the app. Continued use means you accept the changes.</p>
 
       <h2>Contact</h2>
-      <p>Questions? Email <a href="mailto:hello@satpurastudio.com">hello@satpurastudio.com</a>.</p>
-
-      <footer>
-        © Satpura Studio · <a href="privacy.html">Privacy Policy</a>
-      </footer>
+      <p>Questions? Email <a href="mailto:satpurastudio@gmail.com">satpurastudio@gmail.com</a>.</p>
+    </main>
+    <div class="studio">
+      <div class="in">
+        <a class="mk" href="https://www.satpurastudio.com">Made by Satpura Studio ↗</a>
+        <nav>
+          <a href="welcome/">About kiln</a>
+          <a href="privacy.html">Privacy</a>
+          <a href="mailto:satpurastudio@gmail.com">Contact</a>
+          <span>© 2026 Satpura Studio</span>
+        </nav>
+      </div>
     </div>
   </body>
 </html>

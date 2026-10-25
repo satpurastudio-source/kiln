@@ -23,6 +23,9 @@ import Verified from './components/Verified'
 import Onboarding from './components/Onboarding'
 import Settings from './components/Settings'
 import Ambient from './components/Ambient'
+import Help from './components/Help'
+import Feedback from './components/Feedback'
+import WhatsNew, { shouldShowWhatsNew } from './components/WhatsNew'
 import { MenuIcon, XIcon } from './components/Icons'
 import useEdgeSwipe from './useEdgeSwipe'
 import GestureTips from './components/GestureTips'
@@ -68,6 +71,10 @@ export default function App() {
   const [paletteOpen, setPaletteOpen] = useState(false)
   const [projectModal, setProjectModal] = useState(null)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  // dev only: ?sheet=help|feedback|whatsnew opens one straight away, for previews
+  const [sheet, setSheet] = useState(() =>
+    import.meta.env.DEV ? new URLSearchParams(window.location.search).get('sheet') : null
+  ) // 'help' | 'feedback' | 'whatsnew'
   const [mobileNav, setMobileNav] = useState(false)
   // landing from the email-confirmation link (?verified=1)
   const [showVerified, setShowVerified] = useState(() =>
@@ -121,6 +128,7 @@ export default function App() {
     const closers = document.querySelectorAll('[data-back-close]')
     if (paletteOpen) setPaletteOpen(false)
     else if (projectModal) setProjectModal(null)
+    else if (sheet) setSheet(null)
     else if (settingsOpen) setSettingsOpen(false)
     else if (closers.length) closers[closers.length - 1].click()
     else if (!mobileNav) setMobileNav(true)
@@ -144,7 +152,12 @@ export default function App() {
       const t = e.target
       const typing =
         t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT' || t.isContentEditable
-      if (typing || paletteOpen || projectModal) return
+      if (typing || paletteOpen || projectModal || sheet) return
+      if (e.key === '?') {
+        e.preventDefault()
+        setSheet('help')
+        return
+      }
       if (e.key === 'n' || e.key === 'N') {
         e.preventDefault()
         quickAddRef.current?.focus()
@@ -155,7 +168,16 @@ export default function App() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [paletteOpen, projectModal, signedIn])
+  }, [paletteOpen, projectModal, sheet, signedIn])
+
+  // release notes, once, for people who were here before them
+  const mainReady = gesturesOn
+  useEffect(() => {
+    if (!mainReady) return
+    const id = setTimeout(() => shouldShowWhatsNew(state.tasks) && setSheet((s) => s ?? 'whatsnew'), 1200)
+    return () => clearTimeout(id)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mainReady])
 
   // The loader overlays everything at z-20000, calls reveal() as it starts
   // fading, then removes itself. The app mounts at that moment, so its
@@ -290,13 +312,28 @@ export default function App() {
             onClose={() => setPaletteOpen(false)}
             onNewProject={() => setProjectModal({ mode: 'new' })}
             onOpenSettings={() => setSettingsOpen(true)}
+            onOpenSheet={setSheet}
             onOpenTask={openTask}
           />
         )}
       </AnimatePresence>
 
       <AnimatePresence>
-        {settingsOpen && <Settings onClose={() => setSettingsOpen(false)} />}
+        {settingsOpen && (
+          <Settings
+            onClose={() => setSettingsOpen(false)}
+            onOpenSheet={(s) => {
+              setSettingsOpen(false)
+              setSheet(s)
+            }}
+          />
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {sheet === 'help' && <Help onClose={() => setSheet(null)} />}
+        {sheet === 'feedback' && <Feedback onClose={() => setSheet(null)} />}
+        {sheet === 'whatsnew' && <WhatsNew onClose={() => setSheet(null)} />}
       </AnimatePresence>
 
               <Focus />

@@ -36,9 +36,12 @@ import {
   ArchiveIcon,
   TrashIcon,
   FlameIcon,
+  KeyboardIcon,
+  MailIcon,
+  GiftIcon,
 } from './Icons'
 
-export default function CommandPalette({ onClose, onNewProject, onOpenSettings, onOpenTask }) {
+export default function CommandPalette({ onClose, onNewProject, onOpenSettings, onOpenSheet, onOpenTask }) {
   const { state, dispatch, signOut } = useStore()
   const [q, setQ] = useState('')
   const [sel, setSel] = useState(0)
@@ -73,6 +76,9 @@ export default function CommandPalette({ onClose, onNewProject, onOpenSettings, 
       },
       { icon: <PlusIcon size={14} />, label: 'New folder', hint: 'Action', fn: onNewProject },
       { icon: <SettingsIcon size={14} />, label: 'Open settings', hint: 'Action', fn: onOpenSettings },
+      { icon: <KeyboardIcon size={14} />, label: 'Help & keyboard shortcuts', hint: '?', fn: () => onOpenSheet('help') },
+      { icon: <MailIcon size={14} />, label: 'Send feedback / report a bug', hint: 'Action', fn: () => onOpenSheet('feedback') },
+      { icon: <GiftIcon size={14} />, label: 'What’s new', hint: 'Action', fn: () => onOpenSheet('whatsnew') },
       {
         icon: <InfoIcon size={14} />,
         label: 'Replay welcome tour',
@@ -201,7 +207,7 @@ export default function CommandPalette({ onClose, onNewProject, onOpenSettings, 
         ]
       : []
     return [...tasks, ...commands, ...add]
-  }, [q, state.projects, state.theme, state.sound, state.tasks, state.view, state.settings, state.profile, dispatch, signOut, onNewProject, onOpenSettings, onOpenTask])
+  }, [q, state.projects, state.theme, state.sound, state.tasks, state.view, state.settings, state.profile, dispatch, signOut, onNewProject, onOpenSettings, onOpenSheet, onOpenTask])
 
   useEffect(() => {
     setSel(0)

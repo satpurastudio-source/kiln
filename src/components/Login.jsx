@@ -4,12 +4,10 @@ import { useStore, toast } from '../store'
 import { supabase } from '../supabase'
 import { FlameIcon } from './Icons'
 import { APP_NAME, APP_LABEL } from '../brand'
-import { isNative } from '../native'
+import { linkBase } from '../native'
 
 // Where email links land. Inside the app shell the page lives at kiln://,
 // which a mail app can't open — so links go to the web app instead.
-const WEB_URL = 'https://satpurastudio-source.github.io/kiln/'
-const linkBase = () => (isNative ? WEB_URL : `${window.location.origin}${window.location.pathname}`)
 const RESEND_WAIT = 30 // seconds
 
 // onboarding hands off the chosen name + whether they wanted to sign up

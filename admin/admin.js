@@ -14,8 +14,15 @@ const ago = (iso) => {
   return `${Math.round(m / 1440)}d ago`
 }
 const date = (iso) =>
-  iso ? new Date(iso).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: '2-digit' }) : '—'
-const esc = (s) => String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
+  iso
+    ? new Date(iso).toLocaleDateString('en-IN', {
+        day: 'numeric',
+        month: 'short',
+        year: '2-digit',
+      })
+    : '—'
+const esc = (s) =>
+  String(s ?? '').replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c])
 
 async function load() {
   $('error').textContent = ''
@@ -77,7 +84,8 @@ function bars(title, series, key, perDay = false) {
 function render(d) {
   const u = d.users,
     c = d.content
-  $('stamp').textContent = `updated ${new Date(d.generatedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
+  $('stamp').textContent =
+    `updated ${new Date(d.generatedAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}`
   $('dash').innerHTML = `
     <h2>People</h2>
     <div class="tiles">
@@ -106,7 +114,7 @@ function render(d) {
             .reverse()
             .map(
               (s) =>
-                `<tr><td>${s.day}</td><td class="num">${s.signups}</td><td class="num">${s.active}</td><td class="num">${s.created}</td><td class="num">${s.completed}</td></tr>`
+                `<tr><td>${s.day}</td><td class="num">${s.signups}</td><td class="num">${s.active}</td><td class="num">${s.created}</td><td class="num">${s.completed}</td></tr>`,
             )
             .join('')}</tbody>
         </table>
@@ -130,7 +138,7 @@ function render(d) {
         <tbody>${d.recent
           .map(
             (r) =>
-              `<tr><td>${esc(r.email)}</td><td>${date(r.signedUp)}</td><td>${r.verified ? 'yes' : 'no'}</td><td>${ago(r.lastSignIn)}</td><td>${ago(r.lastChange)}</td><td class="num">${r.tasks}</td><td class="num">${r.done}</td></tr>`
+              `<tr><td>${esc(r.email)}</td><td>${date(r.signedUp)}</td><td>${r.verified ? 'yes' : 'no'}</td><td>${ago(r.lastSignIn)}</td><td>${ago(r.lastChange)}</td><td class="num">${r.tasks}</td><td class="num">${r.done}</td></tr>`,
           )
           .join('')}</tbody>
       </table>
@@ -161,13 +169,64 @@ function show(signedIn) {
 $('login').addEventListener('submit', async (e) => {
   e.preventDefault()
   $('login-error').textContent = ''
-  const { error } = await supabase.auth.signInWithPassword({ email: $('email').value, password: $('password').value })
+  const { error } = await supabase.auth.signInWithPassword({
+    email: $('email').value,
+    password: $('password').value,
+  })
   if (error) $('login-error').textContent = error.message
 })
 $('refresh').addEventListener('click', load)
 $('signout').addEventListener('click', () => supabase.auth.signOut())
 
-supabase.auth.onAuthStateChange((event, session) => {
-  show(!!session)
-  if (session && (event === 'INITIAL_SESSION' || event === 'SIGNED_IN')) load()
-})
+// ?demo — sample numbers, no sign-in, for previewing the layout
+if (new URLSearchParams(location.search).has('demo')) {
+  const now = Date.now()
+  const day = (i) => new Date(now - (29 - i) * 864e5).toISOString().slice(0, 10)
+  show(true)
+  render({
+    generatedAt: new Date(now).toISOString(),
+    users: {
+      total: 142,
+      verified: 120,
+      new7: 18,
+      new30: 61,
+      active1: 22,
+      active7: 54,
+      active30: 97,
+      returned: 40,
+      empty: 31,
+    },
+    content: {
+      tasks: 3810,
+      done: 2210,
+      open: 1600,
+      projects: 402,
+      habits: 188,
+      withHabits: 49,
+      withSubtasks: 300,
+      pomos: 512,
+      medianTasksPerUser: 14,
+    },
+    series: [...Array(30)].map((_, i) => ({
+      day: day(i),
+      signups: (i * 7) % 5,
+      active: 10 + ((i * 13) % 17),
+      created: 40 + ((i * 31) % 60),
+      completed: 30 + ((i * 17) % 50),
+    })),
+    recent: [...Array(6)].map((_, i) => ({
+      email: `sample${i + 1}@example.com`,
+      signedUp: new Date(now - i * 2e8).toISOString(),
+      verified: i % 3 !== 0,
+      lastSignIn: new Date(now - i * 5e6).toISOString(),
+      lastChange: new Date(now - i * 9e6).toISOString(),
+      tasks: 20 - i,
+      done: 10 - i,
+    })),
+  })
+  $('stamp').textContent = 'demo data'
+} else
+  supabase.auth.onAuthStateChange((event, session) => {
+    show(!!session)
+    if (session && (event === 'INITIAL_SESSION' || event === 'SIGNED_IN')) load()
+  })

@@ -268,3 +268,31 @@ export const ArchiveIcon = ({ filled, ...p }) => (
     <path d="M10 12h4" />
   </I>
 )
+
+export const MailIcon = (p) => (
+  <I {...p}>
+    <rect x="3" y="5" width="18" height="14" rx="2.5" />
+    <path d="M3.5 7l8.5 6 8.5-6" />
+  </I>
+)
+
+export const KeyboardIcon = (p) => (
+  <I {...p}>
+    <rect x="2.5" y="6" width="19" height="12" rx="2.5" />
+    <path d="M6.5 10h.01M10 10h.01M14 10h.01M17.5 10h.01M8 14.5h8" />
+  </I>
+)
+
+export const LockIcon = (p) => (
+  <I {...p}>
+    <rect x="4.5" y="10.5" width="15" height="10" rx="2.5" />
+    <path d="M8 10.5V7.5a4 4 0 0 1 8 0v3" />
+  </I>
+)
+
+export const GiftIcon = (p) => (
+  <I {...p}>
+    <rect x="3.5" y="8.5" width="17" height="4" rx="1" />
+    <path d="M5 12.5v7.5h14v-7.5M12 8.5V20M12 8.5S10.5 4 8 4.5 7 8.5 12 8.5zM12 8.5s1.5-4.5 4-4 1 4-4 4z" />
+  </I>
+)
