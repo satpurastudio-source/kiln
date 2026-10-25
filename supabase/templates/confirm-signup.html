@@ -1,8 +1,9 @@
 <!--
   kiln — "Confirm signup" email.
   Paste into Supabase → Authentication → Emails → Templates → Confirm signup.
-  Subject: Your kiln code
+  Subject: Your kiln code: {{ .Token }}
   {{ .Token }} is the 6-digit code, {{ .ConfirmationURL }} the one-tap link.
+  The header art is served from the site: public/email/header.png.
   Table layout + inline styles: the only thing every mail app renders alike.
 -->
 <!doctype html>
@@ -14,47 +15,85 @@
 <title>Your kiln code</title>
 </head>
 <body style="margin:0;padding:0;background:#f4eee4;">
-<div style="display:none;max-height:0;overflow:hidden;color:#f4eee4;">Your kiln code is {{ .Token }} — type it in the app to finish signing up.</div>
+<div style="display:none;max-height:0;overflow:hidden;color:#f4eee4;">Your kiln code is {{ .Token }}. Type it in the app to finish signing up.</div>
 <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4eee4;">
   <tr>
-    <td align="center" style="padding:40px 16px;">
-      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:440px;background:#fffaf2;border:1px solid #e6dccb;border-radius:14px;">
+    <td align="center" style="padding:36px 16px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:440px;background:#fffaf2;border:1px solid #e6dccb;border-radius:20px;overflow:hidden;">
+        <!-- sky, ember and hills, as on kiln.satpurastudio.com -->
         <tr>
-          <td style="padding:36px 32px 8px;font-family:Georgia,'Times New Roman',serif;">
-            <div style="font-size:30px;line-height:1;color:#1d1813;letter-spacing:-0.5px;">kiln<span style="color:#d85a30;">.</span></div>
-            <div style="margin-top:6px;font-family:'Courier New',Courier,monospace;font-size:11px;letter-spacing:2px;text-transform:uppercase;color:#9a8d7c;">shape · fire · ship</div>
+          <td style="padding:0;line-height:0;font-size:0;background:#f4e2c4;border-radius:20px 20px 0 0;">
+            <img src="https://kiln.satpurastudio.com/email/header.png" width="440" alt="" style="display:block;width:100%;max-width:440px;height:auto;border:0;border-radius:20px 20px 0 0;">
           </td>
         </tr>
         <tr>
-          <td style="padding:20px 32px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;line-height:1.55;color:#3a3129;">
-            Welcome in. Here’s your code to finish setting up kiln:
+          <td style="padding:26px 32px 0;font-family:Georgia,'Times New Roman',serif;">
+            <div style="font-size:22px;line-height:1;font-style:italic;color:#1d1813;">kiln<span style="color:#d85a30;font-style:normal;">.</span></div>
           </td>
         </tr>
         <tr>
-          <td align="center" style="padding:22px 32px;">
-            <div style="display:inline-block;padding:14px 22px;background:#f4eee4;border:1px dashed #d85a30;border-radius:10px;font-family:'Courier New',Courier,monospace;font-size:32px;font-weight:bold;letter-spacing:8px;color:#1d1813;">{{ .Token }}</div>
+          <td style="padding:18px 32px 0;font-family:Georgia,'Times New Roman',serif;font-size:32px;line-height:1.1;font-weight:bold;letter-spacing:-0.5px;color:#1d1813;">
+            Welcome in.<br><span style="font-style:italic;font-weight:normal;color:#c24e27;">Here’s your code.</span>
           </td>
         </tr>
         <tr>
-          <td style="padding:0 32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.55;color:#6b5f52;">
-            Type it into kiln on the device where you signed up. Reading this on that same device? You can tap the button instead.
+          <td style="padding:16px 32px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:16px;line-height:1.55;color:#3a3129;">
+            Type it into kiln on the device where you signed up.
+          </td>
+        </tr>
+        <!-- the code -->
+        <tr>
+          <td align="center" style="padding:24px 32px 0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#d85a30;border-radius:18px;">
+              <tr>
+                <td align="center" style="padding:22px 12px 8px;font-family:'Courier New',Courier,monospace;font-size:40px;line-height:1;font-weight:bold;letter-spacing:10px;color:#fffaf2;">{{ .Token }}</td>
+              </tr>
+              <tr>
+                <td align="center" style="padding:0 12px 18px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#ffe3d3;">Works once · valid 1 hour</td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <!-- or tap -->
+        <tr>
+          <td style="padding:26px 32px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.55;color:#6b5f52;">
+            Reading this on that same device? Skip the typing:
           </td>
         </tr>
         <tr>
-          <td align="center" style="padding:24px 32px 8px;">
-            <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:12px 26px;background:#d85a30;border-radius:999px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:14px;font-weight:600;color:#fffaf2;text-decoration:none;">Verify my email →</a>
+          <td align="left" style="padding:14px 32px 6px;">
+            <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" style="border-radius:999px;border:1.5px solid #d85a30;">
+                  <a href="{{ .ConfirmationURL }}" style="display:inline-block;padding:13px 26px;border-radius:999px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:15px;font-weight:700;color:#c24e27;text-decoration:none;">Verify my email →</a>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        <!-- what's waiting -->
+        <tr>
+          <td style="padding:26px 32px 0;">
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#f4eee4;border-radius:14px;">
+              <tr>
+                <td style="padding:16px 18px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:13px;line-height:1.6;color:#6b5f52;">
+                  <b style="color:#3a3129;">First thing to try:</b> type <span style="font-family:'Courier New',Courier,monospace;color:#c24e27;">call mom tomorrow 6pm</span> into the add bar and watch kiln fill in the day and time.
+                </td>
+              </tr>
+            </table>
           </td>
         </tr>
         <tr>
-          <td style="padding:24px 32px 32px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;color:#9a8d7c;">
-            The code works once and expires in an hour. Didn’t sign up for kiln? Ignore this email and nothing happens.
+          <td style="padding:22px 32px 30px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.5;color:#9a8d7c;">
+            Didn’t sign up for kiln? Ignore this email and nothing happens.
           </td>
         </tr>
       </table>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="max-width:440px;">
         <tr>
-          <td align="center" style="padding:18px 16px 0;font-family:'Courier New',Courier,monospace;font-size:11px;color:#9a8d7c;">
-            kiln · a <a href="https://satpurastudio.com" style="color:#9a8d7c;">Satpura Studio</a> product
+          <td align="center" style="padding:18px 16px 0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;line-height:1.6;color:#9a8d7c;">
+            kiln · a <a href="https://www.satpurastudio.com" style="color:#9a8d7c;">Satpura Studio</a> product<br>
+            Need help? <a href="mailto:satpurastudio@gmail.com" style="color:#9a8d7c;">satpurastudio@gmail.com</a>
           </td>
         </tr>
       </table>
