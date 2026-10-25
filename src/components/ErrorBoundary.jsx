@@ -23,7 +23,7 @@ export default class ErrorBoundary extends Component {
           placeItems: 'center',
           padding: 24,
           textAlign: 'center',
-          fontFamily: "'DM Mono', monospace",
+          fontFamily: "'Figtree', system-ui, sans-serif",
         }}
       >
         <div>

@@ -3,7 +3,8 @@
 :root {
   /* user text size (Settings → Text size); every non-ambient font-size scales by it */
   --text-scale: 1;
-  --font-ui: 'DM Mono', ui-monospace, 'SF Mono', monospace;
+  /* UI text is a humanist sans for reading; mono stays for labels, numbers & timers */
+  --font-ui: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
   --font-display: 'Bebas Neue', 'Arial Narrow', sans-serif;
   --font-mono: 'DM Mono', ui-monospace, 'SF Mono', monospace;
 
@@ -509,7 +510,7 @@ button {
 .header .sub {
   margin-top: 10px;
   color: var(--text-2);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: calc(13px * var(--text-scale));
   letter-spacing: 0;
   display: flex;
@@ -755,8 +756,8 @@ kbd,
 }
 
 .task-title {
-  font-size: calc(14px * var(--text-scale));
-  font-weight: 480;
+  font-size: calc(15px * var(--text-scale));
+  font-weight: 540;
   line-height: 1.35;
   position: relative;
   display: block;
@@ -788,7 +789,7 @@ kbd,
   align-items: center;
   gap: 2px 8px;
   margin-top: 3px;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: calc(12px * var(--text-scale));
   letter-spacing: 0;
   color: var(--text-3);
@@ -1663,7 +1664,7 @@ kbd,
 
 .focus-complete {
   margin-top: 16px;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: calc(12.5px * var(--text-scale));
   color: var(--text-3);
   padding: 8px 14px;
@@ -1783,7 +1784,7 @@ kbd,
   border: 2px dashed rgba(var(--accent-rgb), 0.5);
   background: var(--panel-strong);
   backdrop-filter: blur(20px);
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: calc(13px * var(--text-scale));
   letter-spacing: 0.04em;
   color: var(--text-2);
@@ -1951,7 +1952,7 @@ kbd,
   margin-top: 8px;
   padding: 7px;
   border-radius: 8px;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: calc(12px * var(--text-scale));
   color: var(--text-3);
   border: 1px solid var(--border);
@@ -2121,7 +2122,7 @@ kbd,
 }
 
 .login-sub {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: calc(12.75px * var(--text-scale));
   color: var(--text-3);
   margin: 10px 0 30px;
@@ -2165,7 +2166,7 @@ kbd,
 }
 
 .login-note {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: calc(11.5px * var(--text-scale));
   color: var(--text-3);
   line-height: 1.7;
@@ -2177,7 +2178,7 @@ kbd,
 }
 
 .login-error {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: calc(12.5px * var(--text-scale));
   color: var(--danger, #a03c1c);
   margin-top: 10px;
@@ -2191,7 +2192,7 @@ kbd,
 }
 
 .login-link {
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: calc(12.5px * var(--text-scale));
   color: var(--text-3);
   padding: 4px;
@@ -2951,7 +2952,7 @@ kbd,
   top: 16px;
   right: 18px;
   z-index: 2;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: calc(12.5px * var(--text-scale));
   color: var(--text-3);
 }
@@ -3236,7 +3237,7 @@ kbd,
 }
 .onb-link {
   margin-top: 4px;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: calc(12.75px * var(--text-scale));
   color: var(--text-3);
   transition: color 0.15s ease;
@@ -3284,7 +3285,7 @@ kbd,
 
 .onb-mini-hint {
   margin-top: 9px;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: calc(12px * var(--text-scale));
   line-height: 1.5;
   color: var(--text-3);
@@ -3397,7 +3398,7 @@ kbd,
   display: flex;
   align-items: center;
   gap: 6px;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: calc(12.75px * var(--text-scale));
   color: var(--text-3);
 }
@@ -3493,7 +3494,8 @@ kbd,
   gap: 9px;
 }
 .habit-name {
-  font-size: calc(14px * var(--text-scale));
+  font-size: calc(14.5px * var(--text-scale));
+  font-weight: 520;
   color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -4141,7 +4143,7 @@ kbd,
   justify-content: center;
   gap: 10px;
   margin-top: 22px;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: calc(12.5px * var(--text-scale));
   color: var(--text-3);
 }
@@ -5867,7 +5869,7 @@ kbd,
 
 .onb-install-steps {
   margin-top: 10px;
-  font-family: var(--font-mono);
+  font-family: var(--font-ui);
   font-size: calc(12.75px * var(--text-scale));
   line-height: 1.7;
   color: var(--text-2);
