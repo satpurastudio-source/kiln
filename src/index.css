@@ -784,13 +784,18 @@ kbd,
 
 .task-meta {
   display: flex;
+  flex-wrap: wrap; /* larger text sizes: chips drop to a new line whole */
   align-items: center;
-  gap: 8px;
+  gap: 2px 8px;
   margin-top: 3px;
   font-family: var(--font-mono);
   font-size: calc(12px * var(--text-scale));
   letter-spacing: 0;
   color: var(--text-3);
+}
+
+.task-meta > * {
+  white-space: nowrap;
 }
 
 .task-meta .due.today {

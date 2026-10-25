@@ -1,0 +1,922 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>kiln — a calm, pretty to-do app</title>
+    <meta
+      name="description"
+      content="kiln is a free to-do and habit app. Type tasks the way you'd say them — it sorts the date, time, priority and folder. Works offline, syncs across devices."
+    />
+    <meta property="og:title" content="kiln — a calm, pretty to-do app" />
+    <meta property="og:description" content="Type tasks the way you'd say them. Free, works offline, syncs everywhere." />
+    <meta property="og:image" content="img/desktop.webp" />
+    <meta name="theme-color" content="#f4efe6" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#0e0b08" media="(prefers-color-scheme: dark)" />
+    <link rel="icon" href="../icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="../icons/apple-touch-icon.png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f4efe6;
+        --bg-2: #ece4d6;
+        --panel: #fffdf9;
+        --text: #2a2620;
+        --text-2: rgba(42, 38, 32, 0.72);
+        --text-3: rgba(42, 38, 32, 0.52);
+        --accent: #d85a30;
+        --accent-ink: #b8461f; /* accent dark enough for text on cream */
+        --border: rgba(42, 38, 32, 0.12);
+        --shadow: 0 30px 60px -30px rgba(80, 40, 20, 0.35);
+        --chip-work: #5f7c8a;
+        --chip-high: #c0392b;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #0e0b08;
+          --bg-2: #15100c;
+          --panel: #181310;
+          --text: #f4efe6;
+          --text-2: rgba(244, 239, 230, 0.72);
+          --text-3: rgba(244, 239, 230, 0.52);
+          --accent-ink: #ef7d55;
+          --border: rgba(244, 239, 230, 0.1);
+          --shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.8);
+          --chip-work: #8fb0bf;
+          --chip-high: #f0766a;
+        }
+      }
+
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        font-family: 'DM Mono', ui-monospace, monospace;
+        background: var(--bg);
+        color: var(--text);
+        font-size: 15px;
+        line-height: 1.6;
+        -webkit-font-smoothing: antialiased;
+        overflow-x: hidden;
+      }
+      a {
+        color: inherit;
+      }
+      img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+      }
+      .wrap {
+        max-width: 1120px;
+        margin: 0 auto;
+        padding: 0 20px;
+      }
+      .display {
+        font-family: 'Bebas Neue', 'Arial Narrow', sans-serif;
+        font-weight: 400;
+        letter-spacing: 0.02em;
+        line-height: 0.95;
+      }
+      .dot {
+        color: var(--accent);
+      }
+
+      /* ---------- nav ---------- */
+      .nav {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: color-mix(in srgb, var(--bg) 86%, transparent);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+        border-bottom: 1px solid transparent;
+      }
+      .nav .wrap {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        height: 64px;
+      }
+      .logo {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-decoration: none;
+        font-size: 19px;
+        font-weight: 500;
+        letter-spacing: 0.02em;
+      }
+      .logo img {
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+      }
+      .nav-links {
+        display: flex;
+        align-items: center;
+        gap: 26px;
+        font-size: 13.5px;
+      }
+      .nav-links a:not(.btn) {
+        text-decoration: none;
+        color: var(--text-2);
+      }
+      .nav-links a:not(.btn):hover {
+        color: var(--text);
+      }
+      @media (max-width: 640px) {
+        .nav-links a:not(.btn) {
+          display: none;
+        }
+      }
+
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 11px 20px;
+        border-radius: 99px;
+        background: var(--accent);
+        color: #fff;
+        text-decoration: none;
+        font-size: 14px;
+        font-weight: 500;
+        border: 1px solid var(--accent);
+        transition:
+          transform 0.2s cubic-bezier(0.22, 1, 0.36, 1),
+          box-shadow 0.2s ease;
+        box-shadow: 0 8px 20px -10px rgba(216, 90, 48, 0.8);
+      }
+      .btn:hover {
+        transform: translateY(-1px);
+      }
+      .btn:active {
+        transform: translateY(0) scale(0.98);
+      }
+      .btn.ghost {
+        background: transparent;
+        color: var(--text);
+        border-color: var(--border);
+        box-shadow: none;
+      }
+      .btn.small {
+        padding: 8px 16px;
+        font-size: 13px;
+      }
+
+      /* ---------- hero ---------- */
+      .hero {
+        padding-block: 64px 40px;
+        position: relative;
+      }
+      .hero::before {
+        content: '';
+        position: absolute;
+        inset: -120px 0 auto;
+        height: 620px;
+        background: radial-gradient(60% 50% at 70% 40%, rgba(216, 90, 48, 0.16), transparent 70%);
+        pointer-events: none;
+        z-index: -1;
+      }
+      .hero-grid {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 48px;
+        align-items: center;
+      }
+      .eyebrow {
+        font-size: 12px;
+        letter-spacing: 0.16em;
+        text-transform: uppercase;
+        color: var(--accent-ink);
+        margin-bottom: 18px;
+      }
+      .hero h1 {
+        font-size: clamp(56px, 9vw, 112px);
+        margin-bottom: 22px;
+      }
+      .hero .lede {
+        font-size: 16px;
+        color: var(--text-2);
+        max-width: 46ch;
+        margin-bottom: 30px;
+      }
+      .cta-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 12px;
+        align-items: center;
+      }
+      .fine {
+        margin-top: 16px;
+        font-size: 12.5px;
+        color: var(--text-3);
+      }
+      .hero-shot {
+        position: relative;
+        justify-self: center;
+        width: min(330px, 100%);
+      }
+      .phone {
+        display: block;
+        border-radius: 38px;
+        border: 8px solid #1a1411;
+        overflow: hidden;
+        box-shadow: var(--shadow);
+        background: #1a1411;
+        transform: rotate(2.5deg);
+      }
+      .hero-shot .chip-float {
+        position: absolute;
+        left: -40px;
+        bottom: 80px;
+        transform: rotate(-4deg);
+      }
+      @media (max-width: 860px) {
+        .hero {
+          padding-block-start: 36px;
+        }
+        .hero-grid {
+          grid-template-columns: 1fr;
+          gap: 40px;
+        }
+        .hero-shot {
+          width: min(280px, 80%);
+        }
+        .hero-shot .chip-float {
+          left: -24px;
+        }
+      }
+
+      /* ---------- quick-add demo ---------- */
+      .qa {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 16px 18px;
+        box-shadow: var(--shadow);
+        max-width: 560px;
+      }
+      .qa-input {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        font-size: 15px;
+        min-height: 28px;
+      }
+      .qa-plus {
+        flex: none;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: var(--accent);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        font-size: 18px;
+        line-height: 1;
+      }
+      .qa-text {
+        white-space: nowrap;
+        overflow: hidden;
+      }
+      .qa-text::after {
+        content: '';
+        display: inline-block;
+        width: 2px;
+        height: 1.1em;
+        margin-left: 2px;
+        vertical-align: -0.18em;
+        background: var(--accent);
+        animation: blink 1s steps(1) infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0;
+        }
+      }
+      .qa-chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+        min-height: 30px;
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 4px 11px;
+        border-radius: 99px;
+        border: 1px solid var(--border);
+        background: var(--bg);
+        font-size: 12.5px;
+        color: var(--text-2);
+        opacity: 0;
+        transform: translateY(6px) scale(0.96);
+        transition:
+          opacity 0.35s ease,
+          transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .chip.in {
+        opacity: 1;
+        transform: none;
+      }
+      .chip i {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--accent);
+      }
+      .chip.high i {
+        background: var(--chip-high);
+      }
+      .chip.folder i {
+        background: var(--chip-work);
+      }
+      .chip-float {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 10px 14px;
+        font-size: 12.5px;
+        box-shadow: var(--shadow);
+        white-space: nowrap;
+      }
+      .chip-float b {
+        color: var(--accent-ink);
+        font-weight: 500;
+      }
+
+      /* ---------- sections ---------- */
+      section {
+        padding: 72px 0;
+      }
+      .sec-head {
+        max-width: 640px;
+        margin-bottom: 36px;
+      }
+      .sec-head h2 {
+        font-size: clamp(40px, 6vw, 64px);
+        margin-bottom: 12px;
+      }
+      .sec-head p {
+        color: var(--text-2);
+      }
+
+      .speak {
+        display: grid;
+        grid-template-columns: 0.9fr 1.1fr;
+        gap: 48px;
+        align-items: center;
+      }
+      .examples {
+        list-style: none;
+        display: grid;
+        gap: 10px;
+        margin-top: 22px;
+        font-size: 13.5px;
+        color: var(--text-2);
+      }
+      .examples code {
+        font-family: inherit;
+        color: var(--text);
+        background: var(--bg-2);
+        padding: 2px 8px;
+        border-radius: 6px;
+      }
+      @media (max-width: 860px) {
+        .speak {
+          grid-template-columns: 1fr;
+          gap: 28px;
+        }
+      }
+
+      .features {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+      }
+      .feat {
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 18px;
+        padding: 24px;
+      }
+      .feat .glyph {
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+        display: grid;
+        place-items: center;
+        background: color-mix(in srgb, var(--accent) 14%, transparent);
+        color: var(--accent-ink);
+        font-size: 17px;
+        margin-bottom: 16px;
+      }
+      .feat h3 {
+        font-size: 15px;
+        font-weight: 500;
+        margin-bottom: 6px;
+      }
+      .feat p {
+        font-size: 13.5px;
+        color: var(--text-2);
+      }
+      @media (max-width: 860px) {
+        .features {
+          grid-template-columns: 1fr 1fr;
+        }
+      }
+      @media (max-width: 560px) {
+        .features {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .band {
+        background: #0e0b08;
+        color: #f4efe6;
+        border-radius: 28px;
+        border: 1px solid rgba(244, 239, 230, 0.08);
+        padding: 56px 44px;
+        overflow: hidden;
+      }
+      .band .eyebrow {
+        color: #ef7d55;
+      }
+      .band h2 {
+        font-size: clamp(40px, 6vw, 64px);
+        margin-bottom: 12px;
+      }
+      .band p {
+        color: rgba(244, 239, 230, 0.72);
+        max-width: 56ch;
+      }
+      .band img {
+        margin-top: 36px;
+        border-radius: 16px;
+        border: 1px solid rgba(244, 239, 230, 0.1);
+      }
+      @media (max-width: 640px) {
+        .band {
+          padding: 40px 22px;
+          border-radius: 22px;
+        }
+      }
+
+      .desk {
+        border-radius: 16px;
+        border: 1px solid var(--border);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      /* ---------- pricing ---------- */
+      .price {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 40px;
+        align-items: center;
+        background: var(--panel);
+        border: 1px solid var(--border);
+        border-radius: 24px;
+        padding: 44px;
+      }
+      .price .amount {
+        font-size: clamp(80px, 12vw, 140px);
+      }
+      .price ul {
+        list-style: none;
+        display: grid;
+        gap: 10px;
+        font-size: 14px;
+        color: var(--text-2);
+      }
+      .price li::before {
+        content: '✦';
+        color: var(--accent);
+        margin-right: 10px;
+      }
+      @media (max-width: 760px) {
+        .price {
+          grid-template-columns: 1fr;
+          padding: 30px 22px;
+          gap: 20px;
+        }
+      }
+
+      /* ---------- faq ---------- */
+      .faq {
+        max-width: 760px;
+      }
+      .faq details {
+        border-bottom: 1px solid var(--border);
+        padding: 18px 0;
+      }
+      .faq summary {
+        cursor: pointer;
+        list-style: none;
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+        font-weight: 500;
+      }
+      .faq summary::-webkit-details-marker {
+        display: none;
+      }
+      .faq summary::after {
+        content: '+';
+        color: var(--accent);
+        font-size: 20px;
+        line-height: 1;
+        transition: transform 0.25s ease;
+      }
+      .faq details[open] summary::after {
+        transform: rotate(45deg);
+      }
+      .faq details p {
+        margin-top: 10px;
+        color: var(--text-2);
+        font-size: 14px;
+      }
+
+      /* ---------- final cta + footer ---------- */
+      .final {
+        text-align: center;
+        padding-block: 96px;
+      }
+      .final h2 {
+        font-size: clamp(52px, 9vw, 110px);
+        margin-bottom: 26px;
+      }
+      .final .cta-row {
+        justify-content: center;
+      }
+      footer {
+        border-top: 1px solid var(--border);
+        padding: 28px 0 40px;
+        font-size: 12.5px;
+        color: var(--text-3);
+      }
+      footer .wrap {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 14px 28px;
+        justify-content: space-between;
+      }
+      footer nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+      }
+      footer a {
+        color: var(--text-2);
+        text-decoration: none;
+      }
+      footer a:hover {
+        color: var(--text);
+      }
+
+      /* scroll reveal */
+      .reveal {
+        opacity: 0;
+        transform: translateY(18px);
+        transition:
+          opacity 0.7s ease,
+          transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+      }
+      .reveal.in {
+        opacity: 1;
+        transform: none;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        html {
+          scroll-behavior: auto;
+        }
+        .reveal,
+        .chip {
+          opacity: 1;
+          transform: none;
+          transition: none;
+        }
+        .qa-text::after {
+          animation: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header class="nav">
+      <div class="wrap">
+        <a class="logo" href="./"><img src="../icons/icon.svg" alt="" /><span>kiln<span class="dot">.</span></span></a>
+        <nav class="nav-links">
+          <a href="#features">Features</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#faq">FAQ</a>
+          <a class="btn small" href="../">Open kiln</a>
+        </nav>
+      </div>
+    </header>
+
+    <main>
+      <div class="wrap hero">
+        <div class="hero-grid">
+          <div>
+            <p class="eyebrow">Shape · fire · ship</p>
+            <h1 class="display">A to-do list that feels good to open<span class="dot">.</span></h1>
+            <p class="lede">
+              kiln is a calm, pretty home for your tasks and habits. Type things the way you'd say them, and it
+              files the date, time, priority and folder for you.
+            </p>
+            <div class="cta-row">
+              <a class="btn" href="../">Start free →</a>
+              <a class="btn ghost" href="#features">See what it does</a>
+            </div>
+            <p class="fine">Free · no ads · works offline · no account needed to try</p>
+          </div>
+          <div class="hero-shot">
+            <picture class="phone">
+              <source srcset="img/phone-dark.webp" media="(prefers-color-scheme: dark)" />
+              <img
+                src="img/phone-light.webp"
+                width="780"
+                height="1688"
+                alt="kiln on a phone: today's tasks with times and folders"
+              />
+            </picture>
+            <div class="chip-float" aria-hidden="true"><b>✓</b> Call mom · 6:30 PM</div>
+          </div>
+        </div>
+      </div>
+
+      <section id="speak">
+        <div class="wrap speak">
+          <div class="reveal">
+            <p class="eyebrow">Natural quick add</p>
+            <h2 class="display" style="font-size: clamp(40px, 6vw, 64px); margin-bottom: 12px">
+              Just say it<span class="dot">.</span>
+            </h2>
+            <p style="color: var(--text-2)">
+              No date pickers, no dropdowns. kiln reads plain English, including dates written the Indian way.
+            </p>
+            <ul class="examples">
+              <li><code>gym tomorrow 7am</code></li>
+              <li><code>pay rent friday 5pm !high</code></li>
+              <li><code>dentist 12/11 4:30pm #health</code></li>
+            </ul>
+          </div>
+          <div class="qa reveal" aria-label="Animated example of quick add">
+            <div class="qa-input">
+              <span class="qa-plus" aria-hidden="true">+</span>
+              <span class="qa-text" id="qa-text"></span>
+            </div>
+            <div class="qa-chips" id="qa-chips"></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="features">
+        <div class="wrap">
+          <div class="sec-head reveal">
+            <p class="eyebrow">Everything you need, nothing you don't</p>
+            <h2 class="display">Simple on the surface<span class="dot">.</span></h2>
+            <p>The power is there when you want it, and out of the way when you don't.</p>
+          </div>
+          <div class="features">
+            <div class="feat reveal">
+              <div class="glyph">◆</div>
+              <h3>Today, upcoming, calendar</h3>
+              <p>See what's due now, what's next, and your whole month. Repeating tasks reschedule themselves.</p>
+            </div>
+            <div class="feat reveal">
+              <div class="glyph">◷</div>
+              <h3>Focus timer</h3>
+              <p>A built-in Pomodoro (25·5, 50·10 or your own) that counts the sessions you put into each task.</p>
+            </div>
+            <div class="feat reveal">
+              <div class="glyph">✦</div>
+              <h3>Habits & insights</h3>
+              <p>Daily habits with streaks, plus a weekly look at what you got done and where your time went.</p>
+            </div>
+            <div class="feat reveal">
+              <div class="glyph">⇄</div>
+              <h3>Syncs everywhere</h3>
+              <p>Tick something off on your phone and it's gone on your laptop a second later.</p>
+            </div>
+            <div class="feat reveal">
+              <div class="glyph">⌁</div>
+              <h3>Works offline</h3>
+              <p>Install it to your home screen. No signal? Keep going, and it catches up when you're back.</p>
+            </div>
+            <div class="feat reveal">
+              <div class="glyph">◐</div>
+              <h3>Make it yours</h3>
+              <p>Light or dark, six accents or your own color, adjustable text size, and a lighter mode for older phones.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="desktop">
+        <div class="wrap">
+          <div class="sec-head reveal">
+            <p class="eyebrow">On a big screen</p>
+            <h2 class="display">Built for the keyboard too<span class="dot">.</span></h2>
+            <p>
+              <code>N</code> to add, <code>/</code> to search, <code>Ctrl K</code> to jump anywhere. Drag to
+              reorder, drop to complete.
+            </p>
+          </div>
+          <img
+            class="desk reveal"
+            src="img/desktop.webp"
+            width="1800"
+            height="1125"
+            loading="lazy"
+            alt="kiln on a laptop: sidebar of folders and today's task list"
+          />
+        </div>
+      </section>
+
+      <section id="ambient">
+        <div class="wrap">
+          <div class="band reveal">
+            <p class="eyebrow">Ambient mode</p>
+            <h2 class="display">Your day, at a glance<span class="dot">.</span></h2>
+            <p>
+              Put kiln on a second monitor or a docked phone: a quiet clock, today's to-do and done, your focus
+              session, and Ember the flame keeping you company. You can tune every part of it.
+            </p>
+            <img
+              src="img/ambient.webp"
+              width="1800"
+              height="1125"
+              loading="lazy"
+              alt="Ambient mode: analog clock beside today's to-do and done lists"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section id="pricing">
+        <div class="wrap">
+          <div class="price reveal">
+            <div>
+              <p class="eyebrow">Pricing</p>
+              <div class="amount display">Free<span class="dot">.</span></div>
+              <p style="color: var(--text-2)">No trial, no card, no ads. Your data is never sold.</p>
+            </div>
+            <ul>
+              <li>Unlimited tasks, folders & habits</li>
+              <li>Sync across all your devices</li>
+              <li>Focus timer & weekly insights</li>
+              <li>Ambient mode</li>
+              <li>Reminders</li>
+              <li>Export your data anytime</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="faq">
+        <div class="wrap">
+          <div class="sec-head reveal">
+            <h2 class="display">Questions<span class="dot">.</span></h2>
+          </div>
+          <div class="faq">
+            <details>
+              <summary>Do I need an account?</summary>
+              <p>
+                No. Choose “continue on this device” and everything stays in your browser. Make a free account when
+                you want your tasks on more than one device.
+              </p>
+            </details>
+            <details>
+              <summary>Is there an app?</summary>
+              <p>
+                kiln runs in your browser on any phone or computer. On a phone, use “Add to Home Screen” and it opens
+                full-screen like an app, works offline and can send reminders.
+              </p>
+            </details>
+            <details>
+              <summary>Where is my data stored?</summary>
+              <p>
+                Guest data stays on your device. With an account, it's stored securely with Supabase, and only you
+                can read it. See the <a href="../privacy.html">privacy policy</a>.
+              </p>
+            </details>
+            <details>
+              <summary>Can I take my data out?</summary>
+              <p>
+                Yes. Settings → Export downloads everything as a file, and you can delete your account and all its
+                data from Settings at any time.
+              </p>
+            </details>
+            <details>
+              <summary>Who makes kiln?</summary>
+              <p>
+                <a href="https://satpurastudio.com">Satpura Studio</a>, a small studio in India. Questions or ideas?
+                Email <a href="mailto:hello@satpurastudio.com">hello@satpurastudio.com</a>.
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <div class="wrap final reveal">
+        <h2 class="display">Start shaping your day<span class="dot">.</span></h2>
+        <div class="cta-row">
+          <a class="btn" href="../">Open kiln — it's free →</a>
+        </div>
+      </div>
+    </main>
+
+    <footer>
+      <div class="wrap">
+        <span>© Satpura Studio</span>
+        <nav>
+          <a href="../">Open kiln</a>
+          <a href="../privacy.html">Privacy</a>
+          <a href="../terms.html">Terms</a>
+          <a href="mailto:hello@satpurastudio.com">Contact</a>
+          <a href="https://satpurastudio.com">satpurastudio.com</a>
+        </nav>
+      </div>
+    </footer>
+
+    <script>
+      // scroll reveal
+      const io = new IntersectionObserver(
+        (es) =>
+          es.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add('in')
+              io.unobserve(e.target)
+            }
+          }),
+        { threshold: 0.12 }
+      )
+      document.querySelectorAll('.reveal').forEach((el) => io.observe(el))
+
+      // quick-add demo: type a sentence, then show what kiln understood
+      const DEMOS = [
+        {
+          text: 'pay rent friday 5pm !high #home',
+          chips: [['Friday', ''], ['5:00 PM', ''], ['High', 'high'], ['Home', 'folder']],
+        },
+        { text: 'call mom tomorrow 6:30pm', chips: [['Tomorrow', ''], ['6:30 PM', '']] },
+        {
+          text: 'dentist 12/11 4:30pm #health',
+          chips: [['12 Nov', ''], ['4:30 PM', ''], ['Health', 'folder']],
+        },
+      ]
+      const textEl = document.getElementById('qa-text')
+      const chipsEl = document.getElementById('qa-chips')
+      const still = matchMedia('(prefers-reduced-motion: reduce)').matches
+      const wait = (ms) => new Promise((r) => setTimeout(r, ms))
+      const showChips = async (chips, stagger) => {
+        chipsEl.innerHTML = ''
+        for (const [label, kind] of chips) {
+          const c = document.createElement('span')
+          c.className = `chip ${kind}`
+          c.innerHTML = '<i></i>'
+          c.append(label)
+          chipsEl.append(c)
+          requestAnimationFrame(() => c.classList.add('in'))
+          if (stagger) await wait(140)
+        }
+      }
+      async function run() {
+        if (still) {
+          textEl.textContent = DEMOS[0].text
+          return showChips(DEMOS[0].chips, false)
+        }
+        for (let i = 0; ; i = (i + 1) % DEMOS.length) {
+          const d = DEMOS[i]
+          chipsEl.innerHTML = ''
+          textEl.textContent = ''
+          for (const ch of d.text) {
+            textEl.textContent += ch
+            await wait(45 + Math.random() * 50)
+          }
+          await wait(350)
+          await showChips(d.chips, true)
+          await wait(2600)
+        }
+      }
+      run()
+    </script>
+  </body>
+</html>
