@@ -124,7 +124,12 @@ export default function Login() {
     setError('')
     const { error: err } = await supabase.auth.verifyOtp({ email, token, type: 'signup' })
     setBusy(false)
-    if (err) return setError(/expired|invalid/i.test(err.message) ? 'That code didn’t work — check it, or send a new one.' : err.message)
+    if (err)
+      return setError(
+        /expired|invalid/i.test(err.message)
+          ? 'That code didn’t work. Use the code from the newest kiln email, or send a new one.'
+          : err.message
+      )
     toast('Email verified', '✓')
     // signed in: the store's auth listener takes over and opens the app
   }
@@ -140,7 +145,11 @@ export default function Login() {
     if (err) {
       setResendIn(0)
       setError(err.message)
-    } else toast('New code sent', '✉')
+    } else {
+      // a resend retires the previous code, so don't leave it in the box
+      setCode('')
+      toast('New code sent. Use the newest email', '✉')
+    }
   }
 
   const guestStart = () => {

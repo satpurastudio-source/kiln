@@ -1,7 +1,9 @@
 <!--
   kiln — "Confirm signup" email.
   Paste into Supabase → Authentication → Emails → Templates → Confirm signup.
-  Subject: Your kiln code: {{ .Token }}
+  Subject: Your kiln code
+  (Keep {{ .Token }} out of the subject: it can render a different code from
+  the body, and an older email's subject then gets typed in by mistake.)
   {{ .Token }} is the 6-digit code, {{ .ConfirmationURL }} the one-tap link.
   The header art is served from the site: public/email/header.png.
   Table layout + inline styles: the only thing every mail app renders alike.
@@ -49,7 +51,7 @@
                 <td align="center" style="padding:22px 12px 8px;font-family:'Courier New',Courier,monospace;font-size:40px;line-height:1;font-weight:bold;letter-spacing:10px;color:#fffaf2;">{{ .Token }}</td>
               </tr>
               <tr>
-                <td align="center" style="padding:0 12px 18px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#ffe3d3;">Works once · valid 1 hour</td>
+                <td align="center" style="padding:0 12px 18px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;font-size:12px;letter-spacing:1.5px;text-transform:uppercase;color:#ffe3d3;">Valid 1 hour · newest code only</td>
               </tr>
             </table>
           </td>
