@@ -9,7 +9,8 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
-    "ios": "vite build && cap sync ios && cap open ios"
+    "ios": "vite build && cap sync ios && cap open ios",
+    "admin": "vite admin --port 5199"
   },
   "dependencies": {
     "@capacitor/app": "^8.1.2",

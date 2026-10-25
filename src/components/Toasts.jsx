@@ -50,7 +50,7 @@ export default function Toasts() {
                 style={{
                   color: 'var(--accent)',
                   fontWeight: 600,
-                  fontSize: 12.5,
+                  fontSize: 'calc(13.25px * var(--text-scale))',
                   marginLeft: 4,
                 }}
               >

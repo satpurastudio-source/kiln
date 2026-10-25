@@ -1,0 +1,239 @@
+:root {
+  --bg: #f4efe6;
+  --panel: #fffdf9;
+  --text: #2a2620;
+  --text-2: rgba(42, 38, 32, 0.7);
+  --text-3: rgba(42, 38, 32, 0.52);
+  --accent: #c24e27;
+  --border: rgba(42, 38, 32, 0.12);
+  --grid: rgba(42, 38, 32, 0.08);
+  --bad: #b3261e;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0e0b08;
+    --panel: #181310;
+    --text: #f4efe6;
+    --text-2: rgba(244, 239, 230, 0.7);
+    --text-3: rgba(244, 239, 230, 0.52);
+    --accent: #e8794f;
+    --border: rgba(244, 239, 230, 0.1);
+    --grid: rgba(244, 239, 230, 0.07);
+    --bad: #f2867e;
+  }
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'DM Mono', ui-monospace, monospace;
+  font-size: 14px;
+  line-height: 1.5;
+}
+.wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 28px 16px 64px;
+}
+.top {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+}
+.brand {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 34px;
+  letter-spacing: 0.04em;
+}
+.brand .dot {
+  color: var(--accent);
+}
+.brand .sub {
+  color: var(--text-3);
+  font-size: 22px;
+}
+.top-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.top-actions[hidden] {
+  display: none;
+}
+.stamp,
+.muted {
+  color: var(--text-3);
+  font-size: 12px;
+}
+.btn {
+  font: inherit;
+  font-size: 13px;
+  padding: 7px 14px;
+  border-radius: 99px;
+  border: 1px solid var(--accent);
+  background: var(--accent);
+  color: #fff;
+  cursor: pointer;
+}
+.btn.ghost {
+  background: transparent;
+  color: var(--text);
+  border-color: var(--border);
+}
+.btn:disabled {
+  opacity: 0.6;
+}
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px;
+}
+.login {
+  max-width: 380px;
+  display: grid;
+  gap: 10px;
+}
+.login[hidden] {
+  display: none;
+}
+input {
+  font: inherit;
+  font-size: 16px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: var(--bg);
+  color: var(--text);
+}
+code {
+  font-size: 12px;
+}
+.error {
+  color: var(--bad);
+  font-size: 13px;
+}
+.error:empty {
+  display: none;
+}
+
+h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-weight: 400;
+  font-size: 22px;
+  letter-spacing: 0.04em;
+  margin: 28px 0 10px;
+}
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 10px;
+}
+.tile .label {
+  color: var(--text-2);
+  font-size: 12px;
+}
+.tile .value {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 38px;
+  line-height: 1.1;
+  letter-spacing: 0.02em;
+}
+.tile .note {
+  color: var(--text-3);
+  font-size: 11.5px;
+}
+
+.charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr));
+  gap: 10px;
+}
+.chart h3 {
+  font-size: 13px;
+  font-weight: 500;
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+}
+.chart h3 span {
+  color: var(--text-3);
+  font-weight: 400;
+}
+.chart svg {
+  display: block;
+  width: 100%;
+  height: 140px;
+  margin-top: 10px;
+  overflow: visible;
+}
+.chart .bar {
+  fill: var(--accent);
+}
+.chart .hit:hover + .bar,
+.chart .bar.on {
+  opacity: 0.75;
+}
+.chart .grid {
+  stroke: var(--grid);
+  stroke-width: 1;
+}
+.chart .axis {
+  fill: var(--text-3);
+  font-size: 10.5px;
+  font-family: 'DM Mono', monospace;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12.5px;
+}
+th,
+td {
+  text-align: left;
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+th {
+  color: var(--text-3);
+  font-weight: 400;
+}
+td.num,
+th.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+details summary {
+  cursor: pointer;
+  color: var(--text-2);
+  font-size: 12.5px;
+  margin-top: 10px;
+}
+
+.tip {
+  position: fixed;
+  pointer-events: none;
+  background: var(--text);
+  color: var(--bg);
+  font-size: 12px;
+  padding: 6px 9px;
+  border-radius: 8px;
+  transform: translate(-50%, calc(-100% - 10px));
+  white-space: nowrap;
+  z-index: 10;
+}
+.tip[hidden] {
+  display: none;
+}

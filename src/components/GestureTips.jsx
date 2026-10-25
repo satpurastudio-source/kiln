@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import Tip, { tipSeen } from './Tip'
 
-// Phone-only hints for the touch gestures, one at a time: edge swipe first,
+// Phone-only hints for the touch gestures, one at a time: drawer swipe first,
 // then pull-to-search once that's learned. Each retires itself the moment
 // the gesture is used (see useEdgeSwipe / usePullToSearch) or on ×.
 const PHONE = '(max-width: 860px) and (pointer: coarse)'
@@ -26,7 +26,7 @@ export default function GestureTips() {
   if (!tipSeen('swipe-nav'))
     return (
       <Tip key="swipe-nav" id="swipe-nav">
-        Swipe in from the left edge to open your folders.
+        Swipe right across the screen to open your folders.
       </Tip>
     )
   if (!tipSeen('pull-search'))

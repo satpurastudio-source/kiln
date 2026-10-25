@@ -10,6 +10,7 @@ import {
   nextDue,
   resolveAccent,
   DEFAULT_SETTINGS,
+  TEXT_SCALE,
   PROJECT_COLORS,
   PROJECT_ICONS,
 } from './utils'
@@ -654,6 +655,13 @@ export function StoreProvider({ children }) {
     s.setProperty('--accent-deep', a.deep)
     s.setProperty('--accent-rgb', a.rgb)
   }, [state.settings.accent, state.settings.customAccent])
+
+  // Text size: one multiplier the stylesheet applies to every font-size.
+  useEffect(() => {
+    const v = Number(state.settings.textScale)
+    const k = Number.isFinite(v) ? Math.min(TEXT_SCALE.max, Math.max(TEXT_SCALE.min, v)) : 1
+    document.documentElement.style.setProperty('--text-scale', String(k))
+  }, [state.settings.textScale])
 
   // Reduced-effects mode: kill blur/aurora/confetti for a lighter, faster feel.
   useEffect(() => {

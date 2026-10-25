@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { useStore, toast } from '../store'
 import { supabase } from '../supabase'
 import { BASE_KEY } from '../sync'
-import { PRIORITIES, exportData as downloadBackup, parseBackup } from '../utils'
+import { PRIORITIES, TEXT_SCALE, exportData as downloadBackup, parseBackup } from '../utils'
 import AccentPicker from './AccentPicker'
 import { remindersOptedIn, enableReminders, disableReminders } from '../reminders'
 import {
@@ -216,6 +216,42 @@ export default function Settings({ onClose }) {
                 >
                   <MoonIcon size={13} /> Dark
                 </button>
+              </div>
+            </div>
+            <div className="set-text-size">
+              <div className="set-row">
+                <span>
+                  Text size
+                  <span className="set-sub">Drag to make every label easier to read</span>
+                </span>
+                <button
+                  className="set-text-val"
+                  title="Back to default"
+                  onClick={() => set({ textScale: 1 })}
+                  disabled={(settings.textScale ?? 1) === 1}
+                >
+                  {Math.round((settings.textScale ?? 1) * 100)}%
+                </button>
+              </div>
+              <div className="set-slider">
+                <span className="set-slider-a small" aria-hidden>
+                  A
+                </span>
+                <input
+                  type="range"
+                  aria-label="Text size"
+                  min={TEXT_SCALE.min}
+                  max={TEXT_SCALE.max}
+                  step={TEXT_SCALE.step}
+                  value={settings.textScale ?? 1}
+                  style={{
+                    '--fill': `${(((settings.textScale ?? 1) - TEXT_SCALE.min) / (TEXT_SCALE.max - TEXT_SCALE.min)) * 100}%`,
+                  }}
+                  onChange={(e) => set({ textScale: Number(e.target.value) })}
+                />
+                <span className="set-slider-a big" aria-hidden>
+                  A
+                </span>
               </div>
             </div>
             <div className="set-row">

@@ -103,10 +103,13 @@ export const DEFAULT_SETTINGS = {
   defaultPriority: 'none',
   defaultTime: '', // '' or 'HH:MM'
   reducedEffects: false, // lighter, faster: no blur / aurora / confetti
+  textScale: 1, // multiplies every font size (Settings → Text size), 0.9–1.4
   focusWork: 25, // custom pomodoro work minutes
   focusBreak: 5, // custom pomodoro break minutes
   ambient: {}, // partial overrides of AMBIENT_DEFAULTS — always read via ambientConfig()
 }
+
+export const TEXT_SCALE = { min: 0.9, max: 1.4, step: 0.05 }
 
 export const AMBIENT_WIDGETS = [
   { id: 'none', label: 'Off' },

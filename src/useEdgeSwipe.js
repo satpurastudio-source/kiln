@@ -1,16 +1,21 @@
 import { useEffect, useRef } from 'react'
 import { markTipSeen } from './components/Tip'
 
-// Mobile drawer gestures: swipe right from the left edge to open the sidebar,
+// Mobile drawer gestures: swipe right across the screen to open the sidebar,
 // swipe left to close it. The drawer tracks the finger, then snaps open/shut
 // by distance or flick speed; the CSS transition handles the snap.
 //
-// Edge zone is wider than the usual 20px because Android's gesture-nav "back"
-// swallows touches that start right at the bezel.
+// The open swipe starts anywhere in the middle of the screen, not at the
+// edge: Android's gesture-nav "back" owns the outer ~30px on both sides, so
+// an edge swipe there either went back or closed kiln. A swipe that does land
+// on the bezel still works — useBackGesture turns that back into "open drawer".
 
-const EDGE = 40
+const BEZEL = 32 // px at each side left to the OS back gesture
+const REACH = 0.8 // open swipes may start up to 80% of the way across
 const LOCK = 10 // px of movement before we decide horizontal vs vertical
 const FLICK = 0.45 // px/ms
+// controls that need their own horizontal drags
+const OWN_DRAG = "input, textarea, select, [contenteditable='true'], [data-no-swipe]"
 // anything covering the app (modals, palette, focus timer) owns the screen
 const COVERED = '.overlay, .palette-wrap, .focus-overlay, .minical-backdrop'
 
@@ -41,7 +46,8 @@ export default function useEdgeSwipe({ open, setOpen, enabled }) {
       if (document.querySelector(COVERED)) return
       const t = e.touches[0]
       const isOpen = openRef.current
-      if (!isOpen && t.clientX > EDGE) return
+      if (!isOpen && (t.clientX < BEZEL || t.clientX > window.innerWidth * REACH)) return
+      if (e.target.closest?.(OWN_DRAG) || scrollsSideways(e.target)) return
       const s = sidebar()
       if (!s) return
       g = { x0: t.clientX, y0: t.clientY, t0: e.timeStamp, isOpen, width: s.offsetWidth, locked: null, dx: 0 }
@@ -55,7 +61,8 @@ export default function useEdgeSwipe({ open, setOpen, enabled }) {
       if (g.locked === null) {
         if (Math.abs(dx) < LOCK && Math.abs(dy) < LOCK) return
         // must be mostly horizontal and in the useful direction
-        const horizontal = Math.abs(dx) > Math.abs(dy) * 1.2
+        // stricter than 45° so a slightly slanted scroll stays a scroll
+        const horizontal = Math.abs(dx) > Math.abs(dy) * 1.5
         const rightWay = g.isOpen ? dx < 0 : dx > 0
         g.locked = horizontal && rightWay
         if (!g.locked) {
@@ -103,4 +110,16 @@ export default function useEdgeSwipe({ open, setOpen, enabled }) {
       reset()
     }
   }, [enabled, setOpen])
+}
+
+// true when the touch began inside something that scrolls horizontally
+// (calendar strips, chip rows) — that swipe belongs to the scroller
+function scrollsSideways(el) {
+  for (let n = el; n && n !== document.body; n = n.parentElement) {
+    if (n.scrollWidth > n.clientWidth + 1) {
+      const ox = getComputedStyle(n).overflowX
+      if (ox === 'auto' || ox === 'scroll') return true
+    }
+  }
+  return false
 }

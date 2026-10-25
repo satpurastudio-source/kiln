@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>kiln · analytics</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./admin.css" />
+  </head>
+  <body>
+    <main class="wrap">
+      <header class="top">
+        <div class="brand">kiln<span class="dot">.</span> <span class="sub">analytics</span></div>
+        <div class="top-actions" hidden>
+          <span class="stamp" id="stamp"></span>
+          <button id="refresh" class="btn">Refresh</button>
+          <button id="signout" class="btn ghost">Sign out</button>
+        </div>
+      </header>
+
+      <form id="login" class="card login" hidden>
+        <p class="muted">Sign in with your kiln account. Only emails in the <code>ADMIN_EMAILS</code> secret get data.</p>
+        <input id="email" type="email" placeholder="Email" autocomplete="username" required />
+        <input id="password" type="password" placeholder="Password" autocomplete="current-password" required />
+        <button class="btn" type="submit">Sign in</button>
+        <p class="error" id="login-error"></p>
+      </form>
+
+      <p class="error" id="error"></p>
+      <section id="dash" hidden></section>
+    </main>
+    <div class="tip" id="tip" hidden></div>
+    <script type="module" src="./admin.js"></script>
+  </body>
+</html>
