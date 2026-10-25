@@ -36,7 +36,7 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         // the landing page is a plain site, not part of the app shell: keep it
         // out of the cache and never answer its URL with the app's index.html
-        globIgnores: ['welcome/**'],
+        globIgnores: ['welcome/**', 'email/**'],
         navigateFallbackDenylist: [/\/welcome(\/|$)/],
         // Supabase calls are never touched — only the app shell is cached.
         runtimeCaching: [
