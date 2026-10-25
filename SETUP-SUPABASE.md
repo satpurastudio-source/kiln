@@ -54,6 +54,10 @@ Dashboard → **Authentication → URL Configuration**:
 - **Redirect URLs** → add: `http://localhost:5173/?verified=1`
   (and later `https://your-domain/?verified=1`)
 
+Production (kiln.satpurastudio.com): Site URL `https://kiln.satpurastudio.com/`, and add
+`https://kiln.satpurastudio.com/?verified=1` and `https://kiln.satpurastudio.com/?reset=1`
+to Redirect URLs (keep the localhost ones for development).
+
 This is where the email-verification link drops users — kiln shows them the
 animated "Email verified." page and takes them in.
 

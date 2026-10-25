@@ -1225,6 +1225,10 @@
     </footer>
 
     <script>
+      // seen the landing once: "Open kiln" (and later visits) go straight to the app
+      try {
+        localStorage.setItem('kiln-visited', '1')
+      } catch (e) {}
       document.getElementById('themeToggle').addEventListener('click', function () {
         var next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark'
         document.documentElement.dataset.theme = next
