@@ -97,6 +97,18 @@ signed up on — this is what makes verification work inside the iPhone/Android
 app, where a link would open in the browser instead. Custom SMTP unlocks
 template editing on the free tier.
 
+Copy the template exactly: `sed '1,/^-->$/d' supabase/templates/confirm-signup.html | pbcopy`,
+then select-all in the editor and paste once. Hand-copying mangled it the first time.
+
+**Code length:** **Authentication → Sign In / Providers → Email → Email OTP Length**
+→ `6`. New projects default to 8; the app and the email both say 6 digits.
+
+**If sign-up fails with "Error sending confirmation email"** (the app shows `{}`)
+and Brevo's logs show nothing, Brevo is refusing Supabase's connection:
+Brevo → profile menu → **Security → Authorised IPs** → deactivate IP blocking.
+Supabase sends from changing cloud IPs, so an allowlist can't work. Then check
+the SMTP password is the **SMTP key** (`xsmtpsib-…`), not the API key (`xkeysib-…`).
+
 ## 4. Account deletion (required for the app stores)
 
 Google Play and Apple both require in-app account deletion. A client can't delete
