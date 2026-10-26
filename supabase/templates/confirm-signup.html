@@ -1,7 +1,9 @@
 <!--
   kiln — "Confirm signup" email. Code only, no link.
   Paste into Supabase → Authentication → Emails → Templates → Confirm signup.
-  Subject: Your kiln code
+  Subject: {{ .Token }} is your kiln code
+  (The code in the subject makes every email its own Gmail thread; with one
+  fixed subject Gmail stacks them and trims the new one under the old.)
 
   Paste THIS FILE, never a rendered email: a pasted preview carries a real
   number where {{ .Token }} should be, and every email then shows that dead code.

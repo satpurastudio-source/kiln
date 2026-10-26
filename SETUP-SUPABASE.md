@@ -90,7 +90,7 @@ team — fine for your first test, useless for real users. Brevo gives you
 
 **Confirm signup template (required — the app expects a code):**
 **Authentication → Emails → Templates → Confirm signup** → subject
-`Your kiln code`, body: paste all of `supabase/templates/confirm-signup.html`.
+`{{ .Token }} is your kiln code`, body: paste all of `supabase/templates/confirm-signup.html`.
 The email carries a 6-digit code (`{{ .Token }}`) and a one-tap link
 (`{{ .ConfirmationURL }}`). People type the code into kiln on the device they
 signed up on — this is what makes verification work inside the iPhone/Android
