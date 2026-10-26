@@ -4,12 +4,14 @@ import confetti from 'canvas-confetti'
 import { useStore } from '../store'
 import { playFanfare } from '../sound'
 import { APP_NAME } from '../brand'
+import { linkFailed } from '../supabase'
 
 export default function Verified({ onDone }) {
   const { state } = useStore()
   const signedIn = !!state.profile
 
   useEffect(() => {
+    if (linkFailed) return // no fanfare for a link that didn't work
     const t = setTimeout(() => {
       playFanfare()
       const colors = ['#d85a30', '#d9a441', '#f4efe6']
@@ -30,30 +32,34 @@ export default function Verified({ onDone }) {
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ type: 'spring', stiffness: 260, damping: 26 }}
       >
-        <div className="verified-badge">
-          <svg viewBox="0 0 64 64" fill="none">
-            <motion.circle
-              cx="32"
-              cy="32"
-              r="29"
-              stroke="#d85a30"
-              strokeWidth="3"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 0.7, ease: [0.65, 0, 0.35, 1], delay: 0.2 }}
-            />
-            <motion.path
-              d="M20 33.5 L28.5 42 L45 24"
-              stroke="#d85a30"
-              strokeWidth="4.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 0.45, ease: [0.65, 0, 0.35, 1], delay: 0.75 }}
-            />
-          </svg>
-        </div>
+        {linkFailed ? (
+          <div className="login-sent-icon">✉</div>
+        ) : (
+          <div className="verified-badge">
+            <svg viewBox="0 0 64 64" fill="none">
+              <motion.circle
+                cx="32"
+                cy="32"
+                r="29"
+                stroke="#d85a30"
+                strokeWidth="3"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 0.7, ease: [0.65, 0, 0.35, 1], delay: 0.2 }}
+              />
+              <motion.path
+                d="M20 33.5 L28.5 42 L45 24"
+                stroke="#d85a30"
+                strokeWidth="4.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                initial={{ pathLength: 0 }}
+                animate={{ pathLength: 1 }}
+                transition={{ duration: 0.45, ease: [0.65, 0, 0.35, 1], delay: 0.75 }}
+              />
+            </svg>
+          </div>
+        )}
 
         <div className="reveal-wrap">
           <motion.h1
@@ -63,7 +69,8 @@ export default function Verified({ onDone }) {
             animate={{ y: 0 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.35 }}
           >
-            Email verified<span className="dot">.</span>
+            {linkFailed ? 'Link didn’t work' : 'Email verified'}
+            <span className="dot">.</span>
           </motion.h1>
         </div>
 
@@ -73,9 +80,11 @@ export default function Verified({ onDone }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.65, duration: 0.5 }}
         >
-          {signedIn
-            ? `welcome to ${APP_NAME} — your account is ready`
-            : 'your account is ready — sign in to continue'}
+          {linkFailed
+            ? 'it was used already or has expired. Sign in, and if your email still needs verifying we’ll send a fresh code.'
+            : signedIn
+              ? `welcome to ${APP_NAME} — your account is ready`
+              : 'your account is ready — sign in to continue'}
         </motion.p>
 
         <motion.button
@@ -86,7 +95,7 @@ export default function Verified({ onDone }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.85, duration: 0.5 }}
         >
-          {signedIn ? `Enter ${APP_NAME} →` : 'Sign in →'}
+          {signedIn && !linkFailed ? `Enter ${APP_NAME} →` : 'Sign in →'}
         </motion.button>
       </motion.div>
     </div>

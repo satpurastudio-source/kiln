@@ -8,7 +8,7 @@ import { linkBase } from '../native'
 
 // Where email links land. Inside the app shell the page lives at kiln://,
 // which a mail app can't open — so links go to the web app instead.
-const RESEND_WAIT = 30 // seconds
+const RESEND_WAIT = 60 // seconds: Supabase sends at most one email a minute
 
 // onboarding hands off the chosen name + whether they wanted to sign up
 const readIntent = () => {
@@ -58,6 +58,29 @@ export default function Login() {
     return () => clearTimeout(id)
   }, [resendIn])
 
+  // The button in the email and the code are the same one-time token, so
+  // whoever taps the button finds the code "expired" when they come back.
+  // Their email is verified by then: the password they just typed gets them in.
+  const trySignIn = async () => {
+    if (!password) return false
+    const { error: err } = await supabase.auth.signInWithPassword({ email, password })
+    if (err) return false
+    toast('Email verified', '✓')
+    return true
+  }
+
+  // back from the mail app after tapping the button: let them straight in
+  useEffect(() => {
+    if (mode !== 'sent' || !password) return
+    const check = () => document.visibilityState === 'visible' && trySignIn()
+    document.addEventListener('visibilitychange', check)
+    window.addEventListener('focus', check)
+    return () => {
+      document.removeEventListener('visibilitychange', check)
+      window.removeEventListener('focus', check)
+    }
+  }, [mode, email, password]) // eslint-disable-line react-hooks/exhaustive-deps
+
   const switchMode = (m) => {
     setMode(m)
     setError('')
@@ -85,7 +108,7 @@ export default function Login() {
       // straight to the code screen, with a fresh code on its way
       setMode('sent')
       setCode('')
-      return resend()
+      return resend(true)
     }
     if (err) setError(err.message)
     // success: the store's auth listener takes over and opens the app
@@ -123,6 +146,7 @@ export default function Login() {
     setBusy(true)
     setError('')
     const { error: err } = await supabase.auth.verifyOtp({ email, token, type: 'signup' })
+    if (err && (await trySignIn())) return setBusy(false)
     setBusy(false)
     if (err)
       return setError(
@@ -134,17 +158,28 @@ export default function Login() {
     // signed in: the store's auth listener takes over and opens the app
   }
 
-  async function resend() {
+  // justFailed: the caller has just seen the sign-in fail as unverified
+  async function resend(justFailed = false) {
     setError('')
     setResendIn(RESEND_WAIT)
+    // already verified through the button? Then a resend would send nothing
+    if (!justFailed && (await trySignIn())) return
     const { error: err } = await supabase.auth.resend({
       type: 'signup',
       email,
       options: { emailRedirectTo: `${linkBase()}?verified=1` },
     })
     if (err) {
-      setResendIn(0)
-      setError(err.message)
+      // "For security purposes, you can only request this after 42 seconds."
+      const wait = Number(err.message.match(/after (\d+) seconds/)?.[1])
+      setResendIn(wait || 0)
+      setError(
+        wait
+          ? 'A code went out moments ago. Check your inbox, or send another when the timer ends.'
+          : /rate limit/i.test(err.message)
+            ? 'Too many emails to this address. Use the newest code, or try again in a while.'
+            : err.message
+      )
     } else {
       // a resend retires the previous code, so don't leave it in the box
       setCode('')
@@ -233,7 +268,7 @@ export default function Login() {
                 {busy ? 'One moment…' : 'Verify & enter →'}
               </motion.button>
               <div className="login-alt">
-                <button className="login-link" onClick={resend} disabled={resendIn > 0}>
+                <button className="login-link" onClick={() => resend()} disabled={resendIn > 0}>
                   {resendIn > 0 ? `Send a new code in ${resendIn}s` : 'Didn’t get it? Send a new code'}
                 </button>
                 <button className="login-link" onClick={() => switchMode('signin')}>
