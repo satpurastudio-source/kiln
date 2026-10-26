@@ -21,6 +21,17 @@ const typing = () => {
   return false
 }
 
+// Signed-out screens (sign-in, sign-up code, email verified) have no work to
+// lose, and an old build there can break sign-up — so they always take the
+// new version. Signed in, a late update still asks first.
+const signedOut = () => {
+  try {
+    return !Object.keys(localStorage).some((k) => k.startsWith('sb-') && k.endsWith('-auth-token'))
+  } catch {
+    return false
+  }
+}
+
 export function initPWA() {
   // the app shell ships its web files inside the app — updates come via the stores
   if (isNative || !('serviceWorker' in navigator)) return
@@ -30,7 +41,7 @@ export function initPWA() {
     onNeedRefresh() {
       const hidden = document.visibilityState === 'hidden'
       const justOpened = Date.now() - resumedAt < FRESH_WINDOW
-      if (hidden || (justOpened && !typing())) return updateSW(true)
+      if (hidden || ((justOpened || signedOut()) && !typing())) return updateSW(true)
       if (asked) return
       asked = true
       toast('A new version of kiln is ready', '✦', { label: 'Update', fn: () => updateSW(true) }, { sticky: true })
