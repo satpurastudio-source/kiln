@@ -6,7 +6,8 @@ import { BASE_KEY } from '../sync'
 import { PRIORITIES, TEXT_SCALE, exportData as downloadBackup, parseBackup } from '../utils'
 import AccentPicker from './AccentPicker'
 import Account from './Account'
-import { remindersOptedIn, enableReminders, disableReminders } from '../reminders'
+import { remindersOptedIn, enableReminders, disableReminders, sendTestReminder } from '../reminders'
+import { isNative } from '../native'
 import {
   UserIcon,
   SparkleIcon,
@@ -78,6 +79,11 @@ export default function Settings({ onClose, onOpenSheet }) {
       setReminders(ok)
       toast(ok ? 'Reminders on' : 'Notifications are blocked — allow them for kiln in settings', ok ? '🔔' : '⚠')
     }
+  }
+
+  const testReminder = async () => {
+    const ok = await sendTestReminder()
+    toast(ok ? 'Test on its way: lock your phone' : 'Notifications are blocked — allow them for kiln in iPhone Settings', ok ? '🔔' : '⚠')
   }
 
   const replayTour = () => {
@@ -351,7 +357,7 @@ export default function Settings({ onClose, onOpenSheet }) {
               <BellIcon size={12} /> Notifications
             </div>
             <div className="set-row">
-              <span>Daily “due today” nudge</span>
+              <span>{isNative ? 'Task reminders' : 'Daily “due today” nudge'}</span>
               <button
                 className={`switch ${reminders ? 'on' : ''}`}
                 role="switch"
@@ -361,6 +367,19 @@ export default function Settings({ onClose, onOpenSheet }) {
                 <span className="switch-knob" />
               </button>
             </div>
+            {isNative && reminders && (
+              <>
+                <p className="set-hint">
+                  An alert at each task’s time (tasks with a time, like “call mum 5pm”), and at 9 am on days with tasks due.
+                </p>
+                <div className="set-row">
+                  <span>Check it works</span>
+                  <button className="mini-btn" onClick={testReminder}>
+                    Send a test
+                  </button>
+                </div>
+              </>
+            )}
           </section>
 
           {/* Ambient */}

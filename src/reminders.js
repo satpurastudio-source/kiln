@@ -72,11 +72,23 @@ export function maybeNotifyDueToday(count) {
     })
 }
 
+// Settings → "Send a test": one notification a few seconds out, so you can
+// lock the phone and see that kiln's alerts get through.
+export async function sendTestReminder() {
+  const { display } = await LocalNotifications.checkPermissions()
+  if (display !== 'granted') return false
+  await LocalNotifications.schedule({
+    notifications: [{ id: TEST_ID, title: 'kiln', body: 'Reminders work. You’ll hear from kiln when tasks are due.', schedule: { at: new Date(Date.now() + 5000) } }],
+  })
+  return true
+}
+
 // ── native scheduling ────────────────────────────────────────────────────
 
 const DIGEST_HOUR = 9
 const DIGEST_DAYS = 7
 const DIGEST_ID = 1000 // ids 1000–1006 are the morning digests
+const TEST_ID = 999
 const MAX_TASK_ALERTS = 50 // iOS keeps at most 64 pending per app
 
 let lastTasks = []
@@ -130,7 +142,8 @@ function plan(tasks) {
 }
 
 async function reschedule(tasks) {
-  const { notifications: pending } = await LocalNotifications.getPending()
+  // leave a test notification in flight alone
+  const pending = (await LocalNotifications.getPending()).notifications.filter((n) => n.id !== TEST_ID)
   if (pending.length) await LocalNotifications.cancel({ notifications: pending.map((n) => ({ id: n.id })) })
   if (!remindersOptedIn()) return
   const { display } = await LocalNotifications.checkPermissions()
