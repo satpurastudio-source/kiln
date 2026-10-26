@@ -14,7 +14,7 @@ import Focus from './components/Focus'
 import CompleteZone from './components/CompleteZone'
 import MiniCalendar from './components/MiniCalendar'
 import Reset from './components/Reset'
-import { maybeNotifyDueToday, scheduleNative } from './reminders'
+import { maybeNotifyDueToday, scheduleNative, askOnFirstLaunch } from './reminders'
 import ProjectModal from './components/ProjectModal'
 import CommandPalette from './components/CommandPalette'
 import Toasts from './components/Toasts'
@@ -135,6 +135,11 @@ export default function App() {
     else return false
     return true
   }, gesturesOn)
+
+  // app shell: ask for the notification permission on first launch
+  useEffect(() => {
+    askOnFirstLaunch()
+  }, [])
 
   // keep the OS reminder schedule (app shell only) in step with the tasks
   useEffect(() => {

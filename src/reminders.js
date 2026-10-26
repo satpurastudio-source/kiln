@@ -40,6 +40,14 @@ export async function enableReminders() {
   return true
 }
 
+// First launch in the app shell: ask for notifications straight away and
+// switch reminders on if allowed. Asked once; a no can be undone in Settings.
+export async function askOnFirstLaunch() {
+  if (!isNative || read(PREF_KEY) !== null) return
+  const ok = await enableReminders().catch(() => false)
+  if (!ok) localStorage.setItem(PREF_KEY, '0')
+}
+
 export function disableReminders() {
   localStorage.setItem(PREF_KEY, '0')
   if (isNative) scheduleNative(lastTasks)
