@@ -242,7 +242,7 @@ export default function Login() {
               <p className="login-sent-title">Check your inbox</p>
               <p className="login-note">
                 We sent a code to <b>{email}</b>.<br />
-                Type it here — or just tap the link in the email.
+                Type the 6 digits here to finish signing up.
               </p>
               <input
                 type="text"
