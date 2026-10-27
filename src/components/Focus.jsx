@@ -4,6 +4,7 @@ import { useStore, onFocusRequest, toast } from '../store'
 import { playComplete, playFanfare, playPop } from '../sound'
 import { PauseIcon, PlayIcon, SkipIcon, XIcon, FlameIcon } from './Icons'
 import Tip from './Tip'
+import { t, fmtNum } from '../i18n'
 
 export const FOCUS_KEY = 'kiln-focus'
 export const MODES = {
@@ -96,7 +97,7 @@ export default function Focus() {
       if (s.phase === 'work') {
         const count = s.count + 1
         playFanfare()
-        toast(`Pomodoro ${count} done — take a break`, '🔥')
+        toast(t('pomodoroDone', { n: fmtNum(count) }), '🔥')
         dispatch({ type: 'LOG_FOCUS' }) // count it for Insights (survives task clears)
         if (taskIdRef.current) {
           dispatch({
@@ -110,7 +111,7 @@ export default function Focus() {
         setSession({ ...s, phase: 'break', count, endsAt: Date.now() + brkLen * 1000 })
       } else {
         playComplete()
-        toast('Break over — back to it', '⚒')
+        toast(t('breakOver'), '⚒')
         setSession({ ...s, phase: 'work', endsAt: Date.now() + resolveMode(s.mode, settingsRef.current).work * 1000 })
       }
     }, 500)
@@ -175,7 +176,7 @@ export default function Focus() {
     if (task && !task.done) {
       dispatch({ type: 'TOGGLE_TASK', id: task.id })
       playFanfare()
-      toast('Task forged 🔥', '✓')
+      toast(t('taskForged'), '✓')
     }
     end()
   }
@@ -202,12 +203,11 @@ export default function Focus() {
               transition={{ type: 'spring', stiffness: 300, damping: 26 }}
             >
               <Tip id="focus">
-                Pick 25·5, 50·10, or a custom length. Every finished session counts toward your
-                Insights.
+                {t('tipFocus')}
               </Tip>
               <div className="focus-top">
                 <span className={`focus-phase ${isWork ? 'work' : 'brk'}`}>
-                  {isWork ? '⚒ focus' : '☕ break'}
+                  {isWork ? `⚒ ${t('focusLower')}` : `☕ ${t('breakLower')}`}
                 </span>
                 <div className="focus-modes">
                   {Object.entries(MODES).map(([id, m]) => (
@@ -223,10 +223,10 @@ export default function Focus() {
                     className={`chip ${session.mode === 'custom' ? 'on' : ''}`}
                     onClick={() => setMode('custom')}
                   >
-                    Custom
+                    {t('accentCustom')}
                   </button>
                 </div>
-                <button className="icon-btn" onClick={() => setOpen(false)} title="Minimize" data-back-close>
+                <button className="icon-btn" onClick={() => setOpen(false)} title={t('minimize')} data-back-close>
                   —
                 </button>
               </div>
@@ -234,7 +234,7 @@ export default function Focus() {
               {session.mode === 'custom' && (
                 <div className="focus-custom">
                   <label>
-                    Focus
+                    {t('widget_focus')}
                     <input
                       type="number"
                       min="1"
@@ -242,10 +242,10 @@ export default function Focus() {
                       value={clampMin(settings.focusWork, 180)}
                       onChange={(e) => setCustom({ focusWork: Number(e.target.value) })}
                     />
-                    min
+                    {t('minUnit')}
                   </label>
                   <label>
-                    Break
+                    {t('break')}
                     <input
                       type="number"
                       min="1"
@@ -253,7 +253,7 @@ export default function Focus() {
                       value={clampMin(settings.focusBreak, 60)}
                       onChange={(e) => setCustom({ focusBreak: Number(e.target.value) })}
                     />
-                    min
+                    {t('minUnit')}
                   </label>
                 </div>
               )}
@@ -277,7 +277,7 @@ export default function Focus() {
                 </svg>
                 <div className="focus-time">
                   <span className="focus-clock">{fmt(secsLeft)}</span>
-                  <span className="focus-task-name">{task?.title ?? 'Focus session'}</span>
+                  <span className="focus-task-name">{task?.title ?? t('focusSession')}</span>
                 </div>
               </div>
 
@@ -293,11 +293,11 @@ export default function Focus() {
                     }}
                   />
                 ))}
-                {session.count > 0 && <span className="focus-count">{session.count} done</span>}
+                {session.count > 0 && <span className="focus-count">{t('nDone', { n: fmtNum(session.count) })}</span>}
               </div>
 
               <div className="focus-controls">
-                <button className="icon-btn focus-ctl" onClick={skip} title="Skip phase">
+                <button className="icon-btn focus-ctl" onClick={skip} title={t('skipPhase')}>
                   <SkipIcon size={15} />
                 </button>
                 <motion.button
@@ -307,15 +307,14 @@ export default function Focus() {
                 >
                   {running ? <PauseIcon size={20} /> : <PlayIcon size={20} />}
                 </motion.button>
-                <button className="icon-btn focus-ctl" onClick={end} title="End session">
+                <button className="icon-btn focus-ctl" onClick={end} title={t('endSession')}>
                   <XIcon size={15} />
                 </button>
               </div>
 
               {task && !task.done && (
                 <button className="focus-complete" onClick={completeTask}>
-                  ✓ Complete “{task.title.slice(0, 34)}
-                  {task.title.length > 34 ? '…' : ''}”
+                  ✓ {t('completeNamed', { title: task.title.length > 34 ? `${task.title.slice(0, 34)}…` : task.title })}
                 </button>
               )}
             </motion.div>
@@ -332,11 +331,11 @@ export default function Focus() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 20, scale: 0.9 }}
             transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-            title="Open focus session"
+            title={t('openFocus')}
           >
             <span className={`focus-pill-dot ${isWork ? 'work' : 'brk'} ${running ? 'running' : ''}`} />
             <span className="focus-pill-time">{fmt(secsLeft)}</span>
-            <span className="focus-pill-label">{isWork ? 'focus' : 'break'}</span>
+            <span className="focus-pill-label">{isWork ? t('focusLower') : t('breakLower')}</span>
           </motion.button>
         )}
       </AnimatePresence>

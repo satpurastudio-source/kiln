@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion'
 import { useStore, toast } from '../store'
 import { ArchiveIcon } from './Icons'
+import { t, tn } from '../i18n'
 
 export default function Archive() {
   const { state, dispatch } = useStore()
@@ -11,18 +12,18 @@ export default function Archive() {
 
   const unarchive = (t) => {
     dispatch({ type: 'UNARCHIVE_TASK', id: t.id })
-    toast('Restored from archive', '↩')
+    toast(t('restoredFromArchive'), '↩')
   }
   const remove = (t) => {
     dispatch({ type: 'DELETE_TASK', id: t.id })
-    toast('Moved to trash', '🗑')
+    toast(t('movedToTrash'), '🗑')
   }
 
   if (items.length === 0) {
     return (
       <div className="ins-empty archive-empty">
         <ArchiveIcon size={22} />
-        <p>Nothing archived. Archive a task to tuck it away without deleting it.</p>
+        <p>{t('archiveEmpty')}</p>
       </div>
     )
   }
@@ -52,8 +53,8 @@ export default function Archive() {
                 )}
               </div>
               <div className="archive-actions">
-                <button className="mini-btn" onClick={() => unarchive(t)}>Restore</button>
-                <button className="mini-btn danger" onClick={() => remove(t)}>Delete</button>
+                <button className="mini-btn" onClick={() => unarchive(t)}>{t('restore')}</button>
+                <button className="mini-btn danger" onClick={() => remove(t)}>{t('delete')}</button>
               </div>
             </motion.li>
           )

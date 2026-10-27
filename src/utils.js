@@ -1,3 +1,5 @@
+import { t, fmtDate, fmtClock, currentLang } from './i18n'
+
 export const uid = () =>
   Math.random().toString(36).slice(2, 9) + Date.now().toString(36)
 
@@ -20,8 +22,6 @@ export const isOverdue = (due) => !!due && due < todayStr()
 export const isToday = (due) => due === todayStr()
 export const isTomorrow = (due) => due === addDaysStr(1)
 
-const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
 export function parseDateStr(s) {
   const [y, m, d] = s.split('-').map(Number)
@@ -30,39 +30,36 @@ export function parseDateStr(s) {
 
 export function fmtDue(due) {
   if (!due) return ''
-  if (isToday(due)) return 'Today'
-  if (isTomorrow(due)) return 'Tomorrow'
-  if (isOverdue(due)) {
-    const d = parseDateStr(due)
-    return `${MONTHS[d.getMonth()]} ${d.getDate()}`
-  }
-  // within the next 6 days → weekday name
-  for (let i = 2; i <= 6; i++) {
-    if (due === addDaysStr(i)) return WEEKDAYS[parseDateStr(due).getDay()]
-  }
+  if (isToday(due)) return t('today')
+  if (isTomorrow(due)) return t('tomorrow')
   const d = parseDateStr(due)
-  return `${MONTHS[d.getMonth()]} ${d.getDate()}`
+  // within the next 6 days → weekday name
+  if (!isOverdue(due)) {
+    for (let i = 2; i <= 6; i++) {
+      if (due === addDaysStr(i)) return fmtDate(d, { weekday: 'long' })
+    }
+  }
+  return fmtDate(d, { month: 'short', day: 'numeric' })
 }
 
 export function fmtLongDate(d = new Date()) {
-  const month = d.toLocaleDateString('en-US', { month: 'long' })
-  return `${WEEKDAYS[d.getDay()]}, ${month} ${d.getDate()}`
+  return fmtDate(d, { weekday: 'long', month: 'long', day: 'numeric' })
 }
 
 export function greeting() {
   const h = new Date().getHours()
-  if (h < 5) return 'Up late'
-  if (h < 12) return 'Good morning'
-  if (h < 17) return 'Good afternoon'
-  if (h < 22) return 'Good evening'
-  return 'Winding down'
+  if (h < 5) return t('greetLate')
+  if (h < 12) return t('greetMorning')
+  if (h < 17) return t('greetAfternoon')
+  if (h < 22) return t('greetEvening')
+  return t('greetWinding')
 }
 
 export const PRIORITIES = [
-  { id: 'high', label: 'High', color: '#c43d2b' },
-  { id: 'medium', label: 'Medium', color: '#d98e32' },
-  { id: 'low', label: 'Low', color: '#5f7c8a' },
-  { id: 'none', label: 'None', color: 'transparent' },
+  { id: 'high', get label() { return t('prio_high') }, color: '#c43d2b' },
+  { id: 'medium', get label() { return t('prio_medium') }, color: '#d98e32' },
+  { id: 'low', get label() { return t('prio_low') }, color: '#5f7c8a' },
+  { id: 'none', get label() { return t('prio_none') }, color: 'transparent' },
 ]
 
 export const priorityColor = (p) =>
@@ -85,12 +82,12 @@ export const iconGlyph = (g) => (g ? `${g}\uFE0E` : g)
 
 // Accent themes — retint the whole app. rgb feeds rgba(var(--accent-rgb), …).
 export const ACCENTS = [
-  { id: 'terracotta', name: 'Terracotta', accent: '#d85a30', accent2: '#ea6840', deep: '#c24a24', rgb: '216, 90, 48' },
-  { id: 'ember', name: 'Ember', accent: '#c43d2b', accent2: '#e0553f', deep: '#a8331f', rgb: '196, 61, 43' },
-  { id: 'amber', name: 'Amber', accent: '#c98a1e', accent2: '#dda23a', deep: '#a8720f', rgb: '201, 138, 30' },
-  { id: 'sage', name: 'Sage', accent: '#6f9b7a', accent2: '#84b28f', deep: '#588364', rgb: '111, 155, 122' },
-  { id: 'ocean', name: 'Ocean', accent: '#5f7c8a', accent2: '#74929f', deep: '#4c6570', rgb: '95, 124, 138' },
-  { id: 'plum', name: 'Plum', accent: '#8a5a7c', accent2: '#a06f92', deep: '#704764', rgb: '138, 90, 124' },
+  { id: 'terracotta', get name() { return t('accent_terracotta') }, accent: '#d85a30', accent2: '#ea6840', deep: '#c24a24', rgb: '216, 90, 48' },
+  { id: 'ember', get name() { return t('accent_ember') }, accent: '#c43d2b', accent2: '#e0553f', deep: '#a8331f', rgb: '196, 61, 43' },
+  { id: 'amber', get name() { return t('accent_amber') }, accent: '#c98a1e', accent2: '#dda23a', deep: '#a8720f', rgb: '201, 138, 30' },
+  { id: 'sage', get name() { return t('accent_sage') }, accent: '#6f9b7a', accent2: '#84b28f', deep: '#588364', rgb: '111, 155, 122' },
+  { id: 'ocean', get name() { return t('accent_ocean') }, accent: '#5f7c8a', accent2: '#74929f', deep: '#4c6570', rgb: '95, 124, 138' },
+  { id: 'plum', get name() { return t('accent_plum') }, accent: '#8a5a7c', accent2: '#a06f92', deep: '#704764', rgb: '138, 90, 124' },
 ]
 
 export const accentById = (id) => ACCENTS.find((a) => a.id === id) ?? ACCENTS[0]
@@ -112,10 +109,10 @@ export const DEFAULT_SETTINGS = {
 export const TEXT_SCALE = { min: 0.9, max: 1.4, step: 0.05 }
 
 export const AMBIENT_WIDGETS = [
-  { id: 'none', label: 'Off' },
-  { id: 'streak', label: 'Streak' },
-  { id: 'progress', label: 'Progress' },
-  { id: 'focus', label: 'Focus' },
+  { id: 'none', get label() { return t('widget_none') } },
+  { id: 'streak', get label() { return t('widget_streak') } },
+  { id: 'progress', get label() { return t('widget_progress') } },
+  { id: 'focus', get label() { return t('widget_focus') } },
 ]
 
 // Every ambient-mode knob. Sizes are literal px so a given monitor can be
@@ -179,7 +176,9 @@ function shadeHex(hex, amt) {
 export function deriveAccent(hex) {
   return {
     id: 'custom',
-    name: 'Custom',
+    get name() {
+      return t('accentCustom')
+    },
     accent: hex,
     accent2: shadeHex(hex, 0.16),
     deep: shadeHex(hex, -0.18),
@@ -219,28 +218,29 @@ export const HABIT_COLORS = ['#d85a30', '#d9a441', '#6f9b7a', '#5f7c8a', '#8a5a7
 
 // Onboarding "what will you use kiln for?" → starter folders.
 export const PURPOSES = [
-  { id: 'work', label: 'Work', name: 'Work', color: '#5f7c8a', icon: '◆' },
-  { id: 'study', label: 'Study', name: 'Study', color: '#8a5a7c', icon: '❋' },
-  { id: 'personal', label: 'Personal', name: 'Personal', color: '#7c8a4d', icon: '●' },
-  { id: 'fitness', label: 'Fitness', name: 'Fitness', color: '#6f9b7a', icon: '▲' },
-  { id: 'side', label: 'Side project', name: 'Side Project', color: '#d9a441', icon: '✳' },
-  { id: 'errands', label: 'Errands', name: 'Errands', color: '#b0a18c', icon: '✚' },
+  { id: 'work', get label() { return t('p_work') }, name: 'Work', color: '#5f7c8a', icon: '◆' },
+  { id: 'study', get label() { return t('p_study') }, name: 'Study', color: '#8a5a7c', icon: '❋' },
+  { id: 'personal', get label() { return t('p_personal') }, name: 'Personal', color: '#7c8a4d', icon: '●' },
+  { id: 'fitness', get label() { return t('p_fitness') }, name: 'Fitness', color: '#6f9b7a', icon: '▲' },
+  { id: 'side', get label() { return t('p_side') }, name: 'Side Project', color: '#d9a441', icon: '✳' },
+  { id: 'errands', get label() { return t('p_errands') }, name: 'Errands', color: '#b0a18c', icon: '✚' },
 ]
 
 // 'HH:MM' (24h) → friendly 12h label, e.g. '14:30' → '2:30 PM'
 export function fmtTime(hhmm) {
   if (!hhmm || !/^\d{1,2}:\d{2}$/.test(hhmm)) return ''
   const [h, m] = hhmm.split(':').map(Number)
+  if (currentLang() !== 'en') return fmtClock(new Date(2000, 0, 1, h, m), { hour: 'numeric', minute: '2-digit' })
   const ap = h < 12 ? 'AM' : 'PM'
   const h12 = h % 12 === 0 ? 12 : h % 12
   return `${h12}:${String(m).padStart(2, '0')} ${ap}`
 }
 
 export const REPEATS = [
-  { id: 'none', label: 'No repeat' },
-  { id: 'daily', label: 'Daily' },
-  { id: 'weekly', label: 'Weekly' },
-  { id: 'monthly', label: 'Monthly' },
+  { id: 'none', get label() { return t('repeat_none') } },
+  { id: 'daily', get label() { return t('repeat_daily') } },
+  { id: 'weekly', get label() { return t('repeat_weekly') } },
+  { id: 'monthly', get label() { return t('repeat_monthly') } },
 ]
 
 // Next occurrence of a repeating task. Keeps the original rhythm (a Monday
@@ -302,13 +302,13 @@ export function parseBackup(text) {
   try {
     data = JSON.parse(text)
   } catch {
-    throw new Error('That file isn’t a kiln backup (not valid JSON).')
+    throw new Error(t('backupNotJson'))
   }
   if (!Array.isArray(data?.projects) || !Array.isArray(data?.tasks)) {
-    throw new Error('That file doesn’t look like a kiln backup.')
+    throw new Error(t('backupNotKiln'))
   }
   const projects = data.projects.filter((p) => p && p.id && p.name)
-  if (!projects.length) throw new Error('That backup has no folders in it.')
+  if (!projects.length) throw new Error(t('backupNoFolders'))
   const ids = new Set(projects.map((p) => p.id))
   const tasks = data.tasks
     .filter((t) => t && t.id && typeof t.title === 'string')

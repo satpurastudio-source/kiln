@@ -18,6 +18,7 @@ import {
   ClockIcon,
   PlusIcon,
 } from './Icons'
+import { t, tn } from '../i18n'
 
 // full-row dragging only makes sense with a mouse; touch needs to scroll
 const FINE_POINTER =
@@ -93,16 +94,16 @@ const TaskItem = forwardRef(function TaskItem(
     pendingToggle.current = commit
     timer.current = setTimeout(() => {
       commit()
-      if (rep) toast(`Repeats ${rep} — next one queued`, '↻')
+      if (rep) toast(t('repeatQueued', { repeat: t(`repeat_${rep}`) }), '↻')
       else if (remaining > 0)
-        toast('Completed', '✓', {
-          label: 'Undo',
+        toast(t('completed'), '✓', {
+          label: t('undo'),
           fn: () => dispatch({ type: 'TOGGLE_TASK', id: task.id }),
         })
       if (remaining === 0 && !rep) {
         playFanfare()
         if (!heavyFxOff()) fireProjectConfetti(project?.color ?? '#d85a30')
-        toast(`${project?.name ?? 'Folder'} — 100% complete!`, '🎉')
+        toast(t('folderComplete', { name: project?.name ?? t('folder') }), '🎉')
       }
     }, 620)
   }
@@ -127,8 +128,8 @@ const TaskItem = forwardRef(function TaskItem(
     pendingToggle.current = null
     dispatch({ type: 'DELETE_TASK', id: task.id })
     playPop()
-    toast('Task deleted', '🗑', {
-      label: 'Undo',
+    toast(t('taskDeleted'), '🗑', {
+      label: t('undo'),
       fn: () => dispatch({ type: 'RESTORE_TASK', id: task.id }),
     })
   }
@@ -179,7 +180,7 @@ const TaskItem = forwardRef(function TaskItem(
               controls.start(e)
             }}
             onClick={(e) => e.stopPropagation()}
-            title="Drag to reorder"
+            title={t('dragToReorder')}
           >
             <GripIcon size={14} />
           </span>
@@ -211,7 +212,7 @@ const TaskItem = forwardRef(function TaskItem(
                 <span
                   className={`due ${isOverdue(task.due) ? 'overdue' : isToday(task.due) ? 'today' : ''}`}
                 >
-                  {isOverdue(task.due) ? `Overdue — ${fmtDue(task.due)}` : fmtDue(task.due)}
+                  {isOverdue(task.due) ? t('overdueDate', { date: fmtDue(task.due) }) : fmtDue(task.due)}
                   {task.time ? ` · ${fmtTime(task.time)}` : ''}
                 </span>
               )}
@@ -222,7 +223,7 @@ const TaskItem = forwardRef(function TaskItem(
               )}
               {task.repeat && task.repeat !== 'none' && (
                 <span className="notes-hint">
-                  <RepeatIcon size={10} /> {task.repeat}
+                  <RepeatIcon size={10} /> {t(`repeat_${task.repeat}`)}
                 </span>
               )}
               {task.subs?.length > 0 && (
@@ -233,11 +234,11 @@ const TaskItem = forwardRef(function TaskItem(
               )}
               {task.notes && (
                 <span className="notes-hint">
-                  <NoteIcon size={11} /> note
+                  <NoteIcon size={11} /> {t('note')}
                 </span>
               )}
               {task.pomos > 0 && (
-                <span className="pomos" title={`${task.pomos} pomodoro${task.pomos === 1 ? '' : 's'}`}>
+                <span className="pomos" title={tn('pomodoros', task.pomos)}>
                   <FlameIcon size={10} style={{ color: 'var(--accent)' }} /> ×{task.pomos}
                 </span>
               )}
@@ -254,7 +255,7 @@ const TaskItem = forwardRef(function TaskItem(
           {!task.done && (
             <button
               className="icon-btn row-focus"
-              title="Focus on this task"
+              title={t('focusOnTask')}
               onClick={(e) => {
                 e.stopPropagation()
                 startFocus(task.id)
@@ -265,7 +266,7 @@ const TaskItem = forwardRef(function TaskItem(
           )}
           <button
             className="icon-btn row-del"
-            title="Delete task"
+            title={t('deleteTask')}
             onClick={(e) => {
               e.stopPropagation()
               remove()
@@ -434,7 +435,7 @@ function Editor({ task, project, onDelete }) {
                   onClick={() =>
                     patch({ subs: subs.map((x) => (x.id === s.id ? { ...x, done: !x.done } : x)) })
                   }
-                  aria-label={s.done ? 'Mark step not done' : 'Mark step done'}
+                  aria-label={s.done ? t('markStepNotDone') : t('markStepDone')}
                 >
                   {s.done ? '✓' : ''}
                 </button>
@@ -442,7 +443,7 @@ function Editor({ task, project, onDelete }) {
                 <button
                   className="icon-btn sub-del"
                   onClick={() => patch({ subs: subs.filter((x) => x.id !== s.id) })}
-                  aria-label="Remove step"
+                  aria-label={t('removeStep')}
                 >
                   <XIcon size={10} />
                 </button>
@@ -455,7 +456,7 @@ function Editor({ task, project, onDelete }) {
           <input
             value={subText}
             maxLength={80}
-            placeholder="Add a step…"
+            placeholder={t('addStepPh')}
             onChange={(e) => setSubText(e.target.value)}
             enterKeyHint="done"
             onKeyDown={(e) => e.key === 'Enter' && addSub()}
@@ -464,7 +465,7 @@ function Editor({ task, project, onDelete }) {
         </div>
 
         <textarea
-          placeholder="Add a note…"
+          placeholder={t('addNotePh')}
           value={notes}
           onChange={(e) => {
             setNotes(e.target.value)
@@ -479,7 +480,7 @@ function Editor({ task, project, onDelete }) {
             value={task.due ?? ''}
             onChange={(e) => patch({ due: e.target.value || null })}
           />
-          <label className={`time-input ${task.time ? 'set' : ''}`} title="Set a time">
+          <label className={`time-input ${task.time ? 'set' : ''}`} title={t('setTime')}>
             <ClockIcon size={12} />
             <input
               type="time"
@@ -491,7 +492,7 @@ function Editor({ task, project, onDelete }) {
             className="select"
             value={task.repeat ?? 'none'}
             onChange={(e) => patch({ repeat: e.target.value })}
-            title="Repeat"
+            title={t('repeat')}
           >
             {REPEATS.map((r) => (
               <option key={r.id} value={r.id}>
@@ -526,13 +527,13 @@ function Editor({ task, project, onDelete }) {
             onClick={() => {
               saveDrafts()
               dispatch({ type: 'ARCHIVE_TASK', id: task.id })
-              toast('Archived', '🗄', {
-                label: 'Undo',
+              toast(t('archived'), '🗄', {
+                label: t('undo'),
                 fn: () => dispatch({ type: 'UNARCHIVE_TASK', id: task.id }),
               })
             }}
           >
-            Archive
+            {t('archive')}
           </button>
           <button
             className="danger-btn"
@@ -541,7 +542,7 @@ function Editor({ task, project, onDelete }) {
               onDelete()
             }}
           >
-            Delete
+            {t('delete')}
           </button>
         </div>
       </div>

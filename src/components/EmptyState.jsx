@@ -1,15 +1,17 @@
 import { motion } from 'framer-motion'
+import { t } from '../i18n'
 
 const STATES = {
-  search: { icon: '🔍', title: 'No matches', body: 'Nothing fits that search. Try different words.' },
-  today: { icon: '✨', title: 'All clear', body: 'Nothing due today. Enjoy it — or add something in the bar above.' },
-  upcoming: { icon: '🌅', title: 'A blank horizon', body: 'No scheduled tasks ahead. Add a due date to a task to see it here.' },
-  all: { icon: '🪐', title: 'A fresh start', body: 'No tasks yet. Write your first one in the bar above.' },
-  project: { icon: '🎯', title: 'Nothing here yet', body: 'This folder is empty. Add its first task in the bar above.' },
+  search: { icon: '🔍' },
+  today: { icon: '✨' },
+  upcoming: { icon: '🌅' },
+  all: { icon: '🪐' },
+  project: { icon: '🎯' },
 }
 
 export default function EmptyState({ kind }) {
-  const s = STATES[kind] ?? STATES.all
+  const k = STATES[kind] ? kind : 'all'
+  const s = STATES[k]
   return (
     <motion.div
       className="empty"
@@ -24,8 +26,8 @@ export default function EmptyState({ kind }) {
       >
         {s.icon}
       </motion.div>
-      <h3>{s.title}</h3>
-      <p>{s.body}</p>
+      <h3>{t(`empty_${k}_title`)}</h3>
+      <p>{t(`empty_${k}_body`)}</p>
     </motion.div>
   )
 }

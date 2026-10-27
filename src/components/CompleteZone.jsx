@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { onDrag } from '../store'
 import { DROP_ZONE_HEIGHT } from './TaskItem'
 import { FlameIcon } from './Icons'
+import { t } from '../i18n'
 
 // Invisible until a task is being dragged — then rises from the bottom.
 // Drop a task inside to complete it.
@@ -46,7 +47,7 @@ export default function CompleteZone() {
             >
               <FlameIcon size={20} />
             </motion.span>
-            {hot ? 'Release to complete' : 'Drop here to complete'}
+            {hot ? t('releaseToComplete') : t('dropToComplete')}
           </motion.div>
         </motion.div>
       )}

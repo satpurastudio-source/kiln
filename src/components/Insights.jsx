@@ -4,12 +4,11 @@ import { useStore, selectInsights, toast } from '../store'
 import { habitStreak, recentDays, todayStr, HABIT_COLORS } from '../utils'
 import { TargetIcon, ChartIcon, FlameIcon, PlusIcon, XIcon, LayersIcon, ClockIcon } from './Icons'
 import Tip from './Tip'
+import { t, fmtClock } from '../i18n'
 
 const hourLabel = (h) => {
   if (h == null) return '—'
-  const ap = h < 12 ? 'AM' : 'PM'
-  const h12 = h % 12 === 0 ? 12 : h % 12
-  return `${h12} ${ap}`
+  return fmtClock(new Date(2000, 0, 1, h), { hour: 'numeric' })
 }
 
 function HabitRow({ habit, days }) {
@@ -30,7 +29,7 @@ function HabitRow({ habit, days }) {
         className={`habit-check ${doneToday ? 'on' : ''}`}
         style={doneToday ? { background: habit.color, borderColor: habit.color } : { borderColor: habit.color }}
         onClick={() => dispatch({ type: 'TOGGLE_HABIT', id: habit.id })}
-        aria-label={doneToday ? 'Mark not done today' : 'Mark done today'}
+        aria-label={doneToday ? t('markNotDoneToday') : t('markDoneToday')}
       >
         {doneToday && '✓'}
       </button>
@@ -58,9 +57,9 @@ function HabitRow({ habit, days }) {
         className="icon-btn habit-del"
         onClick={() => {
           dispatch({ type: 'DELETE_HABIT', id: habit.id })
-          toast('Habit removed', '🗑')
+          toast(t('habitRemoved'), '🗑')
         }}
-        title="Remove habit"
+        title={t('removeHabit')}
       >
         <XIcon size={12} />
       </button>
@@ -79,26 +78,25 @@ export default function Insights() {
     if (!name.trim()) return
     dispatch({ type: 'ADD_HABIT', name, color })
     setName('')
-    toast('Habit added — check it off daily', '✦')
+    toast(t('habitAdded'), '✦')
   }
 
   const cards = [
-    { label: 'Done this week', value: stats.totalWeek },
-    { label: 'Day streak', value: stats.streak, flame: true },
-    { label: 'Focus sessions', value: stats.totalPomos },
-    { label: 'Best day', value: stats.bestDay.count > 0 ? stats.bestDay.label : '—' },
+    { label: t('doneThisWeek'), value: stats.totalWeek },
+    { label: t('dayStreak'), value: stats.streak, flame: true },
+    { label: t('focusSessions'), value: stats.totalPomos },
+    { label: t('bestDay'), value: stats.bestDay.count > 0 ? stats.bestDay.label : '—' },
   ]
 
   return (
     <div className="insights">
       <Tip id="insights">
-        Add daily habits to build streaks, and watch your week come together in the charts below.
-        Completed tasks and focus sessions feed these numbers automatically.
+        {t('tipInsights')}
       </Tip>
       {/* ------------------------------- habits ------------------------------- */}
       <section className="ins-section">
         <h2 className="ins-title">
-          <TargetIcon size={16} /> Habits
+          <TargetIcon size={16} /> {t('habits')}
         </h2>
 
         <div className="habit-add">
@@ -106,7 +104,7 @@ export default function Insights() {
             className="habit-input"
             value={name}
             maxLength={40}
-            placeholder="New habit — e.g. Read 20 min"
+            placeholder={t('newHabitPh')}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && addHabit()}
           />
@@ -117,19 +115,19 @@ export default function Insights() {
                 className={`habit-color ${color === c ? 'on' : ''}`}
                 style={{ background: c, color: c }}
                 onClick={() => setColor(c)}
-                aria-label={`Use ${c}`}
+                aria-label={t('useColor', { color: c })}
               />
             ))}
           </div>
           <button className="btn primary habit-add-btn" onClick={addHabit}>
-            <PlusIcon size={13} sw={2.4} /> Add
+            <PlusIcon size={13} sw={2.4} /> {t('add')}
           </button>
         </div>
 
         {state.habits.length === 0 ? (
           <div className="ins-empty">
             <TargetIcon size={22} />
-            <p>Track a daily habit and build a streak. Add one above to start.</p>
+            <p>{t('habitsEmpty')}</p>
           </div>
         ) : (
           <div className="habit-list">
@@ -143,7 +141,7 @@ export default function Insights() {
       {/* ----------------------------- this week ------------------------------ */}
       <section className="ins-section">
         <h2 className="ins-title">
-          <ChartIcon size={16} /> This week
+          <ChartIcon size={16} /> {t('thisWeek')}
         </h2>
 
         <div className="stat-cards">
@@ -179,7 +177,7 @@ export default function Insights() {
         {stats.byFolder.length > 0 && (
           <div className="folder-bars">
             <div className="fb-head">
-              <LayersIcon size={13} /> By folder
+              <LayersIcon size={13} /> {t('byFolder')}
             </div>
             {stats.byFolder.map((f) => (
               <div key={f.name} className="fb-row">
@@ -201,7 +199,7 @@ export default function Insights() {
 
         {stats.bestHour != null && (
           <p className="ins-foot">
-            <ClockIcon size={12} /> You finish the most around <b>{hourLabel(stats.bestHour)}</b>.
+            <ClockIcon size={12} /> {t('bestHour')} <b>{hourLabel(stats.bestHour)}</b>
           </p>
         )}
       </section>

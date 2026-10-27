@@ -2,6 +2,7 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useStore, selectActive, projectProgress, todayProgress } from '../store'
 import { fmtLongDate, greeting, iconGlyph } from '../utils'
 import { SearchIcon, CommandIcon } from './Icons'
+import { t, tn, fmtNum } from '../i18n'
 
 export default function Header({ query, setQuery, searchRef, openPalette }) {
   const { state } = useStore()
@@ -20,7 +21,7 @@ export default function Header({ query, setQuery, searchRef, openPalette }) {
         ? { pct: today.pct, done: today.done, total: today.total, color: 'var(--accent)' }
         : null
 
-  const firstName = state.profile?.name?.trim().split(/\s+/)[0] || 'Capt'
+  const firstName = state.profile?.name?.trim().split(/\s+/)[0] || t('friendShort')
 
   let title
   if (view.type === 'today') {
@@ -33,71 +34,71 @@ export default function Header({ query, setQuery, searchRef, openPalette }) {
   } else if (view.type === 'upcoming')
     title = (
       <>
-        Upcoming<em>.</em>
+        {t('nav_upcoming')}<em>.</em>
       </>
     )
   else if (view.type === 'calendar')
     title = (
       <>
-        Calendar<em>.</em>
+        {t('nav_calendar')}<em>.</em>
       </>
     )
   else if (view.type === 'insights')
     title = (
       <>
-        Insights<em>.</em>
+        {t('nav_insights')}<em>.</em>
       </>
     )
   else if (view.type === 'archive')
     title = (
       <>
-        Archive<em>.</em>
+        {t('nav_archive')}<em>.</em>
       </>
     )
   else if (view.type === 'trash')
     title = (
       <>
-        Trash<em>.</em>
+        {t('nav_trash')}<em>.</em>
       </>
     )
   else if (view.type === 'all')
     title = (
       <>
-        All Tasks<em>.</em>
+        {t('nav_all')}<em>.</em>
       </>
     )
   else
     title = (
       <>
-        {project?.name ?? 'Folder'}
+        {project?.name ?? t('folder')}
         <em>.</em>
       </>
     )
 
   const milestone = bar
     ? bar.pct >= 100
-      ? 'cleared — nice work ✦'
+      ? t('msCleared')
       : bar.pct >= 80
-        ? 'so close — one more push ✦'
+        ? t('msClose')
         : bar.pct >= 50
-          ? 'halfway there'
+          ? t('msHalfway')
           : null
     : null
 
   const sub =
     view.type === 'today'
-      ? `${fmtLongDate()} — ${activeCount === 0 ? 'all clear' : `${activeCount} task${activeCount === 1 ? '' : 's'} to go`}`
+      ? `${fmtLongDate()} — ${activeCount === 0 ? t('allClearLower') : tn('tasksToGo', activeCount)}`
       : view.type === 'project' && prog
-        ? `${prog.done} of ${prog.total} complete`
+        ? t('doneOfTotal', { done: fmtNum(prog.done), total: fmtNum(prog.total) })
         : view.type === 'calendar'
-          ? `${activeCount} scheduled task${activeCount === 1 ? '' : 's'}`
+          ? tn('scheduledTasks', activeCount)
           : view.type === 'insights'
-            ? 'your habits & weekly progress'
+            ? t('subInsights')
             : view.type === 'archive'
-              ? 'tucked away, out of your way'
+              ? t('subArchive')
               : view.type === 'trash'
-                ? 'recently deleted — auto-erased after 30 days'
-                : `${activeCount} open task${activeCount === 1 ? '' : 's'}`
+                ? t('subTrash')
+                : tn('openTasks', activeCount)
 
   const viewKey = `${view.type}-${view.projectId ?? ''}`
 
@@ -151,7 +152,7 @@ export default function Header({ query, setQuery, searchRef, openPalette }) {
               ref={searchRef}
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search…"
+              placeholder={t('searchPh')}
               onKeyDown={(e) => {
                 if (e.key === 'Escape') {
                   setQuery('')
@@ -160,7 +161,7 @@ export default function Header({ query, setQuery, searchRef, openPalette }) {
               }}
             />
           </label>
-          <button className="icon-btn" onClick={openPalette} title="Command palette (Ctrl+K)">
+          <button className="icon-btn" onClick={openPalette} title={t('commandPaletteTitle')}>
             <CommandIcon size={14} />
           </button>
         </div>

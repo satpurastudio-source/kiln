@@ -3,12 +3,17 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useStore, toast } from '../store'
 import { supabase } from '../supabase'
 import { FlameIcon } from './Icons'
-import { APP_NAME, APP_LABEL } from '../brand'
+import { APP_NAME } from '../brand'
 import { linkBase } from '../native'
+import { t } from '../i18n'
 
 // Where email links land. Inside the app shell the page lives at kiln://,
 // which a mail app can't open — so links go to the web app instead.
 const RESEND_WAIT = 60 // seconds: Supabase sends at most one email a minute
+
+// Supabase's commonest messages, in the reader's language; anything else as-is
+const authError = (m) =>
+  ({ 'Invalid login credentials': t('errBadCredentials'), 'User already registered': t('errUserExists') })[m] ?? m
 
 // onboarding hands off the chosen name + whether they wanted to sign up
 const readIntent = () => {
@@ -65,7 +70,7 @@ export default function Login() {
     if (!password) return false
     const { error: err } = await supabase.auth.signInWithPassword({ email, password })
     if (err) return false
-    toast('Email verified', '✓')
+    toast(t('emailVerified'), '✓')
     return true
   }
 
@@ -87,19 +92,19 @@ export default function Login() {
   }
 
   const forgot = async () => {
-    if (!email.includes('@')) return setError('Enter your account email first.')
+    if (!email.includes('@')) return setError(t('errEnterEmailFirst'))
     setBusy(true)
     setError('')
     const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${linkBase()}?reset=1`,
     })
     setBusy(false)
-    if (err) return setError(err.message)
+    if (err) return setError(authError(err.message))
     setMode('sent-reset')
   }
 
   const signIn = async () => {
-    if (!email.includes('@') || !password) return setError('Enter your email and password.')
+    if (!email.includes('@') || !password) return setError(t('errEnterEmailPw'))
     setBusy(true)
     setError('')
     const { error: err } = await supabase.auth.signInWithPassword({ email, password })
@@ -110,14 +115,14 @@ export default function Login() {
       setCode('')
       return resend(true)
     }
-    if (err) setError(err.message)
+    if (err) setError(authError(err.message))
     // success: the store's auth listener takes over and opens the app
   }
 
   const signUp = async () => {
-    if (!name.trim()) return setError('Tell us your name.')
-    if (!email.includes('@')) return setError('That email doesn’t look right.')
-    if (password.length < 6) return setError('Password needs at least 6 characters.')
+    if (!name.trim()) return setError(t('errTellName'))
+    if (!email.includes('@')) return setError(t('errEmailWrong'))
+    if (password.length < 6) return setError(t('errPwShort'))
     setBusy(true)
     setError('')
     const { data, error: err } = await supabase.auth.signUp({
@@ -130,7 +135,7 @@ export default function Login() {
       },
     })
     setBusy(false)
-    if (err) return setError(err.message)
+    if (err) return setError(authError(err.message))
     if (data.session) return // email confirmation disabled: signed in immediately
     setCode('')
     setResendIn(RESEND_WAIT)
@@ -142,7 +147,7 @@ export default function Login() {
   // without the link having to find its way back to this exact screen.
   const verifyCode = async () => {
     const token = code.replace(/\D/g, '')
-    if (token.length < 6) return setError('Enter the code from the email.')
+    if (token.length < 6) return setError(t('errEnterCode'))
     setBusy(true)
     setError('')
     const { error: err } = await supabase.auth.verifyOtp({ email, token, type: 'signup' })
@@ -151,10 +156,10 @@ export default function Login() {
     if (err)
       return setError(
         /expired|invalid/i.test(err.message)
-          ? 'That code didn’t work. Use the code from the newest kiln email, or send a new one.'
-          : err.message
+          ? t('errCodeBad')
+          : authError(err.message)
       )
-    toast('Email verified', '✓')
+    toast(t('emailVerified'), '✓')
     // signed in: the store's auth listener takes over and opens the app
   }
 
@@ -175,23 +180,23 @@ export default function Login() {
       setResendIn(wait || 0)
       setError(
         wait
-          ? 'A code went out moments ago. Check your inbox, or send another when the timer ends.'
+          ? t('errCodeRecent')
           : /rate limit/i.test(err.message)
-            ? 'Too many emails to this address. Use the newest code, or try again in a while.'
+            ? t('errRateLimit')
             : err.message
       )
     } else {
       // a resend retires the previous code, so don't leave it in the box
       setCode('')
-      toast('New code sent. Use the newest email', '✉')
+      toast(t('newCodeSent'), '✉')
     }
   }
 
   const guestStart = () => {
     const clean = name.trim()
-    if (!clean) return setError('Tell us your name.')
+    if (!clean) return setError(t('errTellName'))
     dispatch({ type: 'SET_PROFILE', profile: { name: clean, createdAt: Date.now() } })
-    toast(`Welcome, ${clean.split(/\s+/)[0]}`, '🔥')
+    toast(t('welcomeToast', { name: clean.split(/\s+/)[0] }), '🔥')
   }
 
   const submit = mode === 'signin' ? signIn : mode === 'signup' ? signUp : guestStart
@@ -232,17 +237,18 @@ export default function Login() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.55, duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
         >
-          your {APP_LABEL} — synced everywhere
+          {t('loginTagline')}
         </motion.p>
 
         <AnimatePresence mode="wait" initial={false}>
           {mode === 'sent' ? (
             <motion.div key="sent" {...fade}>
               <div className="login-sent-icon">✉</div>
-              <p className="login-sent-title">Check your inbox</p>
+              <p className="login-sent-title">{t('checkInbox')}</p>
               <p className="login-note">
-                We sent a code to <b>{email}</b>.<br />
-                Type the 6 digits here to finish signing up.
+                {t('codeSentTo')} <b>{email}</b>
+                <br />
+                {t('codeSentHint')}
               </p>
               <input
                 type="text"
@@ -253,7 +259,7 @@ export default function Login() {
                 maxLength={10}
                 value={code}
                 placeholder="••••••"
-                aria-label="Verification code"
+                aria-label={t('verificationCode')}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
                 onKeyDown={(e) => e.key === 'Enter' && !busy && verifyCode()}
               />
@@ -265,39 +271,40 @@ export default function Login() {
                 whileTap={{ scale: 0.97 }}
                 style={{ opacity: busy ? 0.6 : 1 }}
               >
-                {busy ? 'One moment…' : 'Verify & enter →'}
+                {busy ? t('oneMoment') : t('verifyEnter')}
               </motion.button>
               <div className="login-alt">
                 <button className="login-link" onClick={() => resend()} disabled={resendIn > 0}>
-                  {resendIn > 0 ? `Send a new code in ${resendIn}s` : 'Didn’t get it? Send a new code'}
+                  {resendIn > 0 ? t('resendIn', { n: resendIn }) : t('resendCode')}
                 </button>
                 <button className="login-link" onClick={() => switchMode('signin')}>
-                  ← back to sign in
+                  ← {t('backToSignIn')}
                 </button>
               </div>
             </motion.div>
           ) : mode === 'sent-reset' ? (
             <motion.div key="sent-reset" {...fade}>
               <div className="login-sent-icon">✉</div>
-              <p className="login-sent-title">Check your inbox</p>
+              <p className="login-sent-title">{t('checkInbox')}</p>
               <p className="login-note">
-                We sent a password reset link to <b>{email}</b>.<br />
-                Click it to choose a new password.
+                {t('resetSentTo')} <b>{email}</b>
+                <br />
+                {t('resetSentHint')}
               </p>
               <button className="login-link" onClick={() => switchMode('signin')}>
-                ← back to sign in
+                ← {t('backToSignIn')}
               </button>
             </motion.div>
           ) : mode === 'guest' ? (
             <motion.div key="guest" {...fade}>
-              <label className="login-label">What should we call you?</label>
+              <label className="login-label">{t('whatCallYou')}</label>
               <input
                 type="text"
                 className="login-input"
                 autoFocus
                 value={name}
                 maxLength={40}
-                placeholder="Your name"
+                placeholder={t('yourName')}
                 onChange={(e) => setName(e.target.value)}
                 onKeyDown={onKey}
               />
@@ -307,11 +314,11 @@ export default function Login() {
                 onClick={guestStart}
                 whileTap={{ scale: 0.97 }}
               >
-                Continue on this device →
+                {t('continueDevice')} →
               </motion.button>
-              <p className="login-note">Guest data stays on this device only.</p>
+              <p className="login-note">{t('guestNote')}</p>
               <button className="login-link" onClick={() => switchMode('signin')}>
-                ← back to sign in
+                ← {t('backToSignIn')}
               </button>
             </motion.div>
           ) : (
@@ -322,7 +329,7 @@ export default function Login() {
                   className="login-input"
                   value={name}
                   maxLength={40}
-                  placeholder="Your name"
+                  placeholder={t('yourName')}
                   onChange={(e) => setName(e.target.value)}
                   onKeyDown={onKey}
                 />
@@ -340,7 +347,7 @@ export default function Login() {
                 type="password"
                 className="login-input"
                 value={password}
-                placeholder={mode === 'signup' ? 'Choose a password (6+ chars)' : 'Password'}
+                placeholder={mode === 'signup' ? t('choosePassword') : t('password')}
                 onChange={(e) => setPassword(e.target.value)}
                 onKeyDown={onKey}
               />
@@ -352,25 +359,25 @@ export default function Login() {
                 whileTap={{ scale: 0.97 }}
                 style={{ opacity: busy ? 0.6 : 1 }}
               >
-                {busy ? 'One moment…' : mode === 'signin' ? 'Sign in →' : 'Create account →'}
+                {busy ? t('oneMoment') : mode === 'signin' ? t('signInArrow') : t('createAccountArrow')}
               </motion.button>
 
               <div className="login-alt">
                 {mode === 'signin' ? (
                   <>
                     <button className="login-link" onClick={() => switchMode('signup')}>
-                      New here? <b>Create an account</b>
+                      {t('newHere')} <b>{t('createAnAccount')}</b>
                     </button>
                     <button className="login-link" onClick={forgot}>
-                      Forgot password?
+                      {t('forgotPassword')}
                     </button>
                     <button className="login-link" onClick={() => switchMode('guest')}>
-                      or continue without an account
+                      {t('continueNoAccount')}
                     </button>
                   </>
                 ) : (
                   <button className="login-link" onClick={() => switchMode('signin')}>
-                    Already have an account? <b>Sign in</b>
+                    {t('haveAccount')} <b>{t('signIn')}</b>
                   </button>
                 )}
               </div>
@@ -379,9 +386,9 @@ export default function Login() {
         </AnimatePresence>
 
         <div className="login-legal">
-          <a href={`${import.meta.env.BASE_URL}privacy.html`} target="_blank" rel="noreferrer">Privacy</a>
+          <a href={`${import.meta.env.BASE_URL}privacy.html`} target="_blank" rel="noreferrer">{t('privacy')}</a>
           <span>·</span>
-          <a href={`${import.meta.env.BASE_URL}terms.html`} target="_blank" rel="noreferrer">Terms</a>
+          <a href={`${import.meta.env.BASE_URL}terms.html`} target="_blank" rel="noreferrer">{t('terms')}</a>
         </div>
       </motion.div>
     </div>

@@ -3,15 +3,17 @@ import Sheet from './Sheet'
 import { toast } from '../store'
 import { MailIcon } from './Icons'
 import { platform } from '../native'
+import { t } from '../i18n'
 
 // Static app, no backend for this: feedback opens the person's own mail app
 // with everything filled in, and the address is shown to copy as a fallback.
 export const FEEDBACK_EMAIL = 'satpurastudio@gmail.com'
 
 const KINDS = [
-  { id: 'bug', label: 'Something’s broken' },
-  { id: 'idea', label: 'An idea' },
-  { id: 'other', label: 'Something else' },
+  // `en` labels the email subject, so the inbox reads the same whatever the language
+  { id: 'bug', en: 'Something’s broken', key: 'fbBug' },
+  { id: 'idea', en: 'An idea', key: 'fbIdea' },
+  { id: 'other', en: 'Something else', key: 'fbOther' },
 ]
 
 const deviceInfo = () =>
@@ -27,17 +29,17 @@ export default function Feedback({ onClose }) {
   const [withDevice, setWithDevice] = useState(true)
 
   const send = () => {
-    const label = KINDS.find((k) => k.id === kind).label
+    const label = KINDS.find((k) => k.id === kind).en
     const subject = `[kiln] ${label}`
     const body = `${text.trim()}\n\n${withDevice ? `---\n${deviceInfo()}\n` : ''}`
     window.location.href = `mailto:${FEEDBACK_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
-    toast('Opening your mail app…', '✉')
+    toast(t('openingMail'), '✉')
   }
 
   const copy = async () => {
     try {
       await navigator.clipboard.writeText(FEEDBACK_EMAIL)
-      toast('Email address copied', '✓')
+      toast(t('emailCopied'), '✓')
     } catch {
       toast(FEEDBACK_EMAIL, '✉')
     }
@@ -45,25 +47,25 @@ export default function Feedback({ onClose }) {
 
   return (
     <Sheet
-      title="Send feedback"
+      title={t('sendFeedbackTitle')}
       onClose={onClose}
       actions={
         <button className="btn primary btn-icon" onClick={send} disabled={!text.trim()}>
-          <MailIcon size={14} /> Send
+          <MailIcon size={14} /> {t('send')}
         </button>
       }
     >
       <section className="set-section">
-        <label className="set-label">What’s it about?</label>
+        <label className="set-label">{t('fbWhatAbout')}</label>
         <div className="seg seg-wrap">
           {KINDS.map((k) => (
             <button key={k.id} className={`seg-btn ${kind === k.id ? 'on' : ''}`} onClick={() => setKind(k.id)}>
-              {k.label}
+              {t(k.key)}
             </button>
           ))}
         </div>
         <label className="set-label" style={{ marginTop: 14 }}>
-          {kind === 'bug' ? 'What happened, and what did you expect?' : 'Tell us'}
+          {kind === 'bug' ? t('fbWhatHappened') : t('fbTellUs')}
         </label>
         <textarea
           className="set-input set-textarea"
@@ -71,13 +73,13 @@ export default function Feedback({ onClose }) {
           value={text}
           maxLength={4000}
           autoFocus
-          placeholder={kind === 'bug' ? 'I tapped… and then…' : 'It would be great if…'}
+          placeholder={kind === 'bug' ? t('fbBugPh') : t('fbIdeaPh')}
           onChange={(e) => setText(e.target.value)}
         />
         <div className="set-row">
           <span>
-            Include device details
-            <span className="set-sub">App version, browser and screen size. Helps us find bugs faster.</span>
+            {t('fbDevice')}
+            <span className="set-sub">{t('fbDeviceSub')}</span>
           </span>
           <button
             className={`switch ${withDevice ? 'on' : ''}`}
@@ -89,7 +91,7 @@ export default function Feedback({ onClose }) {
           </button>
         </div>
         <p className="set-hint">
-          Opens your mail app. No mail app? Write to{' '}
+          {t('fbOpensMail')}{' '}
           <button className="link-btn" onClick={copy}>
             {FEEDBACK_EMAIL}
           </button>

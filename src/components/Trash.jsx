@@ -2,14 +2,15 @@ import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useStore, toast, TRASH_TTL } from '../store'
 import { TrashIcon } from './Icons'
+import { t, tn } from '../i18n'
 
 function formatTimeLeft(ms) {
-  if (ms <= 0) return 'now'
+  if (ms <= 0) return t('now')
   const days = Math.floor(ms / 86400000)
-  if (days >= 1) return `${days}d`
+  if (days >= 1) return t('daysShort', { n: days })
   const hours = Math.floor(ms / 3600000)
-  if (hours >= 1) return `${hours}h`
-  return `${Math.max(1, Math.floor(ms / 60000))}m`
+  if (hours >= 1) return t('hoursShort', { n: hours })
+  return t('minutesShort', { n: Math.max(1, Math.floor(ms / 60000)) })
 }
 
 export default function Trash() {
@@ -30,7 +31,7 @@ export default function Trash() {
     return (
       <div className="ins-empty archive-empty">
         <TrashIcon size={22} />
-        <p>Trash is empty. Deleted tasks land here and are erased after 30 days.</p>
+        <p>{t('trashEmpty')}</p>
       </div>
     )
   }
@@ -38,19 +39,19 @@ export default function Trash() {
   return (
     <div className="trash-view">
       <div className="trash-head">
-        <span>Deleted tasks are erased 30 days after removal.</span>
+        <span>{t('trashHead')}</span>
         <button
           className="mini-btn danger"
           onClick={() => {
             const items = state.trash
             dispatch({ type: 'EMPTY_TRASH' })
-            toast(`Erased ${items.length} task${items.length === 1 ? '' : 's'}`, '🗑', {
-              label: 'Undo',
+            toast(tn('erasedTasks', items.length), '🗑', {
+              label: t('undo'),
               fn: () => dispatch({ type: 'RESTORE_TRASH', items }),
             })
           }}
         >
-          Empty now
+          {t('emptyNow')}
         </button>
       </div>
       <ul className="archive-list">
@@ -83,13 +84,13 @@ export default function Trash() {
                     className="mini-btn"
                     onClick={() => {
                       dispatch({ type: 'RESTORE_TASK', id: t.id })
-                      toast('Restored', '↩')
+                      toast(t('restored'), '↩')
                     }}
                   >
-                    Restore
+                    {t('restore')}
                   </button>
                   <button className="mini-btn danger" onClick={() => dispatch({ type: 'PURGE_TRASH', id: t.id })}>
-                    Delete now
+                    {t('deleteNow')}
                   </button>
                 </div>
               </motion.li>

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { PlusIcon, CalendarIcon, ClockIcon, FlagIcon, FlameIcon } from './Icons'
+import { fmtTime } from '../utils'
+import { t, fmtDate } from '../i18n'
 
 // Small looping animations that show each feature in action inside onboarding.
 // All are decorative and self-contained (their own timers, cleaned up on unmount).
@@ -17,33 +19,39 @@ const useCycle = (n, ms) => {
 /* type naturally → tokens become pills → collapses into a filed task.
    Alternates a relative date ("tomorrow") with a real one ("26 oct") so
    both read as things you can type. */
-const NL_EXAMPLES = [
-  {
-    text: 'gym tomorrow 7am !high #fitness',
-    title: 'gym',
-    meta: 'Tomorrow · 7:00 AM',
-    pills: [
-      { key: 'd', icon: <CalendarIcon size={11} />, label: 'Tomorrow' },
-      { key: 't', icon: <ClockIcon size={11} />, label: '7:00 AM' },
-      { key: 'p', icon: <FlagIcon size={10} filled />, label: 'High' },
-      { key: 'f', dot: true, label: 'Fitness' },
-    ],
-  },
-  {
-    text: 'pay rent 26 oct 6pm #home',
-    title: 'pay rent',
-    meta: 'Oct 26 · 6:00 PM',
-    pills: [
-      { key: 'd', icon: <CalendarIcon size={11} />, label: 'Oct 26' },
-      { key: 't', icon: <ClockIcon size={11} />, label: '6:00 PM' },
-      { key: 'f', dot: true, label: 'Home' },
-    ],
-  },
-]
+// The typed text stays English (that's what the parser reads); what it turns
+// into is shown in the reader's language.
+const nlExamples = () => {
+  const oct26 = fmtDate(new Date(2026, 9, 26), { month: 'short', day: 'numeric' })
+  return [
+    {
+      text: 'gym tomorrow 7am !high #fitness',
+      title: 'gym',
+      meta: `${t('tomorrow')} · ${fmtTime('07:00')}`,
+      pills: [
+        { key: 'd', icon: <CalendarIcon size={11} />, label: t('tomorrow') },
+        { key: 't', icon: <ClockIcon size={11} />, label: fmtTime('07:00') },
+        { key: 'p', icon: <FlagIcon size={10} filled />, label: t('prio_high') },
+        { key: 'f', dot: true, label: t('p_fitness') },
+      ],
+    },
+    {
+      text: 'pay rent 26 oct 6pm #home',
+      title: 'pay rent',
+      meta: `${oct26} · ${fmtTime('18:00')}`,
+      pills: [
+        { key: 'd', icon: <CalendarIcon size={11} />, label: oct26 },
+        { key: 't', icon: <ClockIcon size={11} />, label: fmtTime('18:00') },
+        { key: 'f', dot: true, label: t('home') },
+      ],
+    },
+  ]
+}
 
 export function NLDemo() {
-  const tick = useCycle(NL_EXAMPLES.length * 3, 1700)
-  const ex = NL_EXAMPLES[Math.floor(tick / 3)]
+  const examples = nlExamples()
+  const tick = useCycle(examples.length * 3, 1700)
+  const ex = examples[Math.floor(tick / 3)]
   const phase = tick % 3
   const text = phase === 2 ? ex.title : ex.text
   return (
@@ -128,7 +136,7 @@ export function TapDemo({ accent }) {
         </svg>
       </button>
       <span className="demo-tap-title">
-        Finish the report
+        {t('demoFinishReport')}
         <motion.span
           className="demo-strike"
           initial={false}
@@ -147,7 +155,7 @@ export function CalendarDemo() {
   return (
     <div className="demo demo-cal">
       <div className="demo-cal-head">
-        {['M', 'T', 'W', 'T', 'F', 'S', 'S'].map((d, i) => (
+        {[0, 1, 2, 3, 4, 5, 6].map((i) => fmtDate(new Date(2024, 0, 1 + i), { weekday: 'narrow' })).map((d, i) => (
           <span key={i}>{d}</span>
         ))}
       </div>
@@ -196,7 +204,7 @@ export function FocusDemo() {
       </svg>
       <div className="demo-focus-label">
         <b>24:31</b>
-        <span>focus · deep work</span>
+        <span>{t('demoFocusLabel')}</span>
       </div>
     </div>
   )
@@ -211,7 +219,7 @@ export function MomentumDemo({ accent }) {
     <div className="demo demo-momentum">
       <div className="demo-habit">
         <div className="demo-habit-top">
-          <span className="demo-habit-name">Read 20 min</span>
+          <span className="demo-habit-name">{t('demoHabit')}</span>
           <span className="demo-habit-streak" style={{ color: accent }}>
             <FlameIcon size={12} /> {n}
           </span>

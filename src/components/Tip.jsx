@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { XIcon, SparkleIcon } from './Icons'
+import { t, tn } from '../i18n'
 
 // A one-time coaching hint shown the first time a user reaches a view/feature.
 // Dismissed tips are remembered in localStorage so they never nag again.
@@ -56,7 +57,7 @@ export default function Tip({ id, children }) {
             <SparkleIcon size={12} />
           </span>
           <span className="tip-text">{children}</span>
-          <button className="tip-x" onClick={dismiss} aria-label="Dismiss tip">
+          <button className="tip-x" onClick={dismiss} aria-label={t('dismissTip')}>
             <XIcon size={12} />
           </button>
         </motion.div>

@@ -40,6 +40,7 @@ import {
   MailIcon,
   GiftIcon,
 } from './Icons'
+import { t, tn } from '../i18n'
 
 export default function CommandPalette({ onClose, onNewProject, onOpenSettings, onOpenSheet, onOpenTask }) {
   const { state, dispatch, signOut } = useStore()
@@ -55,95 +56,95 @@ export default function CommandPalette({ onClose, onNewProject, onOpenSettings, 
   const items = useMemo(() => {
     const go = (view) => () => dispatch({ type: 'SET_VIEW', view })
     const base = [
-      { icon: <SunIcon size={14} />, label: 'Go to Today', hint: 'View', fn: go({ type: 'today', projectId: null }) },
-      { icon: <ClockIcon size={14} />, label: 'Go to Upcoming', hint: 'View', fn: go({ type: 'upcoming', projectId: null }) },
-      { icon: <CalendarIcon size={14} />, label: 'Go to Calendar', hint: 'View', fn: go({ type: 'calendar', projectId: null }) },
-      { icon: <LayersIcon size={14} />, label: 'Go to All Tasks', hint: 'View', fn: go({ type: 'all', projectId: null }) },
-      { icon: <ChartIcon size={14} />, label: 'Go to Insights', hint: 'View', fn: go({ type: 'insights', projectId: null }) },
-      { icon: <ArchiveIcon size={14} />, label: 'Go to Archive', hint: 'View', fn: go({ type: 'archive', projectId: null }) },
-      { icon: <TrashIcon size={14} />, label: 'Go to Trash', hint: 'View', fn: go({ type: 'trash', projectId: null }) },
+      { icon: <SunIcon size={14} />, label: t('goTo', { name: t('nav_today') }), hint: t('hintView'), fn: go({ type: 'today', projectId: null }) },
+      { icon: <ClockIcon size={14} />, label: t('goTo', { name: t('nav_upcoming') }), hint: t('hintView'), fn: go({ type: 'upcoming', projectId: null }) },
+      { icon: <CalendarIcon size={14} />, label: t('goTo', { name: t('nav_calendar') }), hint: t('hintView'), fn: go({ type: 'calendar', projectId: null }) },
+      { icon: <LayersIcon size={14} />, label: t('goTo', { name: t('nav_all') }), hint: t('hintView'), fn: go({ type: 'all', projectId: null }) },
+      { icon: <ChartIcon size={14} />, label: t('goTo', { name: t('nav_insights') }), hint: t('hintView'), fn: go({ type: 'insights', projectId: null }) },
+      { icon: <ArchiveIcon size={14} />, label: t('goTo', { name: t('nav_archive') }), hint: t('hintView'), fn: go({ type: 'archive', projectId: null }) },
+      { icon: <TrashIcon size={14} />, label: t('goTo', { name: t('nav_trash') }), hint: t('hintView'), fn: go({ type: 'trash', projectId: null }) },
       ...state.projects.map((p) => ({
         icon: <span style={{ color: p.color }}>{iconGlyph(p.icon)}</span>,
-        label: `Go to ${p.name}`,
-        hint: 'Folder',
+        label: t('goTo', { name: p.name }),
+        hint: t('folder'),
         fn: go({ type: 'project', projectId: p.id }),
       })),
       {
         icon: <FlameIcon size={14} />,
-        label: 'Open Ambient mode',
-        hint: 'Action',
+        label: t('openAmbient'),
+        hint: t('hintAction'),
         fn: () => window.open(location.pathname + '?ambient=1', 'kiln-ambient', 'popup'),
       },
-      { icon: <PlusIcon size={14} />, label: 'New folder', hint: 'Action', fn: onNewProject },
-      { icon: <SettingsIcon size={14} />, label: 'Open settings', hint: 'Action', fn: onOpenSettings },
-      { icon: <KeyboardIcon size={14} />, label: 'Help & keyboard shortcuts', hint: '?', fn: () => onOpenSheet('help') },
-      { icon: <MailIcon size={14} />, label: 'Send feedback / report a bug', hint: 'Action', fn: () => onOpenSheet('feedback') },
-      { icon: <GiftIcon size={14} />, label: 'What’s new', hint: 'Action', fn: () => onOpenSheet('whatsnew') },
+      { icon: <PlusIcon size={14} />, label: t('newFolder'), hint: t('hintAction'), fn: onNewProject },
+      { icon: <SettingsIcon size={14} />, label: t('openSettings'), hint: t('hintAction'), fn: onOpenSettings },
+      { icon: <KeyboardIcon size={14} />, label: t('helpKeyboard'), hint: '?', fn: () => onOpenSheet('help') },
+      { icon: <MailIcon size={14} />, label: t('sendFeedback'), hint: t('hintAction'), fn: () => onOpenSheet('feedback') },
+      { icon: <GiftIcon size={14} />, label: t('whatsNew'), hint: t('hintAction'), fn: () => onOpenSheet('whatsnew') },
       {
         icon: <InfoIcon size={14} />,
-        label: 'Replay welcome tour',
-        hint: 'Action',
+        label: t('replayTour'),
+        hint: t('hintAction'),
         fn: () => dispatch({ type: 'START_TOUR_REPLAY' }),
       },
       {
         icon: state.theme === 'dark' ? <SunIcon size={14} /> : <MoonIcon size={14} />,
-        label: `Switch to ${state.theme === 'dark' ? 'light' : 'dark'} theme`,
-        hint: 'Action',
+        label: state.theme === 'dark' ? t('switchToLight') : t('switchToDark'),
+        hint: t('hintAction'),
         fn: () => dispatch({ type: 'SET_THEME', theme: state.theme === 'dark' ? 'light' : 'dark' }),
       },
       {
         icon: state.sound ? <BellOffIcon size={14} /> : <BellIcon size={14} />,
-        label: state.sound ? 'Mute sounds' : 'Unmute sounds',
-        hint: 'Action',
+        label: state.sound ? t('muteSounds') : t('unmuteSounds'),
+        hint: t('hintAction'),
         fn: () => dispatch({ type: 'SET_SOUND', sound: !state.sound }),
       },
       {
         icon: <BroomIcon size={14} />,
-        label: 'Clear all completed tasks',
-        hint: 'Action',
+        label: t('clearAllCompleted'),
+        hint: t('hintAction'),
         fn: () => {
-          const ids = state.tasks.filter((t) => t.done && !t.archived).map((t) => t.id)
-          if (!ids.length) return toast('Nothing to clear', '🧹')
+          const ids = state.tasks.filter((x) => x.done && !x.archived).map((x) => x.id)
+          if (!ids.length) return toast(t('nothingToClear'), '🧹')
           dispatch({ type: 'DELETE_TASKS', ids })
-          toast(`Cleared ${ids.length} completed task${ids.length === 1 ? '' : 's'}`, '🧹', {
-            label: 'Undo',
+          toast(tn('clearedCompletedTasks', ids.length), '🧹', {
+            label: t('undo'),
             fn: () => dispatch({ type: 'RESTORE_TASKS', ids }),
           })
         },
       },
       {
         icon: <DownloadIcon size={14} />,
-        label: 'Download a backup (JSON)',
-        hint: 'Account',
+        label: t('downloadBackup'),
+        hint: t('hintAccount'),
         fn: () => {
           exportData(state)
-          toast('Backup downloaded', '⬇')
+          toast(t('backupDownloaded'), '⬇')
         },
       },
       {
         icon: <BellIcon size={14} />,
-        label: remindersOptedIn() ? 'Disable daily reminders' : 'Enable daily reminders',
-        hint: 'Action',
+        label: remindersOptedIn() ? t('disableReminders') : t('enableReminders'),
+        hint: t('hintAction'),
         fn: async () => {
           if (remindersOptedIn()) {
             disableReminders()
-            toast('Reminders off', '🔕')
+            toast(t('remindersOff'), '🔕')
           } else {
             const ok = await enableReminders()
-            toast(ok ? 'Reminders on — you’ll get a nudge when tasks are due' : 'Notifications are blocked — allow them for kiln in settings', ok ? '🔔' : '⚠')
+            toast(ok ? t('remindersOnNudge') : t('notifBlocked'), ok ? '🔔' : '⚠')
           }
         },
       },
       {
         icon: <XIcon size={14} />,
-        label: 'Sign out',
-        hint: 'Account',
+        label: t('signOut'),
+        hint: t('hintAccount'),
         fn: async () => {
           if (!state.profile?.cloud) return dispatch({ type: 'SIGN_OUT' })
           const ok = await signOut()
           // couldn't sync first — Settings explains and offers the choices
           if (!ok) {
-            toast('Some changes haven’t synced yet — sign out from Settings', '⚠')
+            toast(t('signOutFromSettings'), '⚠')
             onOpenSettings()
           }
         },
@@ -158,22 +159,22 @@ export default function CommandPalette({ onClose, onNewProject, onOpenSettings, 
     const projectOf = (id) => state.projects.find((p) => p.id === id)
     const tasks = state.tasks
       .filter(
-        (t) =>
-          !t.archived &&
-          ((t.title || '').toLowerCase().includes(ql) || (t.notes || '').toLowerCase().includes(ql))
+        (x) =>
+          !x.archived &&
+          ((x.title || '').toLowerCase().includes(ql) || (x.notes || '').toLowerCase().includes(ql))
       )
       .sort((a, b) => Number(a.done) - Number(b.done))
       .slice(0, 6)
-      .map((t) => {
-        const p = projectOf(t.projectId)
+      .map((task) => {
+        const p = projectOf(task.projectId)
         return {
-          key: `task-${t.id}`,
-          icon: <span style={{ color: p?.color ?? 'var(--accent)' }}>{t.done ? '✓' : '○'}</span>,
-          label: t.title,
-          hint: [p?.name, t.due && !t.done ? fmtDue(t.due) : null, t.done ? 'done' : null]
+          key: `task-${task.id}`,
+          icon: <span style={{ color: p?.color ?? 'var(--accent)' }}>{task.done ? '✓' : '○'}</span>,
+          label: task.title,
+          hint: [p?.name, task.due && !task.done ? fmtDue(task.due) : null, task.done ? t('doneLower') : null]
             .filter(Boolean)
             .join(' · '),
-          fn: () => onOpenTask(t),
+          fn: () => onOpenTask(task),
         }
       })
 
@@ -184,8 +185,8 @@ export default function CommandPalette({ onClose, onNewProject, onOpenSettings, 
           {
             key: 'add-task',
             icon: <PlusIcon size={14} />,
-            label: `Add task “${parsed.title.trim()}”`,
-            hint: parsed.due ? fmtDue(parsed.due) : 'Task',
+            label: t('addTaskNamed', { title: parsed.title.trim() }),
+            hint: parsed.due ? fmtDue(parsed.due) : t('task'),
             fn: () => {
               const pid =
                 parsed.projectId ??
@@ -200,8 +201,8 @@ export default function CommandPalette({ onClose, onNewProject, onOpenSettings, 
                 priority: parsed.priority ?? state.settings.defaultPriority,
               })
               playAdd()
-              const folder = parsed.newFolder ?? state.projects.find((p) => p.id === pid)?.name ?? 'Inbox'
-              toast(`Added to ${folder}${parsed.due ? ` · ${fmtDue(parsed.due)}` : ''}`, '✓')
+              const folder = parsed.newFolder ?? state.projects.find((p) => p.id === pid)?.name ?? t('inbox')
+              toast(parsed.due ? t('addedTo', { folder, when: fmtDue(parsed.due) }) : t('addedToFolder', { folder }), '✓')
             },
           },
         ]
@@ -263,12 +264,12 @@ export default function CommandPalette({ onClose, onNewProject, onOpenSettings, 
             value={q}
             onChange={(e) => setQ(e.target.value)}
             onKeyDown={onKey}
-            placeholder="Search tasks, run a command, or add a task…"
+            placeholder={t('paletteSearchPh')}
           />
           <span className="kbd">esc</span>
         </div>
         <div className="palette-list" ref={listRef}>
-          {items.length === 0 && <div className="palette-empty">Nothing matches.</div>}
+          {items.length === 0 && <div className="palette-empty">{t('nothingMatches')}</div>}
           {items.map((item, i) => (
             <button
               key={item.key ?? item.label}

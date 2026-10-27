@@ -1,6 +1,7 @@
 import Sheet from './Sheet'
 import { CHANGELOG, LATEST } from '../changelog'
 import { GiftIcon } from './Icons'
+import { t, fmtDate } from '../i18n'
 
 const KEY = 'kiln-whatsnew-seen'
 
@@ -37,20 +38,24 @@ export default function WhatsNew({ onClose }) {
     onClose()
   }
   return (
-    <Sheet title="What’s new" onClose={close}>
-      {CHANGELOG.map((r) => (
-        <section className="set-section" key={r.id}>
-          <div className="set-head">
-            <GiftIcon size={13} /> {r.date}
-          </div>
-          <h3 className="wn-title">{r.title}</h3>
-          <ul className="wn-list">
-            {r.items.map((it) => (
-              <li key={it}>{it}</li>
-            ))}
-          </ul>
-        </section>
-      ))}
+    <Sheet title={t('whatsNew')} onClose={close}>
+      {CHANGELOG.map((r) => {
+        const key = `cl_${r.id.replaceAll('-', '')}`
+        const [y, m, d] = r.id.split('-').map(Number)
+        return (
+          <section className="set-section" key={r.id}>
+            <div className="set-head">
+              <GiftIcon size={13} /> {fmtDate(new Date(y, m - 1, d), { day: 'numeric', month: 'short', year: 'numeric' })}
+            </div>
+            <h3 className="wn-title">{t(`${key}_title`)}</h3>
+            <ul className="wn-list">
+              {Array.from({ length: r.items }, (_, i) => (
+                <li key={i}>{t(`${key}_${i}`)}</li>
+              ))}
+            </ul>
+          </section>
+        )
+      })}
     </Sheet>
   )
 }

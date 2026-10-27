@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { heavyFxOff } from '../fx'
 import { tick } from '../native'
+import { t } from '../i18n'
 
 const PARTICLES = 7
 
@@ -20,7 +21,7 @@ export default function Checkbox({ checked, color = '#d85a30', onToggle }) {
     <motion.button
       className="checkbox"
       onClick={handle}
-      aria-label={checked ? 'Mark incomplete' : 'Mark complete'}
+      aria-label={checked ? t('markIncomplete') : t('markComplete')}
       whileTap={{ scale: 0.82 }}
       transition={{ type: 'spring', stiffness: 500, damping: 22 }}
     >

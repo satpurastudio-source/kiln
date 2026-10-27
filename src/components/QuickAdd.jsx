@@ -4,6 +4,7 @@ import { useStore, toast, taskInView } from '../store'
 import { todayStr, addDaysStr, PRIORITIES, fmtDue, fmtTime, iconGlyph, parseQuickAdd } from '../utils'
 import { playAdd } from '../sound'
 import { SunIcon, FlagIcon, PlusIcon, ClockIcon, CalendarIcon } from './Icons'
+import { t } from '../i18n'
 
 const prioLabel = (id) => PRIORITIES.find((p) => p.id === id)?.label ?? id
 
@@ -66,7 +67,7 @@ const QuickAdd = forwardRef(function QuickAdd(_, inputRef) {
     if (p.newFolder) {
       // "#name" for a folder that doesn't exist → create it and file the task
       dispatch({ ...base, newFolder: p.newFolder })
-      toast(`Created folder “${p.newFolder}”`, '📁')
+      toast(t('createdFolder', { name: p.newFolder }), '📁')
     } else {
       // with no folders left at all, the store files it into a new Inbox
       const pid = p.projectId ?? projectId
@@ -75,8 +76,8 @@ const QuickAdd = forwardRef(function QuickAdd(_, inputRef) {
       // doesn't look like it vanished
       if (!taskInView({ due: base.due, projectId: pid }, view)) {
         const folder = state.projects.find((x) => x.id === pid)?.name
-        const when = base.due ? fmtDue(base.due) : 'no date'
-        toast(`Added to ${folder ?? 'Inbox'} · ${when}`, '✓')
+        const when = base.due ? fmtDue(base.due) : t('noDateLower')
+        toast(t('addedTo', { folder: folder ?? t('inbox'), when }), '✓')
       }
     }
     setTitle('')
@@ -106,7 +107,7 @@ const QuickAdd = forwardRef(function QuickAdd(_, inputRef) {
           className="title"
           value={title}
           maxLength={140}
-          placeholder={'Add a task…  try “pay rent friday 5pm”'}
+          placeholder={t('quickAddPh')}
           onChange={(e) => setTitle(e.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
@@ -119,7 +120,7 @@ const QuickAdd = forwardRef(function QuickAdd(_, inputRef) {
           {COARSE ? (
             <button
               className="add-tap"
-              aria-label="Add a task"
+              aria-label={t('addTask')}
               onClick={() => (title.trim() ? submit() : inputRef?.current?.focus())}
             >
               <PlusIcon size={15} sw={2.4} />
@@ -172,7 +173,7 @@ const QuickAdd = forwardRef(function QuickAdd(_, inputRef) {
                   )}
                   {parsed.newFolder && (
                     <span className="qa-pill qa-pill-new">
-                      <PlusIcon size={10} sw={2.4} /> New folder · {parsed.newFolder}
+                      <PlusIcon size={10} sw={2.4} /> {t('newFolder')} · {parsed.newFolder}
                     </span>
                   )}
                 </motion.div>
@@ -184,14 +185,14 @@ const QuickAdd = forwardRef(function QuickAdd(_, inputRef) {
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => setDue(due === todayStr() ? null : todayStr())}
               >
-                <SunIcon size={12} /> Today
+                <SunIcon size={12} /> {t('today')}
               </button>
               <button
                 className={`chip ${due === addDaysStr(1) ? 'on' : ''}`}
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => setDue(due === addDaysStr(1) ? null : addDaysStr(1))}
               >
-                → Tomorrow
+                → {t('tomorrow')}
               </button>
               <input
                 type="date"
@@ -199,7 +200,7 @@ const QuickAdd = forwardRef(function QuickAdd(_, inputRef) {
                 value={due ?? ''}
                 onMouseDown={(e) => e.stopPropagation()}
                 onChange={(e) => setDue(e.target.value || null)}
-                title="Pick a date"
+                title={t('pickDate')}
               />
               <label className={`time-input ${time ? 'set' : ''}`} title="Set a time">
                 <ClockIcon size={12} />

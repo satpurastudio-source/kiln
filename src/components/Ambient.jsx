@@ -11,6 +11,7 @@ import AnalogClock from './AnalogClock'
 import AmbientEditor from './AmbientEditor'
 import AmbientQuickAdd from './AmbientQuickAdd'
 import { XIcon, FlameIcon, SettingsIcon, PlusIcon } from './Icons'
+import { t, tn, fmtDate, currentLang } from '../i18n'
 
 const WD = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 const MO = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
@@ -57,7 +58,11 @@ function useFitRows(ref, total, max, active) {
   return fit
 }
 
-const dateLabel = (d) => `${WD[d.getDay()]} ${String(d.getDate()).padStart(2, '0')} ${MO[d.getMonth()]}`
+// English keeps its "TUE 27 OCT" stamp; other languages get their own order + names
+const dateLabel = (d) =>
+  currentLang() === 'en'
+    ? `${WD[d.getDay()]} ${String(d.getDate()).padStart(2, '0')} ${MO[d.getMonth()]}`
+    : fmtDate(d, { weekday: 'short', day: 'numeric', month: 'short' })
 const hhmm = (d) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 
 const fmtCountdown = (secs) => {
@@ -130,11 +135,11 @@ function renderWidget(kind, { progress, streak, focusSession, focusTask, focusSe
     if (streak <= 0) return null
     return (
       <div className="amb-widget">
-        <span className="amb-widget-label">STREAK</span>
+        <span className="amb-widget-label">{t('ambStreak')}</span>
         <div className="amb-widget-row">
           <FlameIcon size={22} className="amb-widget-flame" />
           <span className="amb-widget-value">
-            {streak} day{streak === 1 ? '' : 's'}
+            {tn('days', streak)}
           </span>
         </div>
       </div>
@@ -143,7 +148,7 @@ function renderWidget(kind, { progress, streak, focusSession, focusTask, focusSe
   if (kind === 'progress') {
     return (
       <div className="amb-widget">
-        <span className="amb-widget-label">TODAY</span>
+        <span className="amb-widget-label">{t('ambToday')}</span>
         <div className="amb-widget-row">
           <ProgressRing size={38} stroke={4} pct={progress.pct} />
           <span className="amb-widget-value">{progress.pct}%</span>
@@ -155,7 +160,7 @@ function renderWidget(kind, { progress, streak, focusSession, focusTask, focusSe
     if (!focusSession) return null
     return (
       <div className="amb-widget amb-widget-live">
-        <span className="amb-widget-label">{focusSession.phase === 'work' ? 'FOCUS' : 'BREAK'}</span>
+        <span className="amb-widget-label">{focusSession.phase === 'work' ? t('ambFocus') : t('ambBreak')}</span>
         <div className="amb-widget-row">
           <ProgressRing
             size={38}
@@ -165,7 +170,7 @@ function renderWidget(kind, { progress, streak, focusSession, focusTask, focusSe
           />
           <div className="amb-widget-focus-info">
             <span className="amb-widget-value">{fmtCountdown(focusSecsLeft)}</span>
-            <span className="amb-widget-sub">{focusTask?.title ?? 'Focus session'}</span>
+            <span className="amb-widget-sub">{focusTask?.title ?? t('focusSession')}</span>
           </div>
         </div>
       </div>
@@ -389,7 +394,7 @@ export default function Ambient({ onExit }) {
 
   const todoRows =
     visibleTodo.length === 0 ? (
-      <div className="amb-empty">Nothing due. Rest or plan tomorrow.</div>
+      <div className="amb-empty">{t('ember_sleepy_0')}</div>
     ) : (
       <AnimatePresence initial={false}>
         {visibleTodo.map((t) => (
@@ -415,7 +420,7 @@ export default function Ambient({ onExit }) {
 
   const doneRows =
     visibleDone.length === 0 ? (
-      <div className="amb-empty">Nothing finished yet.</div>
+      <div className="amb-empty">{t('nothingFinished')}</div>
     ) : (
       <AnimatePresence initial={false}>
         {visibleDone.map((t) => (
@@ -472,8 +477,8 @@ export default function Ambient({ onExit }) {
               <button
                 className={`amb-ctl ${adding ? 'on' : ''}`}
                 onClick={() => setAdding((v) => !v)}
-                aria-label="Add a task"
-                title="Add a task (N)"
+                aria-label={t('addTask')}
+                title={t('addTaskN')}
               >
                 <PlusIcon size={16} sw={2.2} />
               </button>
@@ -481,12 +486,12 @@ export default function Ambient({ onExit }) {
             <button
               className={`amb-ctl ${editing ? 'on' : ''}`}
               onClick={() => setEditing((v) => !v)}
-              aria-label="Customize ambient mode"
-              title="Customize"
+              aria-label={t('customizeAmbient')}
+              title={t('customize')}
             >
               <SettingsIcon size={16} />
             </button>
-            <button className="amb-ctl" onClick={onExit} aria-label="Exit ambient mode" title="Exit (Esc)">
+            <button className="amb-ctl" onClick={onExit} aria-label={t('exitAmbient')} title={t('exitEsc')}>
               <XIcon size={16} />
             </button>
           </motion.div>
@@ -570,7 +575,7 @@ export default function Ambient({ onExit }) {
                       onClick={() => setTab('todo')}
                     >
                       <span className="amb-col-dot todo" />
-                      TODO <span className="amb-col-count">{activeToday.length}</span>
+                      {t('colTodo')} <span className="amb-col-count">{activeToday.length}</span>
                     </button>
                     {cfg.columns !== 'todo' && (
                       <button
@@ -580,15 +585,15 @@ export default function Ambient({ onExit }) {
                         onClick={() => setTab('done')}
                       >
                         <span className="amb-col-dot done" />
-                        DONE <span className="amb-col-count">{completedToday.length}</span>
+                        {t('colDone')} <span className="amb-col-count">{completedToday.length}</span>
                       </button>
                     )}
                   </div>
                   <div className="amb-list" ref={listRef}>
                     {phoneTab === 'todo' ? todoRows : doneRows}
                     {phoneTab === 'todo'
-                      ? todoOverflow > 0 && <div className="amb-more">+{todoOverflow} more</div>
-                      : doneOverflow > 0 && <div className="amb-more">+{doneOverflow} more</div>}
+                      ? todoOverflow > 0 && <div className="amb-more">{t('nMore', { n: todoOverflow })}</div>
+                      : doneOverflow > 0 && <div className="amb-more">{t('nMore', { n: doneOverflow })}</div>}
                   </div>
                 </div>
               </div>
@@ -597,20 +602,20 @@ export default function Ambient({ onExit }) {
                 <div className="amb-col">
                   <div className="amb-col-head">
                     <span className="amb-col-dot todo" />
-                    TODO <span className="amb-col-count">{activeToday.length}</span>
+                    {t('colTodo')} <span className="amb-col-count">{activeToday.length}</span>
                   </div>
                   {todoRows}
-                  {todoOverflow > 0 && <div className="amb-more">+{todoOverflow} more</div>}
+                  {todoOverflow > 0 && <div className="amb-more">{t('nMore', { n: todoOverflow })}</div>}
                 </div>
 
                 {cfg.columns !== 'todo' && (
                   <div className="amb-col">
                     <div className="amb-col-head">
                       <span className="amb-col-dot done" />
-                      DONE <span className="amb-col-count">{completedToday.length}</span>
+                      {t('colDone')} <span className="amb-col-count">{completedToday.length}</span>
                     </div>
                     {doneRows}
-                    {doneOverflow > 0 && <div className="amb-more">+{doneOverflow} more</div>}
+                    {doneOverflow > 0 && <div className="amb-more">{t('nMore', { n: doneOverflow })}</div>}
                   </div>
                 )}
               </div>

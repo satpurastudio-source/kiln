@@ -1,17 +1,20 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
-import { useStore, toast } from '../store'
+import { useStore, toast, SEED_TEXT } from '../store'
 import { PURPOSES, iconGlyph, uid, todayStr, resolveAccent } from '../utils'
 import AccentPicker from './AccentPicker'
 import { NLDemo, TapDemo } from './OnboardingDemos'
 import { APP_NAME } from '../brand'
 import { FlameIcon, SunIcon, MoonIcon } from './Icons'
 import InstallHint from './InstallHint'
+import LanguagePicker from './LanguagePicker'
+import { useT } from '../i18n'
 
 // First-run flow (Duolingo-style): personalize first, ask to sign in last.
 // Also reopened as a quick tour from Settings / palette by flipping `onboarded`.
 export default function Onboarding() {
   const { state, dispatch } = useStore()
+  const t = useT()
   // an explicit replay (Settings / palette) is never treated as first-run,
   // even if `profile` happens to be unset (e.g. right after signing out) —
   // first-run is the only path that's allowed to touch projects/tasks
@@ -31,18 +34,29 @@ export default function Onboarding() {
 
   // build the tailored starter folders (keeps "Getting Started" + its tutorial)
   // and drop in the user's first real task so Today isn't empty on arrival
+  // first run only: the starter folders + tutorial tasks were seeded in
+  // English before a language was picked — rewrite them in the chosen one
+  const localizeSeed = (projects) => {
+    const tr = (s) => (SEED_TEXT[s] ? t(SEED_TEXT[s]) : s)
+    dispatch({ type: 'SET_PROJECTS', projects: projects.map((p) => ({ ...p, name: tr(p.name) })) })
+    for (const task of state.tasks) {
+      if (SEED_TEXT[task.title])
+        dispatch({ type: 'UPDATE_TASK', id: task.id, patch: { title: tr(task.title), notes: tr(task.notes ?? '') } })
+    }
+  }
+
   const applyPersonalization = () => {
     const clean = name.trim()
     if (!firstRun && clean) dispatch({ type: 'UPDATE_PROFILE', patch: { name: clean } })
     const keep = state.projects[0] // Getting Started holds the tutorial tasks
-    if (firstRun && picked.size > 0) {
+    if (firstRun) {
       const folders = PURPOSES.filter((p) => picked.has(p.id) && p.name !== keep.name).map((p) => ({
         id: uid(),
         name: p.name,
         color: p.color,
         icon: p.icon,
       }))
-      dispatch({ type: 'SET_PROJECTS', projects: [keep, ...folders] })
+      localizeSeed(picked.size > 0 ? [keep, ...folders] : state.projects)
     }
     if (firstRun && firstTask.trim()) {
       dispatch({
@@ -57,10 +71,10 @@ export default function Onboarding() {
 
   const finishGuest = () => {
     applyPersonalization()
-    const clean = name.trim() || 'friend'
+    const clean = name.trim() || t('friend')
     dispatch({ type: 'SET_PROFILE', profile: { name: clean, createdAt: Date.now() } })
     dispatch({ type: 'SET_ONBOARDED', value: true })
-    toast(`Welcome, ${clean.split(/\s+/)[0]}`, '🔥')
+    toast(t('welcomeToast', { name: clean.split(/\s+/)[0] }), '🔥')
   }
 
   // hand off to the Login screen, prefilled + in the right mode
@@ -82,6 +96,17 @@ export default function Onboarding() {
 
   /* ------------------------------- steps ------------------------------- */
 
+  const stepLang = {
+    key: 'lang',
+    body: (
+      <>
+        <h2 className="onb-title">{t('langTitle')}</h2>
+        <p className="onb-sub">{t('langSub')}</p>
+        <LanguagePicker settings={state.settings} dispatch={dispatch} className="onb-langs" />
+      </>
+    ),
+  }
+
   const stepWelcome = {
     key: 'welcome',
     body: (
@@ -95,16 +120,16 @@ export default function Onboarding() {
           <FlameIcon size={24} />
         </motion.div>
         <h2 className="onb-title">
-          Welcome to {APP_NAME}
+          {t('welcomeTitle', { app: APP_NAME })}
           <span className="dot">.</span>
         </h2>
-        <p className="onb-sub">A calm home for your tasks. First — what should we call you?</p>
+        <p className="onb-sub">{t('welcomeSub')}</p>
         <input
           className="onb-input"
           autoFocus
           value={name}
           maxLength={40}
-          placeholder="Your name"
+          placeholder={t('yourName')}
           onChange={(e) => setName(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && name.trim() && next()}
         />
@@ -116,23 +141,23 @@ export default function Onboarding() {
     key: 'look',
     body: (
       <>
-        <h2 className="onb-title">Make it yours</h2>
-        <p className="onb-sub">Pick a color and a mode. You can change these anytime in Settings.</p>
-        <label className="onb-field-label">Accent</label>
+        <h2 className="onb-title">{t('lookTitle')}</h2>
+        <p className="onb-sub">{t('lookSub')}</p>
+        <label className="onb-field-label">{t('accent')}</label>
         <AccentPicker settings={state.settings} dispatch={dispatch} className="onb-accents" />
-        <label className="onb-field-label">Theme</label>
+        <label className="onb-field-label">{t('theme')}</label>
         <div className="seg onb-theme-seg">
           <button
             className={`seg-btn ${state.theme === 'light' ? 'on' : ''}`}
             onClick={() => dispatch({ type: 'SET_THEME', theme: 'light' })}
           >
-            <SunIcon size={13} /> Light
+            <SunIcon size={13} /> {t('light')}
           </button>
           <button
             className={`seg-btn ${state.theme === 'dark' ? 'on' : ''}`}
             onClick={() => dispatch({ type: 'SET_THEME', theme: 'dark' })}
           >
-            <MoonIcon size={13} /> Dark
+            <MoonIcon size={13} /> {t('dark')}
           </button>
         </div>
       </>
@@ -143,8 +168,8 @@ export default function Onboarding() {
     key: 'purpose',
     body: (
       <>
-        <h2 className="onb-title">What’s on your plate?</h2>
-        <p className="onb-sub">Pick a few and we’ll set up matching folders. Skip if you’d rather start blank.</p>
+        <h2 className="onb-title">{t('purposeTitle')}</h2>
+        <p className="onb-sub">{t('purposeSub')}</p>
         <div className="onb-purpose">
           {PURPOSES.map((p) => (
             <button
@@ -155,7 +180,7 @@ export default function Onboarding() {
               <span className="onb-chip-dot" style={{ background: p.color }}>
                 {iconGlyph(p.icon)}
               </span>
-              {p.label}
+              {t(`p_${p.id}`)}
             </button>
           ))}
         </div>
@@ -167,23 +192,21 @@ export default function Onboarding() {
     key: 'capture',
     body: (
       <>
-        <h2 className="onb-title">Capture it in a flash</h2>
-        <p className="onb-sub">
-          Just type — kiln reads dates, times, priority and folders right out of your words.
-        </p>
+        <h2 className="onb-title">{t('captureTitle')}</h2>
+        <p className="onb-sub">{t('captureSub')}</p>
         <NLDemo />
         {firstRun && (
           <>
-            <label className="onb-field-label">Your turn — add your first task</label>
+            <label className="onb-field-label">{t('yourTurn')}</label>
             <input
               className="onb-input"
               value={firstTask}
               maxLength={140}
-              placeholder="e.g. Plan my week tomorrow 9am"
+              placeholder={t('firstTaskPh')}
               onChange={(e) => setFirstTask(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && next()}
             />
-            <p className="onb-mini-hint">We’ll drop it on your Today list so you land somewhere alive.</p>
+            <p className="onb-mini-hint">{t('firstTaskHint')}</p>
           </>
         )}
       </>
@@ -194,11 +217,8 @@ export default function Onboarding() {
     key: 'complete',
     body: (
       <>
-        <h2 className="onb-title">One tap to done</h2>
-        <p className="onb-sub">
-          Tap the circle to complete a task — or drag it to the bottom of the screen to finish with a
-          flourish.
-        </p>
+        <h2 className="onb-title">{t('completeTitle')}</h2>
+        <p className="onb-sub">{t('completeSub')}</p>
         <TapDemo accent={accent} />
       </>
     ),
@@ -217,22 +237,19 @@ export default function Onboarding() {
           <FlameIcon size={24} />
         </motion.div>
         <h2 className="onb-title">
-          You’re all set{name.trim() ? `, ${name.trim().split(/\s+/)[0]}` : ''}
+          {name.trim() ? t('allSetName', { name: name.trim().split(/\s+/)[0] }) : t('allSet')}
           <span className="dot">.</span>
         </h2>
-        <p className="onb-sub">
-          Create a free account to save your tasks and sync them across every device — or just start
-          now on this one.
-        </p>
+        <p className="onb-sub">{t('accountSub')}</p>
         <div className="onb-account">
           <motion.button className="btn primary onb-cta" whileTap={{ scale: 0.97 }} onClick={() => finishToAuth('signup')}>
-            Create a free account →
+            {t('createAccount')}
           </motion.button>
           <button className="btn ghost onb-cta" onClick={finishGuest}>
-            Continue on this device
+            {t('continueDevice')}
           </button>
           <button className="onb-link" onClick={() => finishToAuth('signin')}>
-            Already have an account? <b>Sign in</b>
+            {t('haveAccount')} <b>{t('signIn')}</b>
           </button>
         </div>
         <InstallHint />
@@ -247,20 +264,20 @@ export default function Onboarding() {
         <div className="onb-mark brand-mark">
           <FlameIcon size={24} />
         </div>
-        <h2 className="onb-title">You’re all set<span className="dot">.</span></h2>
-        <p className="onb-sub">That’s the tour. Back to your tasks.</p>
+        <h2 className="onb-title">{t('allSet')}<span className="dot">.</span></h2>
+        <p className="onb-sub">{t('tourDone')}</p>
         <InstallHint />
       </>
     ),
   }
 
   const steps = firstRun
-    ? [stepWelcome, stepLook, stepPurpose, stepCapture, stepComplete, stepAccount]
+    ? [stepLang, stepWelcome, stepLook, stepPurpose, stepCapture, stepComplete, stepAccount]
     : [stepWelcome, stepLook, stepCapture, stepComplete, stepDone]
 
   const last = step === steps.length - 1
   const onAccount = firstRun && last // account step carries its own buttons
-  const canNext = step !== 0 || name.trim().length > 0
+  const canNext = steps[step].key !== 'welcome' || name.trim().length > 0
 
   function next() {
     if (!canNext) return
@@ -278,8 +295,14 @@ export default function Onboarding() {
         transition={{ type: 'spring', stiffness: 260, damping: 26 }}
       >
         {firstRun && (
-          <button className="onb-skip" onClick={() => dispatch({ type: 'SET_ONBOARDED', value: true })}>
-            Skip
+          <button
+            className="onb-skip"
+            onClick={() => {
+              localizeSeed(state.projects)
+              dispatch({ type: 'SET_ONBOARDED', value: true })
+            }}
+          >
+            {t('skip')}
           </button>
         )}
 
@@ -306,7 +329,7 @@ export default function Onboarding() {
             <div className="onb-btns">
               {step > 0 && (
                 <button className="btn ghost" onClick={back}>
-                  Back
+                  {t('back')}
                 </button>
               )}
               <motion.button
@@ -316,7 +339,7 @@ export default function Onboarding() {
                 disabled={!canNext}
                 style={{ opacity: canNext ? 1 : 0.5 }}
               >
-                {last ? 'Done' : 'Next →'}
+                {last ? t('done') : t('next')}
               </motion.button>
             </div>
           )}

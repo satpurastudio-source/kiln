@@ -3,9 +3,10 @@ import { AnimatePresence, motion } from 'framer-motion'
 import { useStore } from '../store'
 import { toDateStr, todayStr } from '../utils'
 import { CalendarIcon, ChevronIcon } from './Icons'
+import { t, fmtDate } from '../i18n'
 
-const WD = ['M', 'T', 'W', 'T', 'F', 'S', 'S']
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+// Monday-first one-letter weekday names (1 Jan 2024 was a Monday)
+const weekdays = () => [0, 1, 2, 3, 4, 5, 6].map((i) => fmtDate(new Date(2024, 0, 1 + i), { weekday: 'narrow' }))
 
 function cells(y, m) {
   const start = (new Date(y, m, 1).getDay() + 6) % 7
@@ -60,23 +61,23 @@ export default function MiniCalendar() {
                 <button
                   className="icon-btn"
                   onClick={() => setCur(({ y, m }) => ({ y: m === 0 ? y - 1 : y, m: (m + 11) % 12 }))}
-                  aria-label="Previous month"
+                  aria-label={t('prevMonth')}
                 >
                   <ChevronIcon size={11} style={{ transform: 'rotate(180deg)' }} />
                 </button>
                 <span className="minical-title">
-                  {MONTHS[cur.m]} {cur.y}
+                  {fmtDate(new Date(cur.y, cur.m, 1), { month: 'short' })} {cur.y}
                 </span>
                 <button
                   className="icon-btn"
                   onClick={() => setCur(({ y, m }) => ({ y: m === 11 ? y + 1 : y, m: (m + 1) % 12 }))}
-                  aria-label="Next month"
+                  aria-label={t('nextMonth')}
                 >
                   <ChevronIcon size={11} />
                 </button>
               </div>
               <div className="minical-grid">
-                {WD.map((d, i) => (
+                {weekdays().map((d, i) => (
                   <span key={`h${i}`} className="minical-wd">
                     {d}
                   </span>
@@ -96,7 +97,7 @@ export default function MiniCalendar() {
                 })}
               </div>
               <button className="minical-open" onClick={() => pick(today)}>
-                Open full calendar →
+                {t('openFullCalendar')}
               </button>
             </motion.div>
           </>
@@ -107,8 +108,8 @@ export default function MiniCalendar() {
         className="minical-launcher"
         onClick={() => setOpen((v) => !v)}
         whileTap={{ scale: 0.9 }}
-        title="Peek at the calendar"
-        aria-label="Open mini calendar"
+        title={t('peekCalendar')}
+        aria-label={t('openMiniCalendar')}
       >
         <CalendarIcon size={16} />
         <span className="minical-daynum-badge">{now.getDate()}</span>

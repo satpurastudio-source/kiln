@@ -32,6 +32,7 @@ import GestureTips from './components/GestureTips'
 import usePullToSearch from './usePullToSearch'
 import useBackGesture from './useBackGesture'
 import { todayStr } from './utils'
+import { t } from './i18n'
 
 // Re-render when the date changes — a phone app resumed the next morning (or
 // a tab left open overnight) would otherwise keep showing yesterday's Today.
@@ -229,7 +230,7 @@ export default function App() {
       <button
         className="mobile-menu-btn"
         onClick={() => setMobileNav(!mobileNav)}
-        aria-label={mobileNav ? 'Close menu' : 'Open menu'}
+        aria-label={mobileNav ? t('closeMenu') : t('openMenu')}
       >
         {mobileNav ? <XIcon size={16} /> : <MenuIcon size={16} />}
       </button>

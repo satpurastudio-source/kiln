@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ACCENTS } from '../utils'
+import { t } from '../i18n'
 
 const isHex = (v) => /^#[0-9a-fA-F]{6}$/.test(v)
 
@@ -35,8 +36,8 @@ export default function AccentPicker({ settings, dispatch, className = '' }) {
           className={`accent-color-input ${isCustom ? 'on' : ''}`}
           value={isHex(draft) ? draft : '#d85a30'}
           onChange={(e) => setDraft(e.target.value)}
-          title="Pick a custom color"
-          aria-label="Pick a custom color"
+          title={t('pickCustomColor')}
+          aria-label={t('pickCustomColor')}
         />
         <input
           type="text"
@@ -58,7 +59,7 @@ export default function AccentPicker({ settings, dispatch, className = '' }) {
           disabled={!pending}
           style={{ opacity: pending ? 1 : 0.45 }}
         >
-          Apply
+          {t('apply')}
         </button>
       </div>
     </div>

@@ -2,6 +2,7 @@
 // and force-overridden in dev without touching any component.
 import { todayProgress } from './store'
 import { isOverdue, ambientConfig } from './utils'
+import { t, tn } from './i18n'
 
 export const EMBER_MOODS = ['focus', 'celebrate', 'worried', 'proud', 'sleepy', 'idle']
 
@@ -38,21 +39,15 @@ export function emberMood(state, focusSession, now = new Date()) {
 // Flame grows a little with a longer streak, capping out at a 14-day one.
 export const emberScale = (streak = 0) => 0.85 + Math.min(streak, 14) * 0.02
 
-export const EMBER_LINES = {
-  focus: ['Heads down — back in a bit.', "Don't poke the fire.", 'Mid-burn. Quiet now.'],
-  celebrate: ['Nice one.', 'That’s the way.', 'Logged — keep going.'],
-  worried: ['3 things are overdue.', 'This pile is getting old.', 'Might want to glance at the list.'],
-  proud: ['All done. Go outside.', 'Today’s cleared.', 'Nothing left to carry.'],
-  sleepy: ['Nothing due. Rest or plan tomorrow.', 'Quiet hours.', 'Shh — resting.'],
-  idle: ['Here if you need me.', 'Steady as it goes.', 'Just keeping warm.'],
-}
+// three lines per mood, looked up as ember_<mood>_<0-2> in the locale files
+const MOODS = ['focus', 'celebrate', 'worried', 'proud', 'sleepy', 'idle']
+const lines = (mood) => [0, 1, 2].map((i) => t(`ember_${mood}_${i}`))
 
 // ctx.overdueCount, when given for 'worried', swaps in the real number.
 export function randomLine(mood, ctx = {}) {
-  const pool = EMBER_LINES[mood] || EMBER_LINES.idle
+  const pool = lines(MOODS.includes(mood) ? mood : 'idle')
   if (mood === 'worried' && ctx.overdueCount) {
-    const n = ctx.overdueCount
-    const dynamic = `${n} thing${n === 1 ? '' : 's'} ${n === 1 ? 'is' : 'are'} overdue.`
+    const dynamic = tn('emberOverdue', ctx.overdueCount)
     const withDynamic = [dynamic, ...pool.slice(1)]
     return withDynamic[Math.floor(Math.random() * withDynamic.length)]
   }

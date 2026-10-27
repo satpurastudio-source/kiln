@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion'
 import { AMBIENT_WIDGETS } from '../utils'
 import { XIcon } from './Icons'
+import { t } from '../i18n'
 
 function Section({ title, children }) {
   return (
@@ -79,118 +80,118 @@ export default function AmbientEditor({ cfg, onChange, onReset, onClose }) {
     >
       <header className="ame-head">
         <div>
-          <div className="ame-kicker">Ambient mode</div>
-          <div className="ame-h">Customize</div>
+          <div className="ame-kicker">{t('ame_ambient_mode')}</div>
+          <div className="ame-h">{t('ame_customize')}</div>
         </div>
-        <button className="ame-close" onClick={onClose} aria-label="Close customization">
+        <button className="ame-close" onClick={onClose} aria-label={t('ame_close_customization')}>
           <XIcon size={15} />
         </button>
       </header>
 
       <div className="ame-body">
-        <Section title="Look">
+        <Section title={t('ame_look')}>
           <Seg
-            label="Theme"
+            label={t('ame_theme')}
             value={cfg.theme}
             options={[
-              { id: 'app', label: 'Match app' },
-              { id: 'light', label: 'Light' },
-              { id: 'dark', label: 'Dark' },
+              { id: 'app', label: t('ame_match_app') },
+              { id: 'light', label: t('ame_light') },
+              { id: 'dark', label: t('ame_dark') },
             ]}
             onChange={set('theme')}
           />
-          <Slider label="Background glow" value={cfg.glow} min={0} max={200} unit="%" onChange={set('glow')} />
-          <Slider label="Card corners" value={cfg.radius} min={0} max={40} onChange={set('radius')} />
+          <Slider label={t('ame_background_glow')} value={cfg.glow} min={0} max={200} unit="%" onChange={set('glow')} />
+          <Slider label={t('ame_card_corners')} value={cfg.radius} min={0} max={40} onChange={set('radius')} />
         </Section>
 
-        <Section title="Clock">
-          <Slider label="Size" value={cfg.clockSize} min={160} max={900} onChange={set('clockSize')} />
+        <Section title={t('ame_clock')}>
+          <Slider label={t('ame_size')} value={cfg.clockSize} min={160} max={900} onChange={set('clockSize')} />
           <Seg
-            label="Dial"
+            label={t('ame_dial')}
             value={cfg.clockFace}
             options={[
-              { id: 'minimal', label: 'Minimal' },
-              { id: 'classic', label: 'Classic' },
-              { id: 'numerals', label: 'Numerals' },
+              { id: 'minimal', label: t('ame_minimal') },
+              { id: 'classic', label: t('ame_classic') },
+              { id: 'numerals', label: t('ame_numerals') },
             ]}
             onChange={set('clockFace')}
           />
           <Seg
-            label="Second hand"
+            label={t('ame_second_hand')}
             value={cfg.seconds}
             options={[
-              { id: 'sweep', label: 'Sweep' },
-              { id: 'tick', label: 'Tick' },
-              { id: 'off', label: 'Off' },
+              { id: 'sweep', label: t('ame_sweep') },
+              { id: 'tick', label: t('ame_tick') },
+              { id: 'off', label: t('ame_off') },
             ]}
             onChange={set('seconds')}
           />
-          <Toggle label="Date" value={cfg.showDate} onChange={set('showDate')} />
-          <Toggle label="Digital time" value={cfg.showDigital} onChange={set('showDigital')} />
+          <Toggle label={t('ame_date')} value={cfg.showDate} onChange={set('showDate')} />
+          <Toggle label={t('ame_digital_time')} value={cfg.showDigital} onChange={set('showDigital')} />
         </Section>
 
-        <Section title="Layout">
+        <Section title={t('ame_layout')}>
           <Seg
-            label="Clock side"
+            label={t('ame_clock_side')}
             value={cfg.side}
             options={[
-              { id: 'left', label: 'Left' },
-              { id: 'right', label: 'Right' },
+              { id: 'left', label: t('ame_left') },
+              { id: 'right', label: t('ame_right') },
             ]}
             onChange={set('side')}
           />
           <Seg
-            label="Columns"
+            label={t('ame_columns')}
             value={cfg.columns}
             options={[
-              { id: 'both', label: 'Todo + Done' },
-              { id: 'todo', label: 'Todo only' },
+              { id: 'both', label: t('ame_todo_done') },
+              { id: 'todo', label: t('ame_todo_only') },
             ]}
             onChange={set('columns')}
           />
-          <Slider label="Edge padding" value={cfg.padding} min={0} max={200} onChange={set('padding')} />
-          <Slider label="Clock ↔ tasks gap" value={cfg.gap} min={0} max={300} onChange={set('gap')} />
-          <Slider label="Task text" value={cfg.rowSize} min={12} max={48} onChange={set('rowSize')} />
-          <Slider label="Max rows" value={cfg.maxRows} min={3} max={25} unit="" onChange={set('maxRows')} />
-          <Toggle label="Quick add (N / +)" value={cfg.quickAdd} onChange={set('quickAdd')} />
-          <Toggle label="Greeting" value={cfg.showGreeting} onChange={set('showGreeting')} />
-          <Toggle label="Progress bar" value={cfg.showProgress} onChange={set('showProgress')} />
+          <Slider label={t('ame_edge_padding')} value={cfg.padding} min={0} max={200} onChange={set('padding')} />
+          <Slider label={t('ame_clock_tasks_gap')} value={cfg.gap} min={0} max={300} onChange={set('gap')} />
+          <Slider label={t('ame_task_text')} value={cfg.rowSize} min={12} max={48} onChange={set('rowSize')} />
+          <Slider label={t('ame_max_rows')} value={cfg.maxRows} min={3} max={25} unit="" onChange={set('maxRows')} />
+          <Toggle label={t('ame_quick_add_n')} value={cfg.quickAdd} onChange={set('quickAdd')} />
+          <Toggle label={t('ame_greeting')} value={cfg.showGreeting} onChange={set('showGreeting')} />
+          <Toggle label={t('ame_progress_bar')} value={cfg.showProgress} onChange={set('showProgress')} />
         </Section>
 
-        <Section title="Widgets">
-          <Seg label="Slot 1" value={cfg.widget1} options={AMBIENT_WIDGETS} onChange={set('widget1')} />
-          <Seg label="Slot 2" value={cfg.widget2} options={AMBIENT_WIDGETS} onChange={set('widget2')} />
-          <p className="ame-hint">A widget with nothing to show (no focus running, no streak yet) stays hidden.</p>
+        <Section title={t('ame_widgets')}>
+          <Seg label={t('ame_slot_1')} value={cfg.widget1} options={AMBIENT_WIDGETS} onChange={set('widget1')} />
+          <Seg label={t('ame_slot_2')} value={cfg.widget2} options={AMBIENT_WIDGETS} onChange={set('widget2')} />
+          <p className="ame-hint">{t('ame_a_widget_with_nothing_to_show_no_focus_running_no_streak_yet_stays_hidden')}</p>
         </Section>
 
-        <Section title="Ember">
-          <Toggle label="Show Ember" value={cfg.showEmber} onChange={set('showEmber')} />
-          <Slider label="Size" value={cfg.emberSize} min={48} max={320} onChange={set('emberSize')} />
+        <Section title={t('ame_ember')}>
+          <Toggle label={t('ame_show_ember')} value={cfg.showEmber} onChange={set('showEmber')} />
+          <Slider label={t('ame_size')} value={cfg.emberSize} min={48} max={320} onChange={set('emberSize')} />
           <Seg
-            label="Corner"
+            label={t('ame_corner')}
             value={cfg.emberCorner}
             options={[
-              { id: 'left', label: 'Bottom left' },
-              { id: 'right', label: 'Bottom right' },
+              { id: 'left', label: t('ame_bottom_left') },
+              { id: 'right', label: t('ame_bottom_right') },
             ]}
             onChange={set('emberCorner')}
           />
-          <Toggle label="Eyes follow cursor" value={cfg.emberEyes} onChange={set('emberEyes')} />
+          <Toggle label={t('ame_eyes_follow_cursor')} value={cfg.emberEyes} onChange={set('emberEyes')} />
         </Section>
 
-        <Section title="Night">
+        <Section title={t('ame_night')}>
           <Seg
-            label="Night mode"
+            label={t('ame_night_mode')}
             value={cfg.night}
             options={[
-              { id: 'off', label: 'Off' },
-              { id: 'dim', label: 'Dim' },
-              { id: 'dark', label: 'Dim + dark' },
+              { id: 'off', label: t('ame_off') },
+              { id: 'dim', label: t('ame_dim') },
+              { id: 'dark', label: t('ame_dim_dark') },
             ]}
             onChange={set('night')}
           />
           <div className="ame-row">
-            <span className="ame-label">From → to</span>
+            <span className="ame-label">{t('ame_from_to')}</span>
             <div className="ame-hours">
               <select value={cfg.nightStart} onChange={(e) => onChange({ nightStart: Number(e.target.value) })}>
                 {hourOpts.map((h) => (
@@ -209,20 +210,20 @@ export default function AmbientEditor({ cfg, onChange, onReset, onClose }) {
               </select>
             </div>
           </div>
-          <Slider label="Dim brightness" value={cfg.nightLevel} min={15} max={100} unit="%" onChange={set('nightLevel')} />
+          <Slider label={t('ame_dim_brightness')} value={cfg.nightLevel} min={15} max={100} unit="%" onChange={set('nightLevel')} />
         </Section>
 
-        <Section title="Screen care">
-          <Slider label="Burn-in drift" value={cfg.drift} min={0} max={40} onChange={set('drift')} />
-          <p className="ame-hint">Nudges everything by up to this many pixels every 3 minutes. 0 turns it off.</p>
+        <Section title={t('ame_screen_care')}>
+          <Slider label={t('ame_burn_in_drift')} value={cfg.drift} min={0} max={40} onChange={set('drift')} />
+          <p className="ame-hint">{t('ame_nudges_everything_by_up_to_this_many_pixels_every_3_minutes_0_turns_it_off')}</p>
         </Section>
       </div>
 
       <footer className="ame-foot">
         <button className="ame-reset" onClick={onReset}>
-          Reset to defaults
+          {t('ame_reset_to_defaults')}
         </button>
-        <span className="ame-saved">Saved automatically</span>
+        <span className="ame-saved">{t('ame_saved_automatically')}</span>
       </footer>
     </motion.aside>
   )

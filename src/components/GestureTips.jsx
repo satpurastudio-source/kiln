@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import Tip, { tipSeen } from './Tip'
+import { t, tn } from '../i18n'
 
 // Phone-only hints for the touch gestures, one at a time: drawer swipe first,
 // then pull-to-search once that's learned. Each retires itself the moment
@@ -26,13 +27,13 @@ export default function GestureTips() {
   if (!tipSeen('swipe-nav'))
     return (
       <Tip key="swipe-nav" id="swipe-nav">
-        Swipe right across the screen to open your folders.
+        {t('tipSwipe')}
       </Tip>
     )
   if (!tipSeen('pull-search'))
     return (
       <Tip key="pull-search" id="pull-search">
-        Pull down on the title to search or jump anywhere.
+        {t('tipPull')}
       </Tip>
     )
   return null

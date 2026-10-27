@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { isStandalone, isIOS, canPromptInstall, onInstallChange, promptInstall } from '../pwa'
 import { DownloadIcon, ShareIcon } from './Icons'
+import { useT } from '../i18n'
 
 // "Put kiln on your home screen" — phones only, hidden once installed.
 // Android/Chrome gets a real Install button; iOS has no install API, so it
@@ -13,6 +14,7 @@ const isPhone = () => window.matchMedia('(max-width: 860px) and (pointer: coarse
 export default function InstallHint() {
   const [, rerender] = useState(0)
   const [installed, setInstalled] = useState(false)
+  const t = useT()
   useEffect(() => onInstallChange(() => rerender((n) => n + 1)), [])
 
   if (installed || isStandalone() || !isPhone()) return null
@@ -32,8 +34,8 @@ export default function InstallHint() {
           <DownloadIcon size={14} />
         </span>
         <span>
-          <b>Put kiln on your home screen</b>
-          <span className="onb-install-sub">Opens full-screen like an app and updates itself.</span>
+          <b>{t('installTitle')}</b>
+          <span className="onb-install-sub">{t('installSub')}</span>
         </span>
       </div>
       {canPrompt ? (
@@ -43,16 +45,17 @@ export default function InstallHint() {
             if (await promptInstall()) setInstalled(true)
           }}
         >
-          Install kiln
+          {t('installBtn')}
         </button>
       ) : ios ? (
         <p className="onb-install-steps">
-          Tap <ShareIcon size={13} className="onb-install-glyph" /> <b>Share</b> in Safari, then{' '}
-          <b>Add to Home Screen</b>.
+          {t('iosSteps').split('{icon}').flatMap((part, i) =>
+            i ? [<ShareIcon key={i} size={13} className="onb-install-glyph" />, part] : [part],
+          )}
         </p>
       ) : (
         <p className="onb-install-steps">
-          Open your browser menu <b>⋮</b> and choose <b>Add to Home screen</b> or <b>Install app</b>.
+          {t('otherSteps')}
         </p>
       )}
     </motion.div>

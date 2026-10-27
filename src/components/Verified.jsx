@@ -5,6 +5,7 @@ import { useStore } from '../store'
 import { playFanfare } from '../sound'
 import { APP_NAME } from '../brand'
 import { linkFailed } from '../supabase'
+import { t } from '../i18n'
 
 export default function Verified({ onDone }) {
   const { state } = useStore()
@@ -12,7 +13,7 @@ export default function Verified({ onDone }) {
 
   useEffect(() => {
     if (linkFailed) return // no fanfare for a link that didn't work
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       playFanfare()
       const colors = ['#d85a30', '#d9a441', '#f4efe6']
       confetti({ particleCount: 90, spread: 75, origin: { x: 0.5, y: 0.6 }, colors, scalar: 0.9 })
@@ -21,7 +22,7 @@ export default function Verified({ onDone }) {
         confetti({ particleCount: 45, angle: 120, spread: 60, origin: { x: 1, y: 0.8 }, colors })
       }, 200)
     }, 700)
-    return () => clearTimeout(t)
+    return () => clearTimeout(timer)
   }, [])
 
   return (
@@ -69,7 +70,7 @@ export default function Verified({ onDone }) {
             animate={{ y: 0 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.35 }}
           >
-            {linkFailed ? 'Link didn’t work' : 'Email verified'}
+            {linkFailed ? t('linkFailed') : t('emailVerified')}
             <span className="dot">.</span>
           </motion.h1>
         </div>
@@ -81,10 +82,10 @@ export default function Verified({ onDone }) {
           transition={{ delay: 0.65, duration: 0.5 }}
         >
           {linkFailed
-            ? 'it was used already or has expired. Sign in, and if your email still needs verifying we’ll send a fresh code.'
+            ? t('linkFailedSub')
             : signedIn
-              ? `welcome to ${APP_NAME} — your account is ready`
-              : 'your account is ready — sign in to continue'}
+              ? t('verifiedSubIn', { app: APP_NAME })
+              : t('verifiedSubOut')}
         </motion.p>
 
         <motion.button
@@ -95,7 +96,7 @@ export default function Verified({ onDone }) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.85, duration: 0.5 }}
         >
-          {signedIn && !linkFailed ? `Enter ${APP_NAME} →` : 'Sign in →'}
+          {signedIn && !linkFailed ? t('enterApp', { app: APP_NAME }) : t('signInArrow')}
         </motion.button>
       </motion.div>
     </div>

@@ -1,4 +1,5 @@
 import { Component } from 'react'
+import { t } from '../i18n'
 
 // Last line of defense: a crash anywhere renders a friendly recovery screen
 // instead of unmounting to a blank page.
@@ -29,7 +30,7 @@ export default class ErrorBoundary extends Component {
         <div>
           <div style={{ fontSize: 40, marginBottom: 12 }}>🔥</div>
           <h1 style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: 34, marginBottom: 8 }}>
-            Something cracked in the kiln
+            {t('crashTitle')}
           </h1>
           <p style={{ opacity: 0.6, fontSize: 13, marginBottom: 20 }}>
             {String(this.state.error?.message ?? this.state.error)}
@@ -47,13 +48,13 @@ export default class ErrorBoundary extends Component {
               marginRight: 10,
             }}
           >
-            Reload
+            {t('reload')}
           </button>
           <button
             onClick={() => {
               // last resort — and it erases tasks that may not have synced,
               // so save a copy to the device before wiping anything
-              if (!window.confirm('Reset kiln on this device? A backup file of your local data downloads first.')) return
+              if (!window.confirm(t('resetConfirm'))) return
               try {
                 const raw = localStorage.getItem('zenith-v1')
                 if (raw) {
@@ -80,7 +81,7 @@ export default class ErrorBoundary extends Component {
               cursor: 'pointer',
             }}
           >
-            Reset local data
+            {t('resetLocal')}
           </button>
         </div>
       </div>

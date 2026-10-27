@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import { motion } from 'framer-motion'
 import { useStore, toast } from '../store'
 import { PROJECT_COLORS, PROJECT_ICONS, iconGlyph } from '../utils'
+import { t, tn } from '../i18n'
 
 export default function ProjectModal({ mode, project, onClose }) {
   const { state, dispatch } = useStore()
@@ -31,10 +32,10 @@ export default function ProjectModal({ mode, project, onClose }) {
     }
     if (editing) {
       dispatch({ type: 'UPDATE_PROJECT', id: project.id, patch: { name: name.trim(), color, icon } })
-      toast('Folder updated', '✓')
+      toast(t('folderUpdated'), '✓')
     } else {
       dispatch({ type: 'ADD_PROJECT', name, color, icon })
-      toast(`“${name.trim()}” created`, iconGlyph(icon))
+      toast(t('folderCreated', { name: name.trim() }), iconGlyph(icon))
     }
     onClose()
   }
@@ -48,9 +49,9 @@ export default function ProjectModal({ mode, project, onClose }) {
     const taskIds = state.tasks.filter((t) => t.projectId === project.id).map((t) => t.id)
     dispatch({ type: 'DELETE_PROJECT', id: project.id })
     toast(
-      taskIds.length ? `Folder deleted — ${taskIds.length} task${taskIds.length === 1 ? '' : 's'} moved to Trash` : 'Folder deleted',
+      taskIds.length ? tn('folderDeletedTasks', taskIds.length) : t('folderDeleted'),
       '🗑',
-      { label: 'Undo', fn: () => dispatch({ type: 'RESTORE_PROJECT', project, index, taskIds }) }
+      { label: t('undo'), fn: () => dispatch({ type: 'RESTORE_PROJECT', project, index, taskIds }) }
     )
     onClose()
   }
@@ -76,19 +77,19 @@ export default function ProjectModal({ mode, project, onClose }) {
           if (e.key === 'Enter' && e.target.tagName === 'INPUT') submit()
         }}
       >
-        <h2>{editing ? 'Edit folder' : 'New folder'}</h2>
+        <h2>{editing ? t('editFolder') : t('newFolder')}</h2>
 
-        <label>Name</label>
+        <label>{t('name')}</label>
         <input
           ref={inputRef}
           type="text"
           value={name}
           maxLength={40}
-          placeholder="e.g. Side Hustle"
+          placeholder={t('folderNamePh')}
           onChange={(e) => setName(e.target.value)}
         />
 
-        <label>Color</label>
+        <label>{t('color')}</label>
         <div className="swatch-row">
           {PROJECT_COLORS.map((c) => (
             <motion.button
@@ -97,13 +98,13 @@ export default function ProjectModal({ mode, project, onClose }) {
               style={{ background: c, color: c }}
               onClick={() => setColor(c)}
               whileTap={{ scale: 0.85 }}
-              aria-label={`Use ${c}`}
+              aria-label={t('useColor', { color: c })}
             />
           ))}
           <label
             className={`swatch swatch-custom ${customColor ? 'on' : ''}`}
             style={customColor ? { background: color, color } : undefined}
-            title="Pick a custom color"
+            title={t('pickCustomColor')}
           >
             {!customColor && <span className="swatch-custom-plus">+</span>}
             <input
@@ -114,7 +115,7 @@ export default function ProjectModal({ mode, project, onClose }) {
           </label>
         </div>
 
-        <label>Icon</label>
+        <label>{t('icon')}</label>
         <div className="icon-row">
           {PROJECT_ICONS.map((i) => (
             <motion.button
@@ -132,14 +133,14 @@ export default function ProjectModal({ mode, project, onClose }) {
         <div className="modal-actions">
           {editing && (
             <button className="danger-btn" style={{ marginRight: 'auto', height: 38 }} onClick={remove}>
-              {confirmDelete ? 'Delete folder? Tasks go to Trash' : 'Delete'}
+              {confirmDelete ? t('deleteFolderConfirm') : t('delete')}
             </button>
           )}
           <button className="btn ghost" onClick={onClose}>
-            Cancel
+            {t('cancel')}
           </button>
           <motion.button className="btn primary" onClick={submit} whileTap={{ scale: 0.96 }}>
-            {editing ? 'Save' : 'Create folder'}
+            {editing ? t('save') : t('createFolder')}
           </motion.button>
         </div>
       </motion.div>

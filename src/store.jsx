@@ -19,6 +19,7 @@ import { setFxLite } from './fx'
 import { supabase } from './supabase'
 import { stableStringify } from './merge'
 import { createSync, clearBase, BASE_KEY } from './sync'
+import { resolveLang, loadLang, isLoaded, setLang, t, fmtDate } from './i18n'
 
 export const STORAGE_KEY = 'zenith-v1'
 // Deleted tasks linger here before being purged.
@@ -26,6 +27,25 @@ export const TRASH_TTL = 30 * 24 * 60 * 60 * 1000
 const StoreCtx = createContext(null)
 
 /* ---------------------------------- seed ---------------------------------- */
+
+// The seed is built before anyone picks a language, so it's written in English
+// and onboarding swaps these exact strings for their translations (keys).
+export const SEED_TEXT = {
+  'Getting Started': 'seedFolderStart',
+  Work: 'p_work',
+  Personal: 'p_personal',
+  Study: 'p_study',
+  Fitness: 'p_fitness',
+  'Side Project': 'p_side',
+  Errands: 'p_errands',
+  'Tap the circle to complete me — watch what happens ✨': 'seedTask1',
+  'Drag the ⋮⋮ grip to reorder me': 'seedTask2',
+  'Tap me to edit notes, dates, time & priority': 'seedTask3',
+  'Everything is editable inline. Try moving me to another folder.': 'seedTask3Notes',
+  'Add a task using the bar above': 'seedTask4',
+  'Explore Calendar, Focus & the ⚙ Settings menu': 'seedTask5',
+  'Finish every task in a folder for a surprise 🎉': 'seedTask6',
+}
 
 function seed() {
   const p1 = { id: uid(), name: 'Getting Started', color: '#d85a30', icon: '✦' }
@@ -167,7 +187,7 @@ function newFolder(projects, name) {
 function homeFor(projects, projectId) {
   if (projects.some((p) => p.id === projectId)) return { projects, projectId }
   if (projects.length) return { projects, projectId: projects[0].id }
-  const inbox = newFolder(projects, 'Inbox')
+  const inbox = newFolder(projects, t('inbox'))
   return { projects: [inbox], projectId: inbox.id }
 }
 
@@ -585,7 +605,7 @@ function save(state) {
     console.warn('[kiln] could not save locally:', e?.message)
     if (!warnedStorage) {
       warnedStorage = true
-      toast('This device’s storage is full — recent changes may not survive a reload', '⚠', null, {
+      toast(t('storageFull'), '⚠', null, {
         sticky: true,
       })
     }
@@ -599,6 +619,15 @@ if (typeof navigator !== 'undefined') navigator.storage?.persist?.().catch(() =>
 export function StoreProvider({ children }) {
   const [state, dispatch] = useReducer(reducer, null, load)
   const [syncStatus, setSyncStatus] = useState('idle')
+
+  // Language: set before any child renders so every t() in this pass agrees.
+  // A not-yet-fetched language renders English for the moment it takes to load.
+  const lang = resolveLang(state.settings)
+  setLang(lang)
+  const [, langReady] = useState(0)
+  useEffect(() => {
+    if (!isLoaded(lang)) loadLang(lang).then(() => langReady((n) => n + 1), () => {})
+  }, [lang])
 
   // Save on every change, but at most once per frame — typing in a note no
   // longer serializes the whole state per keystroke. Flushed before the page
@@ -655,6 +684,11 @@ export function StoreProvider({ children }) {
     s.setProperty('--accent-deep', a.deep)
     s.setProperty('--accent-rgb', a.rgb)
   }, [state.settings.accent, state.settings.customAccent])
+
+  // Language: lets the browser pick the right Indic font + hyphenation.
+  useEffect(() => {
+    document.documentElement.lang = lang
+  }, [lang])
 
   // Text size: one multiplier the stylesheet applies to every font-size.
   useEffect(() => {
@@ -908,7 +942,7 @@ export function selectInsights(state) {
     const ds = toDateStr(d)
     days.push({
       ds,
-      label: d.toLocaleDateString('en-US', { weekday: 'short' }),
+      label: fmtDate(d, { weekday: 'short' }),
       count: log.days[ds]?.done || 0,
     })
   }
@@ -959,11 +993,11 @@ export function selectInsights(state) {
 // Group tasks for the Upcoming view
 export function groupUpcoming(tasks) {
   const groups = [
-    { id: 'overdue', label: 'Overdue', tasks: [] },
-    { id: 'today', label: 'Today', tasks: [] },
-    { id: 'tomorrow', label: 'Tomorrow', tasks: [] },
-    { id: 'week', label: 'Next 7 days', tasks: [] },
-    { id: 'later', label: 'Later', tasks: [] },
+    { id: 'overdue', label: t('overdue'), tasks: [] },
+    { id: 'today', label: t('today'), tasks: [] },
+    { id: 'tomorrow', label: t('tomorrow'), tasks: [] },
+    { id: 'week', label: t('next7days'), tasks: [] },
+    { id: 'later', label: t('later'), tasks: [] },
   ]
   const week = addDaysStr(7)
   for (const t of tasks) {

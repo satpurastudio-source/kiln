@@ -3,6 +3,7 @@ import { supabase } from '../supabase'
 import { toast } from '../store'
 import { linkBase } from '../native'
 import { MailIcon, LockIcon } from './Icons'
+import { t } from '../i18n'
 
 // Settings → You: change the sign-in email or password (signed-in accounts).
 // Email changes are confirmed from the inbox before they take effect.
@@ -25,8 +26,8 @@ export default function Account({ email }) {
     setError('')
     if (open === 'email') {
       const next = value.trim().toLowerCase()
-      if (!/^\S+@\S+\.\S+$/.test(next)) return setError('That doesn’t look like an email address.')
-      if (next === email?.toLowerCase()) return setError('That’s already your email.')
+      if (!/^\S+@\S+\.\S+$/.test(next)) return setError(t('errEmailInvalid'))
+      if (next === email?.toLowerCase()) return setError(t('errSameEmail'))
       setBusy(true)
       const { error: err } = await supabase.auth.updateUser(
         { email: next },
@@ -34,10 +35,10 @@ export default function Account({ email }) {
       )
       setBusy(false)
       if (err) return setError(err.message)
-      toast('Check your inbox to confirm the new email', '✉')
+      toast(t('checkInboxNewEmail'), '✉')
     } else {
-      if (value.length < 6) return setError('Password needs at least 6 characters.')
-      if (value !== confirm) return setError('The two passwords don’t match.')
+      if (value.length < 6) return setError(t('errPwShort'))
+      if (value !== confirm) return setError(t('errPwMismatch'))
       setBusy(true)
       const { error: err } = await supabase.auth.updateUser({ password: value })
       setBusy(false)
@@ -45,11 +46,11 @@ export default function Account({ email }) {
         // projects with "secure password change" want a recent sign-in first
         return setError(
           /reauth|recent/i.test(err.message)
-            ? 'For safety, sign out and back in, then change your password.'
+            ? t('errReauth')
             : err.message
         )
       }
-      toast('Password changed', '✓')
+      toast(t('passwordChanged'), '✓')
     }
     toggle(null)
   }
@@ -57,7 +58,7 @@ export default function Account({ email }) {
   return (
     <div className="account">
       <button className="set-action" onClick={() => toggle('email')} aria-expanded={open === 'email'}>
-        <MailIcon size={14} /> Change email
+        <MailIcon size={14} /> {t('changeEmail')}
       </button>
       {open === 'email' && (
         <form className="account-form" onSubmit={save}>
@@ -65,26 +66,26 @@ export default function Account({ email }) {
             className="set-input"
             type="email"
             autoComplete="email"
-            placeholder="New email"
+            placeholder={t('newEmail')}
             value={value}
             autoFocus
             onChange={(e) => setValue(e.target.value)}
           />
-          <p className="set-hint">We’ll send a confirmation link. Your email changes once you tap it.</p>
+          <p className="set-hint">{t('newEmailHint')}</p>
           {error && <p className="set-error">{error}</p>}
           <div className="danger-confirm-row">
             <button type="button" className="mini-btn" onClick={() => toggle(null)}>
-              Cancel
+              {t('cancel')}
             </button>
             <button type="submit" className="mini-btn primary" disabled={busy}>
-              {busy ? 'Sending…' : 'Send link'}
+              {busy ? t('sending') : t('sendLink')}
             </button>
           </div>
         </form>
       )}
 
       <button className="set-action" onClick={() => toggle('password')} aria-expanded={open === 'password'}>
-        <LockIcon size={14} /> Change password
+        <LockIcon size={14} /> {t('changePassword')}
       </button>
       {open === 'password' && (
         <form className="account-form" onSubmit={save}>
@@ -92,7 +93,7 @@ export default function Account({ email }) {
             className="set-input"
             type="password"
             autoComplete="new-password"
-            placeholder="New password"
+            placeholder={t('newPassword')}
             value={value}
             autoFocus
             onChange={(e) => setValue(e.target.value)}
@@ -101,17 +102,17 @@ export default function Account({ email }) {
             className="set-input"
             type="password"
             autoComplete="new-password"
-            placeholder="Type it again"
+            placeholder={t('typeAgain')}
             value={confirm}
             onChange={(e) => setConfirm(e.target.value)}
           />
           {error && <p className="set-error">{error}</p>}
           <div className="danger-confirm-row">
             <button type="button" className="mini-btn" onClick={() => toggle(null)}>
-              Cancel
+              {t('cancel')}
             </button>
             <button type="submit" className="mini-btn primary" disabled={busy}>
-              {busy ? 'Saving…' : 'Change password'}
+              {busy ? t('saving') : t('changePassword')}
             </button>
           </div>
         </form>

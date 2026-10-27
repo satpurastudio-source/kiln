@@ -5,6 +5,7 @@ import ErrorBoundary from './components/ErrorBoundary'
 import App from './App'
 import { initPWA } from './pwa'
 import { initViewport } from './viewport'
+import { resolveLang, loadLang } from './i18n'
 import './index.css'
 
 // First-time visitors to the bare address see the landing page first.
@@ -27,13 +28,23 @@ if (firstVisit()) {
   // before first render so nothing lays out against the wrong height
   initViewport()
 
-  createRoot(document.getElementById('root')).render(
-    <ErrorBoundary>
-      <StoreProvider>
-        <App />
-      </StoreProvider>
-    </ErrorBoundary>
-  )
+  // the saved language's strings arrive before first paint, so a Kannada
+  // user never sees a flash of English
+  let saved = null
+  try {
+    saved = JSON.parse(localStorage.getItem(STORAGE_KEY))?.settings
+  } catch {
+    /* fresh device or unreadable save — fall back to the phone's language */
+  }
+  const render = () =>
+    createRoot(document.getElementById('root')).render(
+      <ErrorBoundary>
+        <StoreProvider>
+          <App />
+        </StoreProvider>
+      </ErrorBoundary>
+    )
+  loadLang(resolveLang(saved)).then(render, render)
 
   initPWA()
 }

@@ -4,6 +4,7 @@ import { useStore } from '../store'
 import { todayStr, isToday, isOverdue, PRIORITIES, fmtDue, fmtTime, parseQuickAdd } from '../utils'
 import { playAdd } from '../sound'
 import { PlusIcon, XIcon, CalendarIcon, ClockIcon, FlagIcon } from './Icons'
+import { t } from '../i18n'
 
 const prioLabel = (id) => PRIORITIES.find((p) => p.id === id)?.label ?? id
 
@@ -49,7 +50,7 @@ export default function AmbientQuickAdd({ onClose }) {
     playAdd()
     setTitle('')
     // say where it went — a future-dated task won't appear on this board
-    const where = isToday(due) || isOverdue(due) ? 'Added to Todo' : `Added for ${fmtDue(due)} — not on today’s board`
+    const where = isToday(due) || isOverdue(due) ? t('ambAddedTodo') : t('ambAddedFor', { date: fmtDue(due) })
     setNote({ text: where, key: Date.now() })
   }
 
@@ -71,7 +72,7 @@ export default function AmbientQuickAdd({ onClose }) {
           value={title}
           maxLength={140}
           enterKeyHint="done"
-          placeholder={'Add a task…  try “call mom 26 oct 6pm !high”'}
+          placeholder={t('ambQuickAddPh')}
           onChange={(e) => setTitle(e.target.value)}
           onKeyDown={(e) => {
             e.stopPropagation() // typing "n" here must not re-trigger anything
@@ -80,11 +81,11 @@ export default function AmbientQuickAdd({ onClose }) {
           }}
         />
         {title.trim() ? (
-          <button className="amb-qa-go" onClick={submit} aria-label="Add task">
+          <button className="amb-qa-go" onClick={submit} aria-label={t('addTask')}>
             Add
           </button>
         ) : (
-          <button className="amb-qa-close" onClick={onClose} aria-label="Close">
+          <button className="amb-qa-close" onClick={onClose} aria-label={t('close')}>
             <XIcon size={14} />
           </button>
         )}
@@ -136,11 +137,11 @@ export default function AmbientQuickAdd({ onClose }) {
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
           >
-            ✓ {note.text} · Enter adds another, Esc closes
+            ✓ {note.text} · {t('ambEnterEsc')}
           </motion.div>
         ) : (
           <motion.div key="hint" className="amb-qa-meta amb-qa-hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            Dates, times, <b>!high</b> and <b>#folder</b> are read from your words
+            {t('ambHint')}
           </motion.div>
         )}
       </AnimatePresence>

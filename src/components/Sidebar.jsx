@@ -18,7 +18,8 @@ import {
   ArchiveIcon,
   TrashIcon,
 } from './Icons'
-import { APP_NAME, APP_TAG } from '../brand'
+import { APP_NAME } from '../brand'
+import { t, fmtNum } from '../i18n'
 
 function NavItem({ active, onClick, icon, label, right, editBtn, order = 0 }) {
   return (
@@ -84,7 +85,7 @@ export default function Sidebar({ onNewProject, onEditProject, onOpenSettings, m
             {APP_NAME}
             <span className="dot">.</span>
           </div>
-          <div className="brand-tag">{APP_TAG}</div>
+          <div className="brand-tag">{t('brandTag')}</div>
         </div>
       </div>
 
@@ -93,7 +94,7 @@ export default function Sidebar({ onNewProject, onEditProject, onOpenSettings, m
         active={view.type === 'today'}
         onClick={() => go({ type: 'today', projectId: null })}
         icon={<SunIcon size={15} filled={view.type === 'today'} />}
-        label="Today"
+        label={t('nav_today')}
         right={counts.today > 0 && <span className="count">{counts.today}</span>}
       />
       <NavItem
@@ -101,7 +102,7 @@ export default function Sidebar({ onNewProject, onEditProject, onOpenSettings, m
         active={view.type === 'upcoming'}
         onClick={() => go({ type: 'upcoming', projectId: null })}
         icon={<ClockIcon size={15} filled={view.type === 'upcoming'} />}
-        label="Upcoming"
+        label={t('nav_upcoming')}
         right={counts.upcoming > 0 && <span className="count">{counts.upcoming}</span>}
       />
       <NavItem
@@ -109,14 +110,14 @@ export default function Sidebar({ onNewProject, onEditProject, onOpenSettings, m
         active={view.type === 'calendar'}
         onClick={() => go({ type: 'calendar', projectId: null })}
         icon={<CalendarIcon size={15} filled={view.type === 'calendar'} />}
-        label="Calendar"
+        label={t('nav_calendar')}
       />
       <NavItem
         order={3}
         active={view.type === 'all'}
         onClick={() => go({ type: 'all', projectId: null })}
         icon={<LayersIcon size={15} filled={view.type === 'all'} />}
-        label="All Tasks"
+        label={t('nav_all')}
         right={counts.all > 0 && <span className="count">{counts.all}</span>}
       />
       <NavItem
@@ -124,17 +125,17 @@ export default function Sidebar({ onNewProject, onEditProject, onOpenSettings, m
         active={view.type === 'insights'}
         onClick={() => go({ type: 'insights', projectId: null })}
         icon={<ChartIcon size={15} filled={view.type === 'insights'} />}
-        label="Insights"
+        label={t('nav_insights')}
       />
 
       <div className="section-label">
-        Folders
+        {t('folders')}
         <motion.button
           onClick={onNewProject}
           whileHover={{ rotate: 90 }}
           whileTap={{ scale: 0.85 }}
           transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-          title="New folder"
+          title={t('newFolder')}
         >
           <PlusIcon size={13} />
         </motion.button>
@@ -160,7 +161,7 @@ export default function Sidebar({ onNewProject, onEditProject, onOpenSettings, m
                     e.stopPropagation()
                     onEditProject(p)
                   }}
-                  title="Edit folder"
+                  title={t('editFolder')}
                 >
                   <PencilIcon size={11} />
                 </span>
@@ -180,14 +181,14 @@ export default function Sidebar({ onNewProject, onEditProject, onOpenSettings, m
           active={view.type === 'archive'}
           onClick={() => go({ type: 'archive', projectId: null })}
           icon={<ArchiveIcon size={14} filled={view.type === 'archive'} />}
-          label="Archive"
+          label={t('nav_archive')}
           right={counts.archived > 0 && <span className="count">{counts.archived}</span>}
         />
         <NavItem
           active={view.type === 'trash'}
           onClick={() => go({ type: 'trash', projectId: null })}
           icon={<TrashIcon size={14} />}
-          label="Trash"
+          label={t('nav_trash')}
           right={counts.trash > 0 && <span className="count">{counts.trash}</span>}
         />
       </div>
@@ -195,34 +196,34 @@ export default function Sidebar({ onNewProject, onEditProject, onOpenSettings, m
       {unsynced && (
         <div className="sync-badge" role="status">
           <span className="sync-dot" />
-          {syncStatus === 'offline' ? 'Offline — saved on this device' : 'Not synced yet — retrying'}
+          {syncStatus === 'offline' ? t('offlineSaved') : t('notSyncedRetrying')}
         </div>
       )}
       <div className="sidebar-footer">
         <ProgressRing size={34} stroke={3.4} pct={tp.pct} color="var(--accent)" />
         <div className="footer-stat">
-          <b>{tp.done}</b> done today
+          <b>{fmtNum(tp.done)}</b> {t('doneToday')}
           <br />
-          <b>{tp.active}</b> to go
+          <b>{fmtNum(tp.active)}</b> {t('toGo')}
         </div>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 2 }}>
           <button
             className="icon-btn"
-            title={state.sound ? 'Mute sounds' : 'Unmute sounds'}
+            title={state.sound ? t('muteSounds') : t('unmuteSounds')}
             onClick={() => dispatch({ type: 'SET_SOUND', sound: !state.sound })}
           >
             {state.sound ? <BellIcon size={14} /> : <BellOffIcon size={14} />}
           </button>
           <button
             className="icon-btn"
-            title="Toggle theme"
+            title={t('toggleTheme')}
             onClick={() =>
               dispatch({ type: 'SET_THEME', theme: state.theme === 'dark' ? 'light' : 'dark' })
             }
           >
             {state.theme === 'dark' ? <MoonIcon size={14} /> : <SunIcon size={14} />}
           </button>
-          <button className="icon-btn" title="Settings" onClick={onOpenSettings}>
+          <button className="icon-btn" title={t('settings')} onClick={onOpenSettings}>
             <SettingsIcon size={14} />
           </button>
         </div>

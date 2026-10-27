@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
 import { motion } from 'framer-motion'
+import { t } from '../i18n'
 
 // The settings-style modal shell, shared by Help, Feedback and What's new:
 // a title, a scrolling body of .set-section blocks, and a Done button.
@@ -38,7 +39,7 @@ export default function Sheet({ title, onClose, children, actions }) {
             whileTap={{ scale: 0.96 }}
             data-back-close
           >
-            {actions ? 'Cancel' : 'Done'}
+            {actions ? t('cancel') : t('done')}
           </motion.button>
           {actions}
         </div>

@@ -5,6 +5,7 @@ import EmptyState from './EmptyState'
 import { useStore, selectActive, selectCompleted, groupUpcoming, toast } from '../store'
 import { isOverdue, isToday, priorityRank } from '../utils'
 import { ChevronIcon } from './Icons'
+import { t, fmtNum } from '../i18n'
 
 const byPriority = (a, b) => priorityRank[a.priority] - priorityRank[b.priority]
 
@@ -49,8 +50,8 @@ export default function TaskList({ query }) {
     const today = active.filter((t) => !isOverdue(t.due)).sort(byPriority)
     content = (
       <>
-        <Group label="Overdue" tasks={overdue} overdue showProject={showProject} />
-        <Group label="Today" tasks={today} startIndex={overdue.length} showProject={showProject} />
+        <Group label={t('overdue')} tasks={overdue} overdue showProject={showProject} />
+        <Group label={t('today')} tasks={today} startIndex={overdue.length} showProject={showProject} />
       </>
     )
   } else if (view.type === 'upcoming') {
@@ -101,7 +102,7 @@ export default function TaskList({ query }) {
             <span className={`chev ${showCompleted ? 'open' : ''}`}>
               <ChevronIcon size={12} />
             </span>
-            Completed{view.type === 'today' ? ' today' : ''} · {completed.length}
+            {view.type === 'today' ? t('completedToday') : t('completed')} · {fmtNum(completed.length)}
             <span
               role="button"
               className="clear-btn"
@@ -109,13 +110,13 @@ export default function TaskList({ query }) {
                 e.stopPropagation()
                 const ids = completed.map((t) => t.id)
                 dispatch({ type: 'DELETE_TASKS', ids })
-                toast(`Cleared ${ids.length} completed`, '🧹', {
-                  label: 'Undo',
+                toast(t('clearedCompleted', { n: fmtNum(ids.length) }), '🧹', {
+                  label: t('undo'),
                   fn: () => dispatch({ type: 'RESTORE_TASKS', ids }),
                 })
               }}
             >
-              Clear
+              {t('clear')}
             </span>
           </button>
           <AnimatePresence initial={false}>

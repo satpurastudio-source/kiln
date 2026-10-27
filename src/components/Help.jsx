@@ -1,43 +1,46 @@
 import Sheet from './Sheet'
 import { KeyboardIcon, SparkleIcon, MenuIcon } from './Icons'
+import { t } from '../i18n'
 
 const isMac = /Mac|iPhone|iPad/.test(navigator.platform)
 const MOD = isMac ? '⌘' : 'Ctrl'
 
+// [keys, description key]
 const KEYS = [
-  [['N'], 'New task'],
-  [['/'], 'Search'],
-  [[MOD, 'K'], 'Command palette: jump anywhere'],
-  [['?'], 'This help'],
-  [['Enter'], 'Add task / confirm'],
-  [['Esc'], 'Close / clear'],
+  [['N'], 'keyNewTask'],
+  [['/'], 'keySearch'],
+  [[MOD, 'K'], 'keyPalette'],
+  [['?'], 'keyHelp'],
+  [['Enter'], 'keyEnter'],
+  [['Esc'], 'keyEsc'],
 ]
 
 const GESTURES = [
-  ['Swipe right', 'Open your folders'],
-  ['Swipe left', 'Close them again'],
-  ['Pull down on the title', 'Search or jump anywhere'],
-  ['Android back', 'Closes what’s open, then opens your folders'],
+  ['gSwipeRight', 'gSwipeRightDo'],
+  ['gSwipeLeft', 'gSwipeLeftDo'],
+  ['gPull', 'gPullDo'],
+  ['gBack', 'gBackDo'],
 ]
 
+// the examples stay English: that's what the quick-add parser reads
 const SAY = [
-  ['tomorrow · friday · next week', 'Due date'],
-  ['26 oct · 12/11', 'A calendar date (day first)'],
-  ['5pm · 6:30pm · noon', 'Time'],
-  ['!high · !med · !low', 'Priority'],
-  ['#home', 'Folder (made for you if it’s new)'],
+  ['tomorrow · friday · next week', 'sayDue'],
+  ['26 oct · 12/11', 'sayDate'],
+  ['5pm · 6:30pm · noon', 'sayTime'],
+  ['!high · !med · !low', 'priority'],
+  ['#home', 'sayFolder'],
 ]
 
 export default function Help({ onClose }) {
   const touch = window.matchMedia('(pointer: coarse)').matches
   return (
-    <Sheet title="Help" onClose={onClose}>
+    <Sheet title={t('help')} onClose={onClose}>
       <section className="set-section">
         <div className="set-head">
-          <SparkleIcon size={12} /> Quick add understands
+          <SparkleIcon size={12} /> {t('quickAddUnderstands')}
         </div>
         <p className="set-hint" style={{ marginTop: 0 }}>
-          Type it like you’d say it, e.g. <b>pay rent friday 5pm !high #home</b>
+          {t('typeLikeSay')} <b>pay rent friday 5pm !high #home</b>
         </p>
         <dl className="help-list">
           {SAY.map(([k, v]) => (
@@ -45,7 +48,7 @@ export default function Help({ onClose }) {
               <dt>
                 <code>{k}</code>
               </dt>
-              <dd>{v}</dd>
+              <dd>{t(v)}</dd>
             </div>
           ))}
         </dl>
@@ -54,13 +57,13 @@ export default function Help({ onClose }) {
       {touch && (
         <section className="set-section">
           <div className="set-head">
-            <MenuIcon size={12} /> Gestures
+            <MenuIcon size={12} /> {t('gestures')}
           </div>
           <dl className="help-list">
             {GESTURES.map(([k, v]) => (
               <div key={k}>
-                <dt>{k}</dt>
-                <dd>{v}</dd>
+                <dt>{t(k)}</dt>
+                <dd>{t(v)}</dd>
               </div>
             ))}
           </dl>
@@ -69,7 +72,7 @@ export default function Help({ onClose }) {
 
       <section className="set-section">
         <div className="set-head">
-          <KeyboardIcon size={13} /> Keyboard
+          <KeyboardIcon size={13} /> {t('keyboard')}
         </div>
         <dl className="help-list">
           {KEYS.map(([keys, v]) => (
@@ -79,7 +82,7 @@ export default function Help({ onClose }) {
                   <kbd key={k}>{k}</kbd>
                 ))}
               </dt>
-              <dd>{v}</dd>
+              <dd>{t(v)}</dd>
             </div>
           ))}
         </dl>

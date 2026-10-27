@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { toast } from '../store'
 import { supabase } from '../supabase'
 import { APP_NAME } from '../brand'
+import { t } from '../i18n'
 
 // Landing page for the password-recovery email link (?reset=1).
 export default function Reset({ onDone }) {
@@ -12,8 +13,8 @@ export default function Reset({ onDone }) {
   const [error, setError] = useState('')
 
   const submit = async () => {
-    if (password.length < 6) return setError('Password needs at least 6 characters.')
-    if (password !== confirm) return setError('Passwords don’t match.')
+    if (password.length < 6) return setError(t('errPwShort'))
+    if (password !== confirm) return setError(t('errPwMismatch'))
     setBusy(true)
     setError('')
     const { error: err } = await supabase.auth.updateUser({ password })
@@ -21,11 +22,11 @@ export default function Reset({ onDone }) {
     if (err) {
       return setError(
         err.message.includes('session')
-          ? 'This reset link expired — request a new one from the sign-in screen.'
+          ? t('errResetExpired')
           : err.message
       )
     }
-    toast('Password updated', '🔒')
+    toast(t('passwordUpdated'), '🔒')
     onDone()
   }
 
@@ -46,24 +47,24 @@ export default function Reset({ onDone }) {
             animate={{ y: 0 }}
             transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.15 }}
           >
-            New password<span className="dot">.</span>
+            {t('newPasswordTitle')}<span className="dot">.</span>
           </motion.h1>
         </div>
-        <p className="login-sub">choose a new password for your {APP_NAME} account</p>
+        <p className="login-sub">{t('newPasswordSub', { app: APP_NAME })}</p>
 
         <input
           type="password"
           className="login-input"
           autoFocus
           value={password}
-          placeholder="New password (6+ chars)"
+          placeholder={t('newPasswordPh')}
           onChange={(e) => setPassword(e.target.value)}
         />
         <input
           type="password"
           className="login-input"
           value={confirm}
-          placeholder="Repeat it"
+          placeholder={t('repeatIt')}
           onChange={(e) => setConfirm(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && !busy && submit()}
         />
@@ -75,7 +76,7 @@ export default function Reset({ onDone }) {
           whileTap={{ scale: 0.97 }}
           style={{ opacity: busy ? 0.6 : 1 }}
         >
-          {busy ? 'One moment…' : 'Set password →'}
+          {busy ? t('oneMoment') : t('setPassword')}
         </motion.button>
       </motion.div>
     </div>

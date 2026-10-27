@@ -5,6 +5,8 @@ import { supabase } from '../supabase'
 import { BASE_KEY } from '../sync'
 import { PRIORITIES, TEXT_SCALE, exportData as downloadBackup, parseBackup } from '../utils'
 import AccentPicker from './AccentPicker'
+import LanguagePicker from './LanguagePicker'
+import { t, tn } from '../i18n'
 import Account from './Account'
 import { remindersOptedIn, enableReminders, disableReminders, sendTestReminder } from '../reminders'
 import { isNative } from '../native'
@@ -22,21 +24,22 @@ import {
   MailIcon,
   KeyboardIcon,
   GiftIcon,
+  GlobeIcon,
 } from './Icons'
 
 const DUE_OPTS = [
-  { id: 'none', label: 'No date' },
-  { id: 'today', label: 'Today' },
-  { id: 'tomorrow', label: 'Tomorrow' },
+  { id: 'none', key: 'noDate' },
+  { id: 'today', key: 'today' },
+  { id: 'tomorrow', key: 'tomorrow' },
 ]
 
 const LOCAL_KEYS = ['zenith-v1', BASE_KEY, 'kiln-focus', 'kiln-tips', 'kiln-reminders', 'kiln-reminded-on']
 
 const SYNC_LABEL = {
-  synced: 'All changes synced',
-  syncing: 'Syncing…',
-  offline: 'Offline — changes are saved on this device and will sync when you’re back',
-  error: 'Can’t reach the server right now — changes are saved on this device, retrying',
+  synced: 'syncSynced',
+  syncing: 'syncSyncing',
+  offline: 'syncOffline',
+  error: 'syncError',
 }
 
 export default function Settings({ onClose, onOpenSheet }) {
@@ -63,7 +66,7 @@ export default function Settings({ onClose, onOpenSheet }) {
     const clean = name.trim()
     if (clean && clean !== profile?.name) {
       dispatch({ type: 'UPDATE_PROFILE', patch: { name: clean } })
-      toast('Name updated', '✓')
+      toast(t('nameUpdated'), '✓')
     } else {
       setName(profile?.name ?? '')
     }
@@ -73,17 +76,17 @@ export default function Settings({ onClose, onOpenSheet }) {
     if (reminders) {
       disableReminders()
       setReminders(false)
-      toast('Reminders off', '🔕')
+      toast(t('remindersOff'), '🔕')
     } else {
       const ok = await enableReminders()
       setReminders(ok)
-      toast(ok ? 'Reminders on' : 'Notifications are blocked — allow them for kiln in settings', ok ? '🔔' : '⚠')
+      toast(ok ? t('remindersOn') : t('notifBlocked'), ok ? '🔔' : '⚠')
     }
   }
 
   const testReminder = async () => {
     const ok = await sendTestReminder()
-    toast(ok ? 'Test on its way: lock your phone' : 'Notifications are blocked — allow them for kiln in iPhone Settings', ok ? '🔔' : '⚠')
+    toast(ok ? t('testOnWay') : t('notifBlockedIos'), ok ? '🔔' : '⚠')
   }
 
   const replayTour = () => {
@@ -93,7 +96,7 @@ export default function Settings({ onClose, onOpenSheet }) {
 
   const exportData = () => {
     downloadBackup(state)
-    toast('Backup downloaded', '⬇')
+    toast(t('backupDownloaded'), '⬇')
   }
 
   const pickBackup = async (e) => {
@@ -112,7 +115,7 @@ export default function Settings({ onClose, onOpenSheet }) {
     const incoming = new Set(restore.tasks.map((t) => t.id))
     dispatch({ type: 'DELETE_TASKS', ids: state.tasks.filter((t) => !incoming.has(t.id)).map((t) => t.id) })
     dispatch({ type: 'HYDRATE', data: { ...restore, seedV: 3 } })
-    toast(`Restored ${restore.tasks.length} task${restore.tasks.length === 1 ? '' : 's'}`, '↩')
+    toast(tn('restoredTasks', restore.tasks.length), '↩')
     setRestore(null)
     onClose()
   }
@@ -146,7 +149,7 @@ export default function Settings({ onClose, onOpenSheet }) {
       if (error) {
         setBusy(false)
         setConfirmDel(false)
-        toast('Couldn’t delete right now — please try again', '⚠')
+        toast(t('deleteFailed'), '⚠')
         return
       }
       await supabase.auth.signOut()
@@ -171,38 +174,46 @@ export default function Settings({ onClose, onOpenSheet }) {
         exit={{ opacity: 0, scale: 0.96, y: 12 }}
         transition={{ type: 'spring', stiffness: 360, damping: 28 }}
       >
-        <h2>Settings</h2>
+        <h2>{t('settings')}</h2>
         <div className="settings-body">
           {/* You */}
           <section className="set-section">
             <div className="set-head">
-              <UserIcon size={13} /> You
+              <UserIcon size={13} /> {t('you')}
             </div>
-            <label className="set-label">Display name</label>
+            <label className="set-label">{t('displayName')}</label>
             <input
               className="set-input"
               value={name}
               maxLength={40}
-              placeholder="Your name"
+              placeholder={t('yourName')}
               onChange={(e) => setName(e.target.value)}
               onBlur={commitName}
               onKeyDown={(e) => e.key === 'Enter' && e.target.blur()}
             />
-            <p className="set-hint">Used in your greeting on the Today screen.</p>
+            <p className="set-hint">{t('displayNameHint')}</p>
             {profile?.cloud && (
               <p className={`set-hint sync-line ${syncStatus}`}>
                 <span className="sync-dot" />
                 {profile.email ? `${profile.email} · ` : ''}
-                {SYNC_LABEL[syncStatus] ?? 'Connecting…'}
+                {SYNC_LABEL[syncStatus] ? t(SYNC_LABEL[syncStatus]) : t('connecting')}
               </p>
             )}
             {profile?.cloud && <Account email={profile.email} />}
           </section>
 
+          {/* Language */}
+          <section className="set-section">
+            <div className="set-head">
+              <GlobeIcon size={12} /> Language{t('language') !== 'Language' && ` · ${t('language')}`}
+            </div>
+            <LanguagePicker settings={settings} dispatch={dispatch} />
+          </section>
+
           {/* Accent */}
           <section className="set-section">
             <div className="set-head">
-              <SparkleIcon size={12} /> Accent color
+              <SparkleIcon size={12} /> {t('accentColor')}
             </div>
             <AccentPicker settings={settings} dispatch={dispatch} />
           </section>
@@ -210,34 +221,34 @@ export default function Settings({ onClose, onOpenSheet }) {
           {/* Appearance */}
           <section className="set-section">
             <div className="set-head">
-              <SunIcon size={13} /> Appearance
+              <SunIcon size={13} /> {t('appearance')}
             </div>
             <div className="set-row">
-              <span>Theme</span>
+              <span>{t('theme')}</span>
               <div className="seg">
                 <button
                   className={`seg-btn ${state.theme === 'light' ? 'on' : ''}`}
                   onClick={() => dispatch({ type: 'SET_THEME', theme: 'light' })}
                 >
-                  <SunIcon size={13} /> Light
+                  <SunIcon size={13} /> {t('light')}
                 </button>
                 <button
                   className={`seg-btn ${state.theme === 'dark' ? 'on' : ''}`}
                   onClick={() => dispatch({ type: 'SET_THEME', theme: 'dark' })}
                 >
-                  <MoonIcon size={13} /> Dark
+                  <MoonIcon size={13} /> {t('dark')}
                 </button>
               </div>
             </div>
             <div className="set-text-size">
               <div className="set-row">
                 <span>
-                  Text size
-                  <span className="set-sub">Drag to make every label easier to read</span>
+                  {t('textSize')}
+                  <span className="set-sub">{t('textSizeSub')}</span>
                 </span>
                 <button
                   className="set-text-val"
-                  title="Back to default"
+                  title={t('backToDefault')}
                   onClick={() => set({ textScale: 1 })}
                   disabled={(settings.textScale ?? 1) === 1}
                 >
@@ -250,7 +261,7 @@ export default function Settings({ onClose, onOpenSheet }) {
                 </span>
                 <input
                   type="range"
-                  aria-label="Text size"
+                  aria-label={t('textSize')}
                   min={TEXT_SCALE.min}
                   max={TEXT_SCALE.max}
                   step={TEXT_SCALE.step}
@@ -266,7 +277,7 @@ export default function Settings({ onClose, onOpenSheet }) {
               </div>
             </div>
             <div className="set-row">
-              <span>Sound effects</span>
+              <span>{t('soundEffects')}</span>
               <button
                 className={`switch ${state.sound ? 'on' : ''}`}
                 role="switch"
@@ -278,8 +289,8 @@ export default function Settings({ onClose, onOpenSheet }) {
             </div>
             <div className="set-row">
               <span>
-                Reduced visuals
-                <span className="set-sub">Turns off blur, glow & confetti — lighter on older phones</span>
+                {t('reducedVisuals')}
+                <span className="set-sub">{t('reducedVisualsSub')}</span>
               </span>
               <button
                 className={`switch ${settings.reducedEffects ? 'on' : ''}`}
@@ -295,10 +306,10 @@ export default function Settings({ onClose, onOpenSheet }) {
           {/* New task defaults */}
           <section className="set-section">
             <div className="set-head">
-              <FlagIcon size={12} /> New task defaults
+              <FlagIcon size={12} /> {t('newTaskDefaults')}
             </div>
             <div className="set-row">
-              <span>Due date</span>
+              <span>{t('dueDate')}</span>
               <div className="seg">
                 {DUE_OPTS.map((o) => (
                   <button
@@ -306,13 +317,13 @@ export default function Settings({ onClose, onOpenSheet }) {
                     className={`seg-btn ${settings.defaultDue === o.id ? 'on' : ''}`}
                     onClick={() => set({ defaultDue: o.id })}
                   >
-                    {o.label}
+                    {t(o.key)}
                   </button>
                 ))}
               </div>
             </div>
             <div className="set-row">
-              <span>Priority</span>
+              <span>{t('priority')}</span>
               <div className="chip-wrap">
                 {PRIORITIES.map((p) => (
                   <button
@@ -327,7 +338,7 @@ export default function Settings({ onClose, onOpenSheet }) {
               </div>
             </div>
             <div className="set-row">
-              <span>Default time</span>
+              <span>{t('defaultTime')}</span>
               <label className={`time-input ${settings.defaultTime ? 'set' : ''}`}>
                 <ClockIcon size={12} />
                 <input
@@ -342,7 +353,7 @@ export default function Settings({ onClose, onOpenSheet }) {
                       e.preventDefault()
                       set({ defaultTime: '' })
                     }}
-                    title="Clear"
+                    title={t('clear')}
                   >
                     ×
                   </button>
@@ -354,10 +365,10 @@ export default function Settings({ onClose, onOpenSheet }) {
           {/* Notifications */}
           <section className="set-section">
             <div className="set-head">
-              <BellIcon size={12} /> Notifications
+              <BellIcon size={12} /> {t('notifications')}
             </div>
             <div className="set-row">
-              <span>{isNative ? 'Task reminders' : 'Daily “due today” nudge'}</span>
+              <span>{isNative ? t('taskReminders') : t('dailyNudge')}</span>
               <button
                 className={`switch ${reminders ? 'on' : ''}`}
                 role="switch"
@@ -369,13 +380,11 @@ export default function Settings({ onClose, onOpenSheet }) {
             </div>
             {isNative && reminders && (
               <>
-                <p className="set-hint">
-                  An alert at each task’s time (tasks with a time, like “call mum 5pm”), and at 9 am on days with tasks due.
-                </p>
+                <p className="set-hint">{t('remindersHint')}</p>
                 <div className="set-row">
-                  <span>Check it works</span>
+                  <span>{t('checkItWorks')}</span>
                   <button className="mini-btn" onClick={testReminder}>
-                    Send a test
+                    {t('sendTest')}
                   </button>
                 </div>
               </>
@@ -385,28 +394,26 @@ export default function Settings({ onClose, onOpenSheet }) {
           {/* Ambient */}
           <section className="set-section">
             <div className="set-head">
-              <FlameIcon size={12} /> Ambient
+              <FlameIcon size={12} /> {t('ambient')}
             </div>
             <p className="set-hint" style={{ marginTop: 0 }}>
-              A calm full-screen clock + today view for a second monitor or a docked phone. Every
-              part of it — clock size, dial, layout, widgets, Ember, night mode — is tweakable with a
-              live preview.
+              {t('ambientHint')}
             </p>
             <button
               className="set-action"
               onClick={() => window.location.assign(`${window.location.pathname}?ambient=1&customize=1`)}
             >
-              <SparkleIcon size={14} /> Customize ambient mode
+              <SparkleIcon size={14} /> {t('customizeAmbient')}
             </button>
             <button
               className="set-action"
               onClick={() => window.open(`${window.location.pathname}?ambient=1`, 'kiln-ambient', 'popup')}
             >
-              <FlameIcon size={14} /> Open in a new window
+              <FlameIcon size={14} /> {t('openNewWindow')}
             </button>
             {Object.keys(settings.ambient ?? {}).length > 0 && (
               <button className="set-action" onClick={() => set({ ambient: {} })}>
-                Reset ambient customizations
+                {t('resetAmbient')}
               </button>
             )}
           </section>
@@ -414,68 +421,66 @@ export default function Settings({ onClose, onOpenSheet }) {
           {/* Help */}
           <section className="set-section">
             <div className="set-head">
-              <InfoIcon size={12} /> Help & feedback
+              <InfoIcon size={12} /> {t('helpFeedback')}
             </div>
             <button className="set-action" onClick={() => onOpenSheet('help')}>
-              <KeyboardIcon size={14} /> Help, shortcuts & gestures
+              <KeyboardIcon size={14} /> {t('helpShortcuts')}
             </button>
             <button className="set-action" onClick={() => onOpenSheet('feedback')}>
-              <MailIcon size={14} /> Send feedback or report a bug
+              <MailIcon size={14} /> {t('sendFeedback')}
             </button>
             <button className="set-action" onClick={() => onOpenSheet('whatsnew')}>
-              <GiftIcon size={14} /> What’s new
+              <GiftIcon size={14} /> {t('whatsNew')}
             </button>
           </section>
 
           {/* Actions */}
           <section className="set-section">
             <button className="set-action" onClick={replayTour}>
-              <InfoIcon size={14} /> Replay welcome tour
+              <InfoIcon size={14} /> {t('replayTour')}
             </button>
             <button className="set-action" onClick={exportData}>
-              <DownloadIcon size={14} /> Download a backup (JSON)
+              <DownloadIcon size={14} /> {t('downloadBackup')}
             </button>
             <button className="set-action" onClick={() => fileRef.current?.click()}>
-              <DownloadIcon size={14} style={{ transform: 'rotate(180deg)' }} /> Restore from a backup…
+              <DownloadIcon size={14} style={{ transform: 'rotate(180deg)' }} /> {t('restoreBackup')}
             </button>
             <input ref={fileRef} type="file" accept="application/json,.json" hidden onChange={pickBackup} />
             {restore && (
               <div className="danger-confirm">
                 <p>
-                  Replace your current tasks with this backup ({restore.projects.length} folder
-                  {restore.projects.length === 1 ? '' : 's'}, {restore.tasks.length} task
-                  {restore.tasks.length === 1 ? '' : 's'})? What you have now moves to the Trash.
+                  {t('restoreConfirm', {
+                    folders: tn('folders', restore.projects.length),
+                    tasks: tn('tasks', restore.tasks.length),
+                  })}
                 </p>
                 <div className="danger-confirm-row">
                   <button className="mini-btn" onClick={() => setRestore(null)}>
-                    Cancel
+                    {t('cancel')}
                   </button>
                   <button className="mini-btn danger" onClick={applyRestore}>
-                    Restore backup
+                    {t('restoreBackupBtn')}
                   </button>
                 </div>
               </div>
             )}
             {profile?.cloud && !signOutStuck && (
               <button className="set-action danger" onClick={() => signOut()} disabled={busy}>
-                {busy ? 'Saving your changes…' : 'Sign out'}
+                {busy ? t('savingChanges') : t('signOut')}
               </button>
             )}
             {signOutStuck && (
               <div className="danger-confirm">
-                <p>
-                  Some changes haven’t reached the cloud yet (you may be offline). Signing out now
-                  removes them from this device.
-                </p>
+                <p>{t('signOutStuck')}</p>
                 <div className="danger-confirm-row">
                   <button className="mini-btn" onClick={() => setSignOutStuck(false)}>
-                    Stay signed in
+                    {t('staySignedIn')}
                   </button>
                   <button className="mini-btn" onClick={exportData}>
-                    Download backup
+                    {t('downloadBackupShort')}
                   </button>
                   <button className="mini-btn danger" onClick={() => signOut(true)}>
-                    Sign out anyway
+                    {t('signOutAnyway')}
                   </button>
                 </div>
               </div>
@@ -484,38 +489,36 @@ export default function Settings({ onClose, onOpenSheet }) {
 
           {/* Danger zone */}
           <section className="set-section danger-zone">
-            <div className="set-head">Danger zone</div>
+            <div className="set-head">{t('dangerZone')}</div>
             {!confirmDel ? (
               <button className="set-action danger" onClick={() => setConfirmDel(true)}>
-                Delete account
+                {t('deleteAccount')}
               </button>
             ) : (
               <div className="danger-confirm">
-                <p>
-                  This permanently erases your account{profile?.cloud ? ' and all synced data' : ' and everything on this device'}. It can’t be undone.
-                </p>
+                <p>{profile?.cloud ? t('deleteConfirmCloud') : t('deleteConfirmLocal')}</p>
                 <div className="danger-confirm-row">
                   <button className="mini-btn" onClick={() => setConfirmDel(false)} disabled={busy}>
-                    Cancel
+                    {t('cancel')}
                   </button>
                   <button className="mini-btn danger" onClick={deleteAccount} disabled={busy}>
-                    {busy ? 'Deleting…' : 'Yes, delete everything'}
+                    {busy ? t('deleting') : t('yesDeleteAll')}
                   </button>
                 </div>
               </div>
             )}
             <p className="set-hint">
-              Prefer to keep a copy? Export your data first.{' '}
-              <a href={`${import.meta.env.BASE_URL}privacy.html`} target="_blank" rel="noreferrer">Privacy</a>
+              {t('exportFirst')}{' '}
+              <a href={`${import.meta.env.BASE_URL}privacy.html`} target="_blank" rel="noreferrer">{t('privacy')}</a>
               {' · '}
-              <a href={`${import.meta.env.BASE_URL}terms.html`} target="_blank" rel="noreferrer">Terms</a>
+              <a href={`${import.meta.env.BASE_URL}terms.html`} target="_blank" rel="noreferrer">{t('terms')}</a>
             </p>
           </section>
         </div>
 
         <div className="modal-actions">
           <motion.button className="btn primary" onClick={onClose} whileTap={{ scale: 0.96 }}>
-            Done
+            {t('done')}
           </motion.button>
         </div>
       </motion.div>

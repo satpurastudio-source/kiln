@@ -1,6 +1,7 @@
 import { LocalNotifications } from '@capacitor/local-notifications'
 import { isNative } from './native'
 import { parseDateStr, addDaysStr } from './utils'
+import { t, tn } from './i18n'
 
 // Opt-in reminders.
 //   • Web / PWA: "N tasks due today", once per day, while the app is open.
@@ -86,7 +87,7 @@ export async function sendTestReminder() {
   const { display } = await LocalNotifications.checkPermissions()
   if (display !== 'granted') return false
   await LocalNotifications.schedule({
-    notifications: [{ id: TEST_ID, title: 'kiln', body: 'Reminders work. You’ll hear from kiln when tasks are due.', schedule: { at: new Date(Date.now() + 5000) } }],
+    notifications: [{ id: TEST_ID, title: 'kiln', body: t('testReminderBody'), schedule: { at: new Date(Date.now() + 5000) } }],
   })
   return true
 }
@@ -124,12 +125,12 @@ function plan(tasks) {
 
   const timed = open
     .filter((t) => t.time)
-    .map((t) => ({ t, at: atTime(t.due, t.time) }))
+    .map((task) => ({ task, at: atTime(task.due, task.time) }))
     .filter(({ at }) => at.getTime() > now)
     .sort((a, b) => a.at - b.at)
     .slice(0, MAX_TASK_ALERTS)
-  for (const { t, at } of timed) {
-    out.push({ id: idFor(t.id), title: t.title, body: 'Due now', schedule: { at, allowWhileIdle: true } })
+  for (const { task, at } of timed) {
+    out.push({ id: idFor(task.id), title: task.title, body: t('dueNow'), schedule: { at, allowWhileIdle: true } })
   }
 
   for (let i = 0; i < DIGEST_DAYS; i++) {
@@ -142,7 +143,7 @@ function plan(tasks) {
     out.push({
       id: DIGEST_ID + i,
       title: 'kiln',
-      body: `${n} task${n === 1 ? '' : 's'} due today — go shape something.`,
+      body: tn('digestBody', n),
       schedule: { at, allowWhileIdle: true },
     })
   }

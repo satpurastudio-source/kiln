@@ -6,12 +6,11 @@ import { playAdd } from '../sound'
 import TaskItem from './TaskItem'
 import Tip from './Tip'
 import { ChevronIcon, PlusIcon } from './Icons'
+import { t, fmtDate, fmtNum } from '../i18n'
 
-const WEEKDAYS = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
-const MONTHS = [
-  'January', 'February', 'March', 'April', 'May', 'June',
-  'July', 'August', 'September', 'October', 'November', 'December',
-]
+// Monday-first short weekday names in the reader's language (1 Jan 2024 was a Monday)
+const weekdays = () => [0, 1, 2, 3, 4, 5, 6].map((i) => fmtDate(new Date(2024, 0, 1 + i), { weekday: 'short' }))
+const monthName = (y, m) => fmtDate(new Date(y, m, 1), { month: 'long' })
 
 function monthCells(year, month) {
   const startDow = (new Date(year, month, 1).getDay() + 6) % 7 // Monday-first
@@ -62,7 +61,7 @@ export default function Calendar() {
 
   const dayTasks = (byDue[selected] ?? []).slice().sort((a, b) => Number(a.done) - Number(b.done))
   const selDate = parseDateStr(selected)
-  const selLabel = `${WEEKDAYS[(selDate.getDay() + 6) % 7]}, ${MONTHS[selDate.getMonth()].slice(0, 3)} ${selDate.getDate()}`
+  const selLabel = fmtDate(selDate, { weekday: 'short', month: 'short', day: 'numeric' })
 
   // same smart parsing as the main add bar ("call mom 6pm !high #home");
   // the date is the selected day unless one is typed
@@ -91,7 +90,7 @@ export default function Calendar() {
   return (
     <div className="calendar">
       <Tip id="calendar">
-        Any task with a due date shows up here. Tap a day to see it, and add tasks straight onto it.
+        {t('tipCalendar')}
       </Tip>
       <div className="cal-head">
         <div className="cal-title">
@@ -103,25 +102,25 @@ export default function Calendar() {
               exit={{ opacity: 0, y: dir ? dir * -10 : 0 }}
               transition={{ duration: 0.2 }}
             >
-              {MONTHS[cursor.m]} <b>{cursor.y}</b>
+              {monthName(cursor.y, cursor.m)} <b>{cursor.y}</b>
             </motion.span>
           </AnimatePresence>
         </div>
         <div style={{ display: 'flex', gap: 4 }}>
-          <button className="icon-btn" onClick={() => move(-1)} title="Previous month">
+          <button className="icon-btn" onClick={() => move(-1)} title={t('prevMonth')}>
             <ChevronIcon size={13} style={{ transform: 'rotate(180deg)' }} />
           </button>
           <button className="chip" onClick={goToday}>
-            Today
+            {t('today')}
           </button>
-          <button className="icon-btn" onClick={() => move(1)} title="Next month">
+          <button className="icon-btn" onClick={() => move(1)} title={t('nextMonth')}>
             <ChevronIcon size={13} />
           </button>
         </div>
       </div>
 
       <div className="cal-weekdays">
-        {WEEKDAYS.map((d) => (
+        {weekdays().map((d) => (
           <span key={d}>{d}</span>
         ))}
       </div>
@@ -174,9 +173,9 @@ export default function Calendar() {
       <div className="cal-daypanel">
         <div className="group-label" style={{ paddingTop: 26 }}>
           {selLabel}
-          {selected === today && <span className="n">today</span>}
+          {selected === today && <span className="n">{t('todayLower')}</span>}
           <span className="n">
-            {dayTasks.length === 0 ? 'nothing scheduled' : `${dayTasks.filter((t) => !t.done).length} open`}
+            {dayTasks.length === 0 ? t('nothingScheduled') : t('nOpen', { n: fmtNum(dayTasks.filter((x) => !x.done).length) })}
           </span>
         </div>
 
@@ -186,7 +185,7 @@ export default function Calendar() {
           </span>
           <input
             value={title}
-            placeholder={`Add a task for ${selLabel}…`}
+            placeholder={t('addTaskFor', { date: selLabel })}
             maxLength={120}
             onChange={(e) => setTitle(e.target.value)}
             enterKeyHint="done"

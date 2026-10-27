@@ -1,6 +1,7 @@
 import { registerSW } from 'virtual:pwa-register'
 import { toast } from './store'
 import { isNative } from './native'
+import { t } from './i18n'
 
 // When a new deploy lands, the service worker downloads it in the background.
 // If the app was just opened/resumed (or is in the background) we swap it in
@@ -44,7 +45,7 @@ export function initPWA() {
       if (hidden || ((justOpened || signedOut()) && !typing())) return updateSW(true)
       if (asked) return
       asked = true
-      toast('A new version of kiln is ready', '✦', { label: 'Update', fn: () => updateSW(true) }, { sticky: true })
+      toast(t('newVersion'), '✦', { label: t('update'), fn: () => updateSW(true) }, { sticky: true })
     },
     onRegisteredSW(_url, reg) {
       if (!reg) return
