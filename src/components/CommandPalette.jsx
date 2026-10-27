@@ -42,7 +42,7 @@ import {
 } from './Icons'
 import { t, tn } from '../i18n'
 
-export default function CommandPalette({ onClose, onNewProject, onOpenSettings, onOpenSheet, onOpenTask }) {
+export default function CommandPalette({ onClose, onNewProject, onOpenSettings, onOpenSheet, onOpenTask, onOpenAmbient }) {
   const { state, dispatch, signOut } = useStore()
   const [q, setQ] = useState('')
   const [sel, setSel] = useState(0)
@@ -73,7 +73,7 @@ export default function CommandPalette({ onClose, onNewProject, onOpenSettings, 
         icon: <FlameIcon size={14} />,
         label: t('openAmbient'),
         hint: t('hintAction'),
-        fn: () => window.open(location.pathname + '?ambient=1', 'kiln-ambient', 'popup'),
+        fn: () => onOpenAmbient(),
       },
       { icon: <PlusIcon size={14} />, label: t('newFolder'), hint: t('hintAction'), fn: onNewProject },
       { icon: <SettingsIcon size={14} />, label: t('openSettings'), hint: t('hintAction'), fn: onOpenSettings },

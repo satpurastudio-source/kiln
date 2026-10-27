@@ -75,7 +75,7 @@ export default function App() {
   const [booted, setBooted] = useState(() => showAmbient)
   const reveal = useCallback(() => setBooted(true), [])
   const exitAmbient = useCallback(() => {
-    window.history.replaceState(null, '', window.location.pathname)
+    window.history.replaceState(window.history.state, '', window.location.pathname)
     setShowAmbient(false)
   }, [])
   const [query, setQuery] = useState('')
@@ -87,6 +87,18 @@ export default function App() {
     import.meta.env.DEV ? new URLSearchParams(window.location.search).get('sheet') : null
   ) // 'help' | 'feedback' | 'whatsnew'
   const [mobileNav, setMobileNav] = useState(false)
+  // Ambient takes over this window. It used to open only as a pop-up, which
+  // phones and the app shell block, so it never appeared there. ?ambient=1
+  // goes in the URL so a reload lands back in it.
+  const openAmbient = useCallback((customize = false) => {
+    const q = customize ? '?ambient=1&customize=1' : '?ambient=1'
+    window.history.replaceState(window.history.state, '', window.location.pathname + q)
+    setSettingsOpen(false)
+    setPaletteOpen(false)
+    setSheet(null)
+    setMobileNav(false)
+    setShowAmbient(true)
+  }, [])
   // landing from the email-confirmation link (?verified=1)
   const [showVerified, setShowVerified] = useState(() =>
     new URLSearchParams(window.location.search).has('verified')
@@ -133,8 +145,13 @@ export default function App() {
   const openPalette = useCallback(() => setPaletteOpen(true), [])
   usePullToSearch({ onPull: openPalette, enabled: gesturesOn })
 
-  // Android back / edge swipe: close what's on top, else toggle into the drawer
+  // Android back / edge swipe: close what's on top, else toggle into the drawer.
+  // In ambient, back is Esc: quick add, then the customize panel, then out.
   useBackGesture(() => {
+    if (showAmbient) {
+      window.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape' }))
+      return true
+    }
     // overlays owned by child components mark their close control
     const closers = document.querySelectorAll('[data-back-close]')
     if (paletteOpen) setPaletteOpen(false)
@@ -145,7 +162,7 @@ export default function App() {
     else if (!mobileNav) setMobileNav(true)
     else return false
     return true
-  }, gesturesOn)
+  }, gesturesOn || (showAmbient && signedIn))
 
   // app shell: ask for the notification permission on first launch
   useEffect(() => {
@@ -343,6 +360,7 @@ export default function App() {
             onOpenSettings={() => setSettingsOpen(true)}
             onOpenSheet={setSheet}
             onOpenTask={openTask}
+            onOpenAmbient={() => openAmbient()}
           />
         )}
       </AnimatePresence>
@@ -355,6 +373,7 @@ export default function App() {
               setSettingsOpen(false)
               setSheet(s)
             }}
+            onOpenAmbient={openAmbient}
           />
         )}
       </AnimatePresence>

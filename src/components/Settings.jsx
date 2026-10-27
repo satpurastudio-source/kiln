@@ -10,6 +10,7 @@ import { t, tn } from '../i18n'
 import Account from './Account'
 import { remindersOptedIn, enableReminders, disableReminders, sendTestReminder } from '../reminders'
 import { isNative } from '../native'
+import { COARSE } from '../fx'
 import {
   UserIcon,
   SparkleIcon,
@@ -42,7 +43,7 @@ const SYNC_LABEL = {
   error: 'syncError',
 }
 
-export default function Settings({ onClose, onOpenSheet }) {
+export default function Settings({ onClose, onOpenSheet, onOpenAmbient }) {
   const { state, dispatch, syncStatus, signOut: storeSignOut } = useStore()
   const { settings, profile } = state
   const [name, setName] = useState(profile?.name ?? '')
@@ -399,18 +400,22 @@ export default function Settings({ onClose, onOpenSheet }) {
             <p className="set-hint" style={{ marginTop: 0 }}>
               {t('ambientHint')}
             </p>
-            <button
-              className="set-action"
-              onClick={() => window.location.assign(`${window.location.pathname}?ambient=1&customize=1`)}
-            >
+            <button className="set-action" onClick={() => onOpenAmbient()}>
+              <FlameIcon size={14} /> {t('openAmbient')}
+            </button>
+            <button className="set-action" onClick={() => onOpenAmbient(true)}>
               <SparkleIcon size={14} /> {t('customizeAmbient')}
             </button>
-            <button
-              className="set-action"
-              onClick={() => window.open(`${window.location.pathname}?ambient=1`, 'kiln-ambient', 'popup')}
-            >
-              <FlameIcon size={14} /> {t('openNewWindow')}
-            </button>
+            {/* a second window only means something on a desktop browser —
+                phones and the app shell block pop-ups */}
+            {!isNative && !COARSE && (
+              <button
+                className="set-action"
+                onClick={() => window.open(`${window.location.pathname}?ambient=1`, 'kiln-ambient', 'popup')}
+              >
+                <FlameIcon size={14} /> {t('openNewWindow')}
+              </button>
+            )}
             {Object.keys(settings.ambient ?? {}).length > 0 && (
               <button className="set-action" onClick={() => set({ ambient: {} })}>
                 {t('resetAmbient')}
