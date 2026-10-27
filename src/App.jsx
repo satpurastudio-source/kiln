@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useStore, todayProgress } from './store'
 import Loader from './components/Loader'
@@ -6,25 +6,11 @@ import Sidebar from './components/Sidebar'
 import Header from './components/Header'
 import QuickAdd from './components/QuickAdd'
 import TaskList from './components/TaskList'
-import Calendar from './components/Calendar'
-import Insights from './components/Insights'
-import Archive from './components/Archive'
-import Trash from './components/Trash'
 import Focus from './components/Focus'
 import CompleteZone from './components/CompleteZone'
 import MiniCalendar from './components/MiniCalendar'
-import Reset from './components/Reset'
 import { maybeNotifyDueToday, scheduleNative, askOnFirstLaunch } from './reminders'
-import ProjectModal from './components/ProjectModal'
-import CommandPalette from './components/CommandPalette'
 import Toasts from './components/Toasts'
-import Login from './components/Login'
-import Verified from './components/Verified'
-import Onboarding from './components/Onboarding'
-import Settings from './components/Settings'
-import Ambient from './components/Ambient'
-import Help from './components/Help'
-import Feedback from './components/Feedback'
 import WhatsNew, { shouldShowWhatsNew } from './components/WhatsNew'
 import { MenuIcon, XIcon } from './components/Icons'
 import useEdgeSwipe from './useEdgeSwipe'
@@ -33,6 +19,30 @@ import usePullToSearch from './usePullToSearch'
 import useBackGesture from './useBackGesture'
 import { todayStr } from './utils'
 import { t } from './i18n'
+
+// Screens and sheets that aren't on the main task list load on demand, so a
+// phone parses and holds only what it shows. They're all fetched in the
+// background once the app is idle, so opening one later never waits.
+const screens = {
+  Calendar: () => import('./components/Calendar'),
+  Insights: () => import('./components/Insights'),
+  Archive: () => import('./components/Archive'),
+  Trash: () => import('./components/Trash'),
+  ProjectModal: () => import('./components/ProjectModal'),
+  CommandPalette: () => import('./components/CommandPalette'),
+  Settings: () => import('./components/Settings'),
+  Help: () => import('./components/Help'),
+  Feedback: () => import('./components/Feedback'),
+  Reset: () => import('./components/Reset'),
+  Verified: () => import('./components/Verified'),
+  Onboarding: () => import('./components/Onboarding'),
+  Login: () => import('./components/Login'),
+  Ambient: () => import('./components/Ambient'),
+}
+const { Calendar, Insights, Archive, Trash, ProjectModal, CommandPalette, Settings, Help, Feedback, Reset, Verified, Onboarding, Login, Ambient } = Object.fromEntries(
+  Object.entries(screens).map(([name, load]) => [name, lazy(load)])
+)
+const prefetchScreens = () => Object.values(screens).forEach((load) => load().catch(() => {}))
 
 // Re-render when the date changes — a phone app resumed the next morning (or
 // a tab left open overnight) would otherwise keep showing yesterday's Today.
@@ -185,6 +195,15 @@ export default function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mainReady])
 
+  // warm the on-demand screens once the first paint is done
+  useEffect(() => {
+    if (!booted) return
+    const idle = window.requestIdleCallback ?? ((fn) => setTimeout(fn, 1500))
+    const cancel = window.cancelIdleCallback ?? clearTimeout
+    const id = idle(prefetchScreens)
+    return () => cancel(id)
+  }, [booted])
+
   // The loader overlays everything at z-20000, calls reveal() as it starts
   // fading, then removes itself. The app mounts at that moment, so its
   // entrance animations play through the fade. The Loader sits at a stable
@@ -205,6 +224,7 @@ export default function App() {
             </>
           )}
 
+          <Suspense fallback={null}>
           {showReset ? (
             <Reset
               onDone={() => {
@@ -282,6 +302,7 @@ export default function App() {
               exit={{ opacity: 0, y: -14 }}
               transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
             >
+              <Suspense fallback={null}>
               {state.view.type === 'calendar' ? (
                 <Calendar />
               ) : state.view.type === 'insights' ? (
@@ -297,11 +318,13 @@ export default function App() {
                   <TaskList query={query} />
                 </>
               )}
+              </Suspense>
             </motion.div>
           </AnimatePresence>
         </div>
       </main>
 
+      <Suspense fallback={null}>
       <AnimatePresence>
         {projectModal && (
           <ProjectModal
@@ -341,12 +364,14 @@ export default function App() {
         {sheet === 'feedback' && <Feedback onClose={() => setSheet(null)} />}
         {sheet === 'whatsnew' && <WhatsNew onClose={() => setSheet(null)} />}
       </AnimatePresence>
+      </Suspense>
 
               <Focus />
               <MiniCalendar />
               <CompleteZone />
             </>
           )}
+          </Suspense>
           <Toasts />
         </div>
       )}

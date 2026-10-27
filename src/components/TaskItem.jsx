@@ -1,6 +1,5 @@
 import { forwardRef, useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, Reorder, useDragControls } from 'framer-motion'
-import confetti from 'canvas-confetti'
 import Checkbox from './Checkbox'
 import { useStore, toast, startFocus, emitDrag } from '../store'
 import { fmtDue, fmtTime, isOverdue, isToday, priorityColor, PRIORITIES, REPEATS, uid, iconGlyph } from '../utils'
@@ -37,7 +36,9 @@ const springIn = (index) => ({
   exit: { opacity: 0, x: 60, scale: 0.96, transition: { duration: 0.25, ease: 'easeIn' } },
 })
 
-function fireProjectConfetti(color) {
+// fetched on the first celebration — devices that skip confetti never load it
+async function fireProjectConfetti(color) {
+  const { default: confetti } = await import('canvas-confetti')
   const colors = [color, '#d85a30', '#d9a441', '#f4efe4']
   confetti({ particleCount: 90, spread: 75, origin: { x: 0.5, y: 0.65 }, colors, scalar: 0.9 })
   setTimeout(() => {
@@ -102,7 +103,7 @@ const TaskItem = forwardRef(function TaskItem(
         })
       if (remaining === 0 && !rep) {
         playFanfare()
-        if (!heavyFxOff()) fireProjectConfetti(project?.color ?? '#d85a30')
+        if (!heavyFxOff()) fireProjectConfetti(project?.color ?? '#d85a30').catch(() => {})
         toast(t('folderComplete', { name: project?.name ?? t('folder') }), '🎉')
       }
     }, 620)
