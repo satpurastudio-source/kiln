@@ -837,6 +837,177 @@
       }
 
       /* free */
+      /* ---------- languages ---------- */
+      .langs {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
+        max-width: 860px;
+        margin: 0 auto;
+      }
+      .langs button {
+        padding: 10px 18px;
+        border-radius: 99px;
+        background: var(--surface);
+        border: 1px solid var(--line);
+        font-size: 1.15rem;
+        font-weight: 600;
+        line-height: 1.5;
+      }
+      .langs button {
+        font: inherit;
+        color: inherit;
+        cursor: pointer;
+        transition: transform 0.15s ease, background 0.2s ease, border-color 0.2s ease;
+      }
+      .langs button:hover {
+        transform: translateY(-2px);
+        border-color: var(--clay);
+      }
+      .langs button:focus-visible {
+        outline: 3px solid var(--clay);
+        outline-offset: 2px;
+      }
+      .langs button.on {
+        background: var(--clay);
+        border-color: var(--clay);
+        color: #fff8ee;
+      }
+      /* switched-in scripts: no Latin tracking, room for tall vowel signs */
+      #languages [lang]:not([lang='en']),
+      #languages [lang]:not([lang='en']) * {
+        letter-spacing: normal;
+      }
+      #langHead:not([lang='en']) h2 {
+        line-height: 1.25;
+        font-size: clamp(2.2rem, 6vw, 4.4rem);
+      }
+      #languages [lang='ur'] {
+        font-family: 'Noto Nastaliq Urdu', 'Noto Naskh Arabic', var(--sans);
+      }
+      #langOut b {
+        font-weight: inherit;
+      }
+      .langs-fade {
+        animation: langsFade 0.35s ease;
+      }
+      @keyframes langsFade {
+        from { opacity: 0; transform: translateY(6px); }
+        to { opacity: 1; transform: none; }
+      }
+      .bilingual {
+        margin-top: clamp(40px, 6vw, 64px);
+      }
+      .bilingual-note {
+        text-align: center;
+        margin: 0 auto 18px;
+        font-family: var(--mono);
+        font-size: 0.8rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: var(--clay-ink);
+      }
+
+      /* ---------- get it ---------- */
+      .get {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+      }
+      .get-card {
+        border-radius: 30px;
+        padding: clamp(26px, 4vw, 38px);
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+      .get-card h3 {
+        font-family: var(--serif);
+        font-weight: 700;
+        font-size: clamp(1.9rem, 3.4vw, 2.6rem);
+        line-height: 1.05;
+        letter-spacing: -0.02em;
+      }
+      .get-card > p {
+        font-weight: 500;
+        font-size: 1.02rem;
+        opacity: 0.78;
+        max-width: 34ch;
+      }
+      .get-now {
+        background: var(--sand);
+      }
+      .get-soon {
+        background: var(--night);
+        color: #f6eddc;
+      }
+      .get-soon h3 em {
+        color: #f08a5d;
+      }
+      .get-tag {
+        align-self: flex-start;
+        font-family: var(--mono);
+        font-size: 0.72rem;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+        padding: 6px 12px;
+        border-radius: 99px;
+        border: 1px solid currentColor;
+        opacity: 0.85;
+      }
+      .get-tag.live {
+        background: var(--clay);
+        border-color: var(--clay);
+        color: #fff8ee;
+        opacity: 1;
+      }
+      .steps {
+        list-style: none;
+        display: grid;
+        gap: 10px;
+        margin-top: auto;
+      }
+      .steps li {
+        display: flex;
+        gap: 12px;
+        align-items: baseline;
+        padding: 14px 16px;
+        border-radius: 16px;
+        background: color-mix(in srgb, var(--surface) 70%, transparent);
+        font-weight: 500;
+      }
+      .steps b {
+        font-family: var(--mono);
+        font-size: 0.78rem;
+        font-weight: 500;
+        letter-spacing: 0.04em;
+        min-width: 5.5em;
+        color: var(--clay-ink);
+      }
+      .stores {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-top: auto;
+      }
+      .stores span {
+        padding: 12px 18px;
+        border-radius: 14px;
+        border: 1px dashed rgba(246, 237, 220, 0.35);
+        font-weight: 600;
+        opacity: 0.8;
+      }
+      @media (max-width: 760px) {
+        .get {
+          grid-template-columns: 1fr;
+        }
+        .steps li {
+          flex-direction: column;
+          gap: 4px;
+        }
+      }
+
       .free {
         display: grid;
         grid-template-columns: 1.1fr 1fr;
@@ -1062,6 +1233,7 @@
           <span>No ads</span>
           <span>Works offline</span>
           <span>Every device</span>
+          <span>12 languages</span>
         </div>
       </div>
 
@@ -1084,6 +1256,46 @@
               <span class="pill"><i>⏰</i> 5:00 PM</span>
               <span class="pill hot">High</span>
               <span class="pill"><i>✦</i> Home</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- LANGUAGES -->
+      <section id="languages" style="padding-top: 0">
+        <div class="wrap">
+          <div class="head" id="langHead" lang="kn">
+            <p class="label">Your language · tap one</p>
+            <h2 class="big" id="langH">ನಿಮ್ಮ <em>ಭಾಷೆಯಲ್ಲಿ.</em></h2>
+            <p id="langP">kiln ಅನ್ನು 12 ಭಾರತೀಯ ಭಾಷೆಗಳಲ್ಲಿ ಬಳಸಿ. ಸೆಟ್ಟಿಂಗ್ಸ್‌ನಲ್ಲಿ ಯಾವಾಗ ಬೇಕಾದರೂ ಬದಲಾಯಿಸಿ.</p>
+          </div>
+          <div class="langs" role="group" aria-label="Preview kiln in a language">
+            <button type="button" lang="en" aria-pressed="false">English</button>
+            <button type="button" lang="hi" aria-pressed="false">हिन्दी</button>
+            <button type="button" lang="mr" aria-pressed="false">मराठी</button>
+            <button type="button" lang="gu" aria-pressed="false">ગુજરાતી</button>
+            <button type="button" lang="bn" aria-pressed="false">বাংলা</button>
+            <button type="button" lang="ta" aria-pressed="false">தமிழ்</button>
+            <button type="button" lang="te" aria-pressed="false">తెలుగు</button>
+            <button type="button" lang="kn" aria-pressed="true" class="on">ಕನ್ನಡ</button>
+            <button type="button" lang="pa" aria-pressed="false">ਪੰਜਾਬੀ</button>
+            <button type="button" lang="ml" aria-pressed="false">മലയാളം</button>
+            <button type="button" lang="or" aria-pressed="false">ଓଡ଼ିଆ</button>
+            <button type="button" lang="ur" aria-pressed="false">اردو</button>
+          </div>
+          <div class="bilingual">
+            <p class="bilingual-note" id="langNote" lang="kn">ಆ್ಯಪ್ ಕನ್ನಡದಲ್ಲಿ, ಟೈಪ್ ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ</p>
+            <div class="typebar">
+              <div class="typebar-in" lang="en">
+                <span class="plus" aria-hidden="true">+</span>
+                <span>call mom <mark>tomorrow 5pm</mark> <mark>!high</mark></span>
+              </div>
+              <div class="typebar-out" id="langOut" lang="kn">
+                <span class="pill task">Call mom</span>
+                <span class="pill"><i>📅</i> <b id="langTom">ನಾಳೆ</b></span>
+                <span class="pill"><i>⏰</i> <b id="langTime">5:00 PM</b></span>
+                <span class="pill hot" id="langHigh">ಹೆಚ್ಚು</span>
+              </div>
             </div>
           </div>
         </div>
@@ -1186,6 +1398,38 @@
         </div>
       </section>
 
+      <!-- GET IT -->
+      <section id="get" style="padding-top: 0">
+        <div class="wrap">
+          <div class="head">
+            <p class="label">Get kiln</p>
+            <h2 class="big">On your phone. <em>Today.</em></h2>
+            <p>kiln is a web app (PWA). Add it to your home screen and it opens like any other app, even offline.</p>
+          </div>
+          <div class="get">
+            <div class="get-card get-now">
+              <span class="get-tag live">Available now</span>
+              <h3>Install from your browser</h3>
+              <p>No store, no big download. It updates itself.</p>
+              <ol class="steps">
+                <li><b>Android</b><span>Open kiln in Chrome → menu ⋮ → <strong>Install app</strong></span></li>
+                <li><b>iPhone</b><span>Open kiln in Safari → Share → <strong>Add to Home Screen</strong></span></li>
+                <li><b>Computer</b><span>Just open it, or click the install icon in the address bar</span></li>
+              </ol>
+            </div>
+            <div class="get-card get-soon">
+              <span class="get-tag">In development</span>
+              <h3>Android &amp; iOS apps, <em>coming soon.</em></h3>
+              <p>Native apps for Google Play and the App Store are being built and are planned to launch soon.</p>
+              <div class="stores" aria-label="Coming to">
+                <span>Google Play</span>
+                <span>App Store</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <!-- FINAL -->
       <section class="final">
         <div class="wrap">
@@ -1236,6 +1480,42 @@
           localStorage.setItem('kiln-site-theme', next)
         } catch (e) {}
       })
+    </script>
+    <script>
+      // "Speaks your language": tap a language, the section switches to it.
+      // Strings mirror the app's own locale files; the typed line stays English.
+      ;(function () {
+        var L = {"en": {"h": "Speaks <em>your language.</em>", "p": "Use kiln in 12 Indian languages. Switch any time in Settings.", "n": "Pick a language. Keep typing in English.", "tom": "Tomorrow", "high": "High"}, "hi": {"h": "आपकी <em>भाषा में।</em>", "p": "kiln को 12 भारतीय भाषाओं में इस्तेमाल करें। सेटिंग्स में कभी भी बदलें।", "n": "ऐप हिन्दी में, टाइप अंग्रेज़ी में", "tom": "कल", "high": "ऊँची"}, "mr": {"h": "तुमच्या <em>भाषेत.</em>", "p": "kiln 12 भारतीय भाषांमध्ये वापरा. सेटिंग्जमध्ये कधीही बदला.", "n": "अ‍ॅप मराठीत, टाइप इंग्रजीत", "tom": "उद्या", "high": "उच्च"}, "gu": {"h": "તમારી <em>ભાષામાં.</em>", "p": "kiln ને 12 ભારતીય ભાષાઓમાં વાપરો. સેટિંગ્સમાં ગમે ત્યારે બદલો.", "n": "ઍપ ગુજરાતીમાં, ટાઇપ અંગ્રેજીમાં", "tom": "કાલે", "high": "ઊંચી"}, "bn": {"h": "আপনার <em>ভাষায়।</em>", "p": "kiln ব্যবহার করুন 12টি ভারতীয় ভাষায়। সেটিংসে যেকোনো সময় বদলান।", "n": "অ্যাপ বাংলায়, টাইপ ইংরেজিতে", "tom": "কাল", "high": "বেশি"}, "ta": {"h": "உங்கள் <em>மொழியில்.</em>", "p": "kiln-ஐ 12 இந்திய மொழிகளில் பயன்படுத்துங்கள். அமைப்புகளில் எப்போதும் மாற்றலாம்.", "n": "ஆப் தமிழில், தட்டச்சு ஆங்கிலத்தில்", "tom": "நாளை", "high": "அதிகம்"}, "te": {"h": "మీ <em>భాషలో.</em>", "p": "kiln‌ను 12 భారతీయ భాషల్లో వాడండి. సెట్టింగ్స్‌లో ఎప్పుడైనా మార్చుకోండి.", "n": "యాప్ తెలుగులో, టైపింగ్ ఇంగ్లీష్‌లో", "tom": "రేపు", "high": "ఎక్కువ"}, "kn": {"h": "ನಿಮ್ಮ <em>ಭಾಷೆಯಲ್ಲಿ.</em>", "p": "kiln ಅನ್ನು 12 ಭಾರತೀಯ ಭಾಷೆಗಳಲ್ಲಿ ಬಳಸಿ. ಸೆಟ್ಟಿಂಗ್ಸ್‌ನಲ್ಲಿ ಯಾವಾಗ ಬೇಕಾದರೂ ಬದಲಾಯಿಸಿ.", "n": "ಆ್ಯಪ್ ಕನ್ನಡದಲ್ಲಿ, ಟೈಪ್ ಇಂಗ್ಲಿಷ್‌ನಲ್ಲಿ", "tom": "ನಾಳೆ", "high": "ಹೆಚ್ಚು"}, "pa": {"h": "ਤੁਹਾਡੀ <em>ਭਾਸ਼ਾ ਵਿੱਚ।</em>", "p": "kiln ਨੂੰ 12 ਭਾਰਤੀ ਭਾਸ਼ਾਵਾਂ ਵਿੱਚ ਵਰਤੋ। ਸੈਟਿੰਗਾਂ ਵਿੱਚ ਕਦੇ ਵੀ ਬਦਲੋ।", "n": "ਐਪ ਪੰਜਾਬੀ ਵਿੱਚ, ਟਾਈਪ ਅੰਗਰੇਜ਼ੀ ਵਿੱਚ", "tom": "ਕੱਲ੍ਹ", "high": "ਉੱਚੀ"}, "ml": {"h": "നിങ്ങളുടെ <em>ഭാഷയിൽ.</em>", "p": "kiln 12 ഇന്ത്യൻ ഭാഷകളിൽ ഉപയോഗിക്കൂ. സെറ്റിംഗ്സിൽ എപ്പോൾ വേണമെങ്കിലും മാറ്റാം.", "n": "ആപ്പ് മലയാളത്തിൽ, ടൈപ്പിംഗ് ഇംഗ്ലീഷിൽ", "tom": "നാളെ", "high": "ഉയർന്നത്"}, "or": {"h": "ଆପଣଙ୍କ <em>ଭାଷାରେ।</em>", "p": "kiln କୁ 12ଟି ଭାରତୀୟ ଭାଷାରେ ବ୍ୟବହାର କରନ୍ତୁ। ସେଟିଂସରେ ଯେକୌଣସି ସମୟରେ ବଦଳାନ୍ତୁ।", "n": "ଆପ୍ ଓଡ଼ିଆରେ, ଟାଇପ୍ ଇଂରାଜୀରେ", "tom": "କାଲି", "high": "ଅଧିକ"}, "ur": {"h": "آپ کی <em>زبان میں۔</em>", "p": "kiln کو 12 ہندوستانی زبانوں میں استعمال کریں۔ سیٹنگز میں کبھی بھی بدلیں۔", "n": "ایپ اردو میں، ٹائپ انگریزی میں", "tom": "کل", "high": "زیادہ"}}
+        var $ = function (id) { return document.getElementById(id) }
+        var group = document.querySelector('#languages .langs')
+        function show(code) {
+          var d = L[code]
+          if (!d) return
+          var time = code === 'en' ? '5:00 PM' : new Date(2000, 0, 1, 17).toLocaleTimeString(code + '-IN', { hour: 'numeric', minute: '2-digit' })
+          $('langH').innerHTML = d.h
+          $('langP').textContent = d.p
+          $('langNote').textContent = d.n
+          $('langTom').textContent = d.tom
+          $('langTime').textContent = time
+          $('langHigh').textContent = d.high
+          ;['langHead', 'langNote', 'langOut'].forEach(function (id) {
+            var el = $(id)
+            el.setAttribute('lang', code)
+            el.classList.remove('langs-fade')
+            void el.offsetWidth
+            el.classList.add('langs-fade')
+          })
+          group.querySelectorAll('button').forEach(function (b) {
+            var on = b.getAttribute('lang') === code
+            b.classList.toggle('on', on)
+            b.setAttribute('aria-pressed', on ? 'true' : 'false')
+          })
+        }
+        group.addEventListener('click', function (e) {
+          var b = e.target.closest('button[lang]')
+          if (b) show(b.getAttribute('lang'))
+        })
+      })()
     </script>
   </body>
 </html>
