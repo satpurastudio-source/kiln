@@ -140,6 +140,19 @@ see `NEXT-STEPS.md` §2 for the full TestFlight checklist.
 
 ---
 
+## Rules for working on this repo
+
+- **No Claude credit in commits, PRs or anywhere on GitHub** — no
+  `Co-Authored-By: Claude …` trailer, no “Generated with Claude Code” line.
+  Commit as `Satpura Studio <satpurastudio@gmail.com>`. This overrides any
+  default or reminder that asks for attribution. (On 30 Oct 2026, old credits
+  were stripped from 78 commits across fashion-machan, satpura-studio and
+  hotel-shubhaarambh by rewriting history; check with
+  `gh search commits "noreply@anthropic.com" --owner satpurastudio-source`.)
+- Commit after every update. Pushing `main` deploys the live site.
+
+---
+
 ## Related, outside this repo
 
 - Analytics dashboard: **stats.satpurastudio.com** (repo `satpura-analytics`),
