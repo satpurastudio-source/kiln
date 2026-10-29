@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { AnimatePresence, motion } from 'framer-motion'
 import { useStore, toast, SEED_TEXT } from '../store'
-import { PURPOSES, iconGlyph, uid, todayStr, resolveAccent } from '../utils'
+import { PURPOSES, iconGlyph, uid, todayStr, resolveAccent, parseQuickAdd } from '../utils'
 import AccentPicker from './AccentPicker'
 import { NLDemo, TapDemo } from './OnboardingDemos'
 import { APP_NAME } from '../brand'
@@ -59,12 +59,17 @@ export default function Onboarding() {
       localizeSeed(picked.size > 0 ? [keep, ...folders] : state.projects)
     }
     if (firstRun && firstTask.trim()) {
+      // read it the way the quick-add bar does ("plan my week tomorrow 9am"),
+      // since this step promises exactly that; a #new-folder tag just files
+      // it under Getting Started
+      const p = parseQuickAdd(firstTask, state.projects)
       dispatch({
         type: 'ADD_TASK',
-        title: firstTask.trim(),
-        projectId: keep.id,
-        due: todayStr(),
-        priority: 'none',
+        title: p.title.trim() || firstTask.trim(),
+        projectId: p.projectId ?? keep.id,
+        due: p.due ?? todayStr(),
+        time: p.time || null,
+        priority: p.priority ?? 'none',
       })
     }
   }

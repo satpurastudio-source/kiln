@@ -1,5 +1,5 @@
 import { LocalNotifications } from '@capacitor/local-notifications'
-import { isNative } from './native'
+import { isNative, platform } from './native'
 import { parseDateStr, addDaysStr } from './utils'
 import { t, tn } from './i18n'
 
@@ -86,13 +86,36 @@ export function maybeNotifyDueToday(count) {
 export async function sendTestReminder() {
   const { display } = await LocalNotifications.checkPermissions()
   if (display !== 'granted') return false
+  const exact = await exactAllowed()
   await LocalNotifications.schedule({
-    notifications: [{ id: TEST_ID, title: 'kiln', body: t('testReminderBody'), schedule: { at: new Date(Date.now() + 5000) } }],
+    notifications: [
+      {
+        id: TEST_ID,
+        title: 'kiln',
+        body: t('testReminderBody'),
+        schedule: { at: new Date(Date.now() + 5000) },
+        isExactNotification: exact,
+      },
+    ],
   })
   return true
 }
 
 // ── native scheduling ────────────────────────────────────────────────────
+
+// Android 12+ keeps exact alarms behind a separate "Alarms & reminders" switch,
+// and asking for an exact one makes the plugin open that settings screen on
+// every schedule() — which kiln calls after each task edit. So ask only for
+// what's already allowed: without it Android may deliver a reminder a few
+// minutes late, but never throws anyone into Settings.
+async function exactAllowed() {
+  if (platform !== 'android') return true
+  try {
+    return (await LocalNotifications.checkExactNotificationSetting()).exact_alarm === 'granted'
+  } catch {
+    return false
+  }
+}
 
 const DIGEST_HOUR = 9
 const DIGEST_DAYS = 7
@@ -118,7 +141,7 @@ const atTime = (due, time) => {
   return d
 }
 
-function plan(tasks) {
+function plan(tasks, exact) {
   const now = Date.now()
   const open = tasks.filter((t) => !t.done && !t.archived && t.due)
   const out = []
@@ -130,7 +153,13 @@ function plan(tasks) {
     .sort((a, b) => a.at - b.at)
     .slice(0, MAX_TASK_ALERTS)
   for (const { task, at } of timed) {
-    out.push({ id: idFor(task.id), title: task.title, body: t('dueNow'), schedule: { at, allowWhileIdle: true } })
+    out.push({
+      id: idFor(task.id),
+      title: task.title,
+      body: t('dueNow'),
+      schedule: { at, allowWhileIdle: true },
+      isExactNotification: exact,
+    })
   }
 
   for (let i = 0; i < DIGEST_DAYS; i++) {
@@ -145,6 +174,7 @@ function plan(tasks) {
       title: 'kiln',
       body: tn('digestBody', n),
       schedule: { at, allowWhileIdle: true },
+      isExactNotification: exact,
     })
   }
   return out
@@ -157,7 +187,7 @@ async function reschedule(tasks) {
   if (!remindersOptedIn()) return
   const { display } = await LocalNotifications.checkPermissions()
   if (display !== 'granted') return
-  const notifications = plan(tasks)
+  const notifications = plan(tasks, await exactAllowed())
   if (notifications.length) await LocalNotifications.schedule({ notifications })
 }
 
