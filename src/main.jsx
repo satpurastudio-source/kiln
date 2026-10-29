@@ -1,5 +1,8 @@
+import { useSyncExternalStore } from 'react'
 import { createRoot } from 'react-dom/client'
-import { StoreProvider, STORAGE_KEY } from './store'
+import { MotionConfig } from 'framer-motion'
+import { StoreProvider, STORAGE_KEY, useStore } from './store'
+import { isLight, onLightChange } from './fx'
 import { isNative } from './native'
 import ErrorBoundary from './components/ErrorBoundary'
 import App from './App'
@@ -7,6 +10,17 @@ import { initPWA } from './pwa'
 import { initViewport } from './viewport'
 import { resolveLang, loadLang } from './i18n'
 import './index.css'
+
+// Fades only — no slides, springs or layout shifts — on phones running light
+// (src/fx.js) and whenever Settings → Reduced visuals is on. framer-motion's
+// "always" keeps opacity animating and drops the transform/layout work that
+// stutters.
+function Motion({ children }) {
+  const { state } = useStore()
+  const light = useSyncExternalStore(onLightChange, isLight)
+  const lite = light || state.settings.reducedEffects
+  return <MotionConfig reducedMotion={lite ? 'always' : 'user'}>{children}</MotionConfig>
+}
 
 // First-time visitors to the bare address see the landing page first.
 // Anyone with kiln data, an installed app, an email-link query (?verified,
@@ -40,7 +54,9 @@ if (firstVisit()) {
     createRoot(document.getElementById('root')).render(
       <ErrorBoundary>
         <StoreProvider>
-          <App />
+          <Motion>
+            <App />
+          </Motion>
         </StoreProvider>
       </ErrorBoundary>
     )

@@ -4,7 +4,7 @@ import Checkbox from './Checkbox'
 import { useStore, toast, startFocus, emitDrag } from '../store'
 import { fmtDue, fmtTime, isOverdue, isToday, priorityColor, PRIORITIES, REPEATS, uid, iconGlyph } from '../utils'
 import { playComplete, playPop, playFanfare } from '../sound'
-import { heavyFxOff } from '../fx'
+import { heavyFxOff, isLight } from '../fx'
 import {
   GripIcon,
   NoteIcon,
@@ -317,7 +317,7 @@ const TaskItem = forwardRef(function TaskItem(
         onDrag={onDragMove}
         onDragEnd={onDragEnd}
         {...springIn(index)}
-        layout
+        layout={!isLight()}
       >
         {card}
       </Reorder.Item>
@@ -337,7 +337,7 @@ const TaskItem = forwardRef(function TaskItem(
       onDrag={onDragMove}
       onDragEnd={onDragEnd}
       {...springIn(index)}
-      layout
+      layout={!isLight()}
     >
       {card}
     </motion.li>

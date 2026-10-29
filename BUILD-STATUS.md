@@ -1,0 +1,148 @@
+# kiln — Android & iOS build status
+
+Snapshot: **30 October 2026**. Read this first when picking kiln up in a new
+session. `NEXT-STEPS.md` holds the longer plan (Google/Apple sign-in, TestFlight).
+
+---
+
+## Android
+
+**State:** builds, installs and runs. Release-signed **1.0.2 (versionCode 3)**.
+Not on Google Play yet — no Play Console account or upload so far.
+
+### Where things are
+
+| What | Where | In git? |
+|---|---|---|
+| Capacitor Android project | `android/` | yes |
+| Shareable APK | `~/Desktop/kiln-1.0.2.apk` | no — rebuild, see below |
+| Play upload bundle | `~/Desktop/kiln-1.0.2-release.aab` | no — rebuild |
+| **Upload key** | `~/.satpura-keys/kiln-upload.jks` | **no, never** |
+| Key password | `android/keystore.properties` (gitignored) | **no, never** |
+| Store assets | `assets/` (icon + splash sources), `public/og.jpg` | yes |
+
+⚠ **Back up the upload key and `keystore.properties`** (Satpura SSD + a password
+manager). Without them, updates can't be signed; Google can reset an upload key
+but it takes support tickets and days.
+
+Key fingerprints: SHA-1 `81:B1:84:37:37:F9:5C:5C:FB:3E:AD:86:A5:7A:DE:4B:05:0D:81:22`
+(needed for the Google sign-in Android client, see NEXT-STEPS).
+
+### Build
+
+```sh
+# Java 21 — Android Studio's bundled Java 25 is too new for Gradle 8.14
+export JAVA_HOME=/opt/homebrew/opt/openjdk@21/libexec/openjdk.jdk/Contents/Home
+npm run build && npx cap sync android
+cd android && ./gradlew assembleRelease bundleRelease
+# → app/build/outputs/apk/release/app-release.apk
+# → app/build/outputs/bundle/release/app-release.aab
+```
+
+Bump `versionCode` and `versionName` in `android/app/build.gradle` for every
+build you share or upload. On a new Mac: `brew install openjdk@21`, Android
+Studio, SDK at `~/Library/Android/sdk` (platform 36, build-tools 36), copy the
+upload key back, recreate `android/keystore.properties`.
+
+Mac quirk: `adb` 37.0.1 crashes on this macOS, so the SDK's `platform-tools`
+is 35.0.2 (the crashing one is kept in `platform-tools-37.0.1-crashes`).
+
+### Tested on the emulator (Pixel 8, Android 16)
+
+Works: install, first launch, language (Hindi verified), setup, guest mode,
+natural-language add (“Pay rent Friday 5pm !high #work”), completing tasks,
+calendar, focus timer, settings, dark mode, back button (closes layers →
+opens drawer → leaves app), offline add + restart, rotation, update from an
+older build keeps data, reminders with the app closed, reminders surviving a
+reboot, getting reminders back after denying notifications twice.
+
+### Fixed this session (all in 1.0.2)
+
+- Web-only “add to home screen” tip no longer shows inside the iOS/Android apps.
+- Scheduling a reminder no longer throws people into Android’s “Alarms &
+  reminders” settings (it did after every task edit). Reminders use exact
+  timing only if Android already allows it; otherwise up to a few minutes late.
+- The first task typed during setup is now parsed (“plan my week tomorrow 9am”).
+- Notifications blocked? Settings → Task reminders opens kiln’s notification
+  page in Android settings (native helper `KilnSystemPlugin.java`), and
+  reminders switch on by themselves on return. Adding a task with a time
+  offers “Turn on reminders” when they’re off.
+- **Speed:** heavy effects only where the phone can carry them (`src/fx.js`).
+  Android starts light unless the phone looks flagship-class (8 GB+ RAM, 8+
+  cores); any phone that drops frames in its first 20 s switches to light and
+  remembers. Light = fades-only motion, no list fade mask, no noise layer, no
+  backdrop blurs, still aurora. Settings → Reduced visuals forces it anywhere.
+
+### Open issues
+
+- [ ] **Verify 1.0.2 on the Samsung** — was it smooth enough? (light mode is new)
+- [ ] **Blank gaps / doubled pieces on screen** seen only on the emulator’s old
+      WebView 133 — confirm a real phone doesn’t show them (All Tasks, Upcoming).
+- [ ] White status/navigation bars in dark mode — happens only on WebView < 140
+      (Capacitor pads instead of going edge-to-edge); likely emulator-only.
+- [ ] New strings (`remindOffer`, `turnOn`, `notifAllowThenBack`) exist in
+      English and Hindi only; the other 10 languages fall back to English.
+- [ ] The “Turn on reminders” offer disappears after 5 s — consider keeping it longer.
+- [ ] Morning digest can arrive up to an hour after 9:00 without exact alarms.
+- [ ] Check: adding “Buy diyas for Diwali nov 6 #personal” may have filed it
+      under Work (a toast said “Added to Work · Nov 6”) — not confirmed.
+- [ ] Sign-up / sign-in / account deletion not yet tested on Android (tests
+      used guest mode to avoid creating real accounts).
+
+---
+
+## iOS
+
+**State:** Xcode project in `ios/`, team `C388U7DBWL`, version 1.0 (build 1).
+Runs on Apple Silicon Macs as the iPhone app (“Designed for iPad”); Mac
+Catalyst is blocked by Capacitor’s SPM binaries. **Not on TestFlight yet** —
+see `NEXT-STEPS.md` §2 for the full TestFlight checklist.
+
+- Today’s shared fixes reach iOS too on the next build (install tip hidden in
+  the app, setup task parsing, the reminder offer). Light mode won’t trigger on
+  iPhones unless frames drop.
+- `KilnSystem` (open notification settings) is Android-only; on iOS a blocked
+  state still shows “allow them for kiln in iPhone Settings”.
+- ⚠ **Uncommitted local edits in `ios/App/App/Info.plist` and
+  `project.pbxproj` were left out on purpose.** They remove the scene
+  configuration (`UISceneConfigurations`) and look like leftovers from the
+  abandoned Catalyst attempt. Check in Xcode before committing or discarding —
+  they may break the iOS app.
+
+---
+
+## Before launch
+
+### Google Play (closed test first)
+- [ ] Play Console developer account (US$25, ID verification takes days)
+- [ ] Recruit 12+ testers (Gmail) — they must join through the Play test link
+      and stay opted in **14 days** before production access
+- [ ] Store listing: short + full description, 512 px icon, 1024×500 feature
+      graphic, 2–8 phone screenshots (clean ones — the first try had toasts over it)
+- [ ] Data safety form: email + name (account), tasks (synced), anonymous
+      usage counts; not sold, not for ads
+- [ ] Privacy policy `https://kiln.satpurastudio.com/privacy.html` (updated today)
+- [ ] Account deletion link `https://kiln.satpurastudio.com/delete-account.html` (new)
+- [ ] Content rating, target audience (18+ simplest), ads: none, app access note
+      (no login needed — guest mode)
+- [ ] Upload the `.aab` to closed testing; later production
+- [ ] Sideloaded APK users must uninstall before installing from Play
+      (Play re-signs the app) — guests lose local tasks, so tell testers to make an account
+
+### App Store
+- [ ] Apple Developer Program, App Store Connect app record
+- [ ] Google + Apple sign-in (Apple rule 4.8) — `NEXT-STEPS.md` §1
+- [ ] TestFlight build, then App Review — `NEXT-STEPS.md` §2
+
+### Both
+- [ ] Test sign-up, sign-in, sync across devices, account deletion on real phones
+- [ ] Finish translating the three new strings
+
+---
+
+## Related, outside this repo
+
+- Analytics dashboard: **stats.satpurastudio.com** (repo `satpura-analytics`),
+  counts website visits and app opens. Pages load `t.js` with an integrity
+  hash — changing `t.js` means updating the hash on every page.
+- Link previews: `public/og.jpg` card for kiln.satpurastudio.com and `/welcome/`.

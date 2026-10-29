@@ -3148,6 +3148,30 @@ kbd,
   display: none !important;
 }
 
+/* light mode, for phones that can't carry the full effects (src/fx.js):
+   same look, without the layers a mid-range GPU pays for on every frame —
+   the list's fade mask repaints the whole scroller as it moves, the noise
+   sits as a full-screen layer over everything, and backdrop blurs re-sample
+   what's behind them */
+:root.fx-light *,
+:root.fx-light *::before,
+:root.fx-light *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+.fx-light .noise,
+.fx-light .goal-shimmer {
+  display: none !important;
+}
+.fx-light .aurora .blob {
+  animation: none !important;
+}
+.fx-light .main-scroll,
+.fx-lite .main-scroll {
+  mask-image: none;
+  -webkit-mask-image: none;
+}
+
 /* weak hardware, auto-detected (src/fx.js): everything still shows, but the
    aurora holds still, and the glass blurs, which are mostly-opaque panels where
    a smaller radius reads the same, cost a fraction to draw */

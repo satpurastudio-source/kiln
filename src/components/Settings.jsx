@@ -8,7 +8,7 @@ import AccentPicker from './AccentPicker'
 import LanguagePicker from './LanguagePicker'
 import { t, tn } from '../i18n'
 import Account from './Account'
-import { remindersOptedIn, enableReminders, disableReminders, sendTestReminder } from '../reminders'
+import { remindersOptedIn, enableReminders, disableReminders, sendTestReminder, turnOnReminders } from '../reminders'
 import { isNative } from '../native'
 import { COARSE } from '../fx'
 import {
@@ -78,6 +78,8 @@ export default function Settings({ onClose, onOpenSheet, onOpenAmbient }) {
       disableReminders()
       setReminders(false)
       toast(t('remindersOff'), '🔕')
+    } else if (isNative) {
+      setReminders(await turnOnReminders())
     } else {
       const ok = await enableReminders()
       setReminders(ok)
@@ -87,6 +89,7 @@ export default function Settings({ onClose, onOpenSheet, onOpenAmbient }) {
 
   const testReminder = async () => {
     const ok = await sendTestReminder()
+    if (!ok && isNative) return void (await turnOnReminders())
     toast(ok ? t('testOnWay') : t('notifBlockedIos'), ok ? '🔔' : '⚠')
   }
 

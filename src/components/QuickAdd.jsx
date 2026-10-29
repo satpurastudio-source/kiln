@@ -5,6 +5,7 @@ import { todayStr, addDaysStr, PRIORITIES, fmtDue, fmtTime, iconGlyph, parseQuic
 import { playAdd } from '../sound'
 import { SunIcon, FlagIcon, PlusIcon, ClockIcon, CalendarIcon } from './Icons'
 import { t } from '../i18n'
+import { offerReminders } from '../reminders'
 
 const prioLabel = (id) => PRIORITIES.find((p) => p.id === id)?.label ?? id
 
@@ -83,6 +84,8 @@ const QuickAdd = forwardRef(function QuickAdd(_, inputRef) {
     setTitle('')
     setPriority(settings.defaultPriority)
     playAdd()
+    // a task with a time is when reminders matter — offer them if they're off
+    if (base.time) offerReminders()
   }
 
   const expanded = focused || title.length > 0

@@ -1,7 +1,9 @@
+import { registerPlugin } from '@capacitor/core'
 import { LocalNotifications } from '@capacitor/local-notifications'
 import { isNative, platform } from './native'
 import { parseDateStr, addDaysStr } from './utils'
 import { t, tn } from './i18n'
+import { toast } from './store'
 
 // Opt-in reminders.
 //   • Web / PWA: "N tasks due today", once per day, while the app is open.
@@ -47,6 +49,61 @@ export async function askOnFirstLaunch() {
   if (!isNative || read(PREF_KEY) !== null) return
   const ok = await enableReminders().catch(() => false)
   if (!ok) localStorage.setItem(PREF_KEY, '0')
+}
+
+// Android stops showing its permission dialog after a "no" (or a dismissed
+// one), and a Samsung can tuck the first-launch dialog behind the language
+// screen. The only way back is kiln's page in system settings, opened by the
+// small native helper in MainActivity. When kiln comes back to the front,
+// reminders switch on by themselves if notifications were allowed there.
+const KilnSystem = registerPlugin('KilnSystem')
+let awaitingSettings = false
+
+async function openNotificationSettings() {
+  if (platform !== 'android') return false
+  try {
+    await KilnSystem.openNotificationSettings()
+    awaitingSettings = true
+    return true
+  } catch {
+    return false
+  }
+}
+
+if (isNative && typeof document !== 'undefined') {
+  document.addEventListener('visibilitychange', async () => {
+    if (document.hidden || !awaitingSettings) return
+    awaitingSettings = false
+    const { display } = await LocalNotifications.checkPermissions()
+    if (display !== 'granted') return
+    localStorage.setItem(PREF_KEY, '1')
+    scheduleNative(lastTasks)
+    toast(t('remindersOnNudge'), '🔔')
+  })
+}
+
+// App shell: switch reminders on from Settings or the offer below. Asks if
+// Android still will; otherwise sends them to settings to allow it there.
+export async function turnOnReminders() {
+  const ok = await enableReminders().catch(() => false)
+  if (ok) {
+    toast(t('remindersOnNudge'), '🔔')
+    return true
+  }
+  if (await openNotificationSettings()) toast(t('notifAllowThenBack'), '🔔')
+  else toast(t(platform === 'ios' ? 'notifBlockedIos' : 'notifBlocked'), '⚠')
+  return false
+}
+
+// Ask when it means something: a task with a time was just added and
+// reminders aren't on. Once per launch, so it never nags.
+let offered = false
+export async function offerReminders() {
+  if (!isNative || offered) return
+  const { display } = await LocalNotifications.checkPermissions().catch(() => ({}))
+  if (read(PREF_KEY) === '1' && display === 'granted') return
+  offered = true
+  toast(t('remindOffer'), '🔔', { label: t('turnOn'), fn: () => turnOnReminders() })
 }
 
 export function disableReminders() {

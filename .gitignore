@@ -7,3 +7,4 @@ supabase/.temp
 *.jks
 *.keystore
 android/keystore.properties
+.DS_Store
