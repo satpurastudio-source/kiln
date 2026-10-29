@@ -85,8 +85,9 @@ if (typeof window !== 'undefined') {
   })
 }
 
+// the iOS/Android app shell is installed by definition; its web view reports neither
 export const isStandalone = () =>
-  navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches
+  isNative || navigator.standalone === true || window.matchMedia('(display-mode: standalone)').matches
 
 export const isIOS = () =>
   /iPhone|iPad|iPod/.test(navigator.userAgent) ||
