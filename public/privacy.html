@@ -76,7 +76,7 @@
     <header class="top">
       <p class="label">kiln · Satpura Studio</p>
       <h1>Privacy Policy</h1>
-      <p class="updated">Last updated: 25 October 2026</p>
+      <p class="updated">Last updated: 30 October 2026</p>
       <svg viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
           <path class="g1" d="M0,40 Q120,18 250,32 T520,24 Q650,6 780,22 T1040,16 Q1180,2 1300,18 L1440,10 V120 H0 Z" />
           <path class="g2" d="M0,66 Q140,44 280,60 T560,52 Q700,32 840,50 T1120,42 Q1260,28 1440,44 V120 H0 Z" />
@@ -105,13 +105,21 @@
           that option on.
         </li>
         <li>
+          <strong>Anonymous usage counts:</strong> each time a kiln page or the app opens, we record
+          which page it was, the site that linked to it, the kind of device (phone, tablet, desktop or
+          app) and a random ID that your device replaces every day. No cookies, no name and no email,
+          we don’t store your IP address, and nothing links one day to the next. We use it only to see how many people
+          use kiln.
+        </li>
+        <li>
           <strong>Basic technical data</strong> needed to run the service (e.g. timestamps of when
           tasks are completed, used to show your own stats).
         </li>
       </ul>
       <p>
-        You can use kiln without an account (“continue on this device”) — in that mode your data
-        stays only in your browser/device and never reaches our servers.
+        You can use kiln without an account (“continue on this device”) — in that mode your tasks,
+        habits and notes stay only in your browser/device and never reach our servers. Only the
+        anonymous usage counts above are sent.
       </p>
 
       <h2>How we use it</h2>
@@ -125,19 +133,22 @@
       <h2>Where your data lives</h2>
       <p>When you sign in, your account and content are stored using these processors:</p>
       <ul>
-        <li><strong>Supabase</strong> — authentication and database (data hosting).</li>
+        <li><strong>Supabase</strong> — authentication and database (data hosting), including the anonymous usage counts.</li>
         <li><strong>Google (Gmail)</strong> — receiving the feedback emails you choose to send us.</li>
         <li><strong>Brevo</strong> — sending account verification and password-reset emails.</li>
         <li><strong>GitHub Pages / our host</strong> — serving the app itself.</li>
+        <li><strong>Cloudflare</strong> — serving the small script that sends the usage counts.</li>
+        <li><strong>Google Play / Apple App Store</strong> — distributing the mobile apps, under their own privacy policies.</li>
       </ul>
 
       <h2>Your choices &amp; rights</h2>
       <ul>
-        <li><strong>Export:</strong> download all your data as a JSON file anytime (Settings → Export my data).</li>
+        <li><strong>Export:</strong> download all your data as a JSON file anytime (Settings → Download a backup).</li>
         <li>
           <strong>Delete:</strong> permanently delete your account and all synced data anytime
           (Settings → Danger zone → Delete account). This removes your auth record and your data
-          from our database.
+          from our database. Can’t open the app? See <a href="delete-account.html">how to delete your
+          account</a>, or email us from your account’s address and we’ll delete it within 7 days.
         </li>
         <li><strong>Access / correction:</strong> your data is fully editable inside the app.</li>
       </ul>
@@ -170,6 +181,7 @@
         <nav>
           <a href="welcome/">About kiln</a>
           <a href="terms.html">Terms</a>
+          <a href="delete-account.html">Delete account</a>
           <a href="mailto:satpurastudio@gmail.com">Contact</a>
           <span>© 2026 Satpura Studio</span>
         </nav>

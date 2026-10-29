@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="en-IN" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Delete your account — kiln</title>
+    <link rel="icon" href="icons/icon.svg" type="image/svg+xml" />
+    <script>
+      ;(function () {
+        var t = 'light'
+        try {
+          t = localStorage.getItem('kiln-site-theme') || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light')
+        } catch (e) {}
+        document.documentElement.dataset.theme = t
+      })()
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..800;1,9..144,400..800&family=Figtree:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f5f1e8; --surface: #fffcf5; --ink: #201c13; --ink-soft: rgba(32, 28, 19, 0.66);
+        --line: rgba(32, 28, 19, 0.12); --clay: #d85a30; --clay-ink: #b8461f;
+        --sky-top: #f2e7cb; --sky-mid: #f6d6b6; --g1: #e6dec6; --g2: #cfc7aa; --g3: #a9a284; --g4: #6e6951;
+        --serif: 'Fraunces', serif; --sans: 'Figtree', sans-serif; --mono: 'IBM Plex Mono', monospace;
+      }
+      [data-theme='dark'] {
+        --bg: #0d0c08; --surface: #17130e; --ink: #f3ecdc; --ink-soft: rgba(243, 236, 220, 0.66);
+        --line: rgba(243, 236, 220, 0.1); --clay-ink: #f08a5d;
+        --sky-top: #0a0b10; --sky-mid: #22140d; --g1: #2a2519; --g2: #1e1b12; --g3: #15130c; --g4: #0d0c08;
+      }
+      * { margin: 0; padding: 0; box-sizing: border-box; }
+      body { font-family: var(--sans); background: var(--bg); color: var(--ink-soft); line-height: 1.75; font-size: 16px; -webkit-font-smoothing: antialiased; }
+      a { color: var(--clay-ink); }
+      .nav { position: sticky; top: 0; z-index: 10; background: color-mix(in srgb, var(--sky-top) 82%, transparent); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); }
+      .nav .in { width: min(1180px, 100% - 32px); margin: 0 auto; height: 64px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+      .mark { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
+      .mark img { width: 32px; height: 32px; border-radius: 9px; }
+      .mark b { font-family: var(--serif); font-style: italic; font-weight: 600; font-size: 1.45rem; }
+      .mark b span { color: var(--clay); }
+      .open { padding: 10px 18px; border-radius: 99px; background: var(--clay); color: #fff8ee; font-weight: 700; font-size: 0.9rem; text-decoration: none; }
+      .open:hover { background: #b8461f; }
+      .top { background: linear-gradient(180deg, var(--sky-top), var(--sky-mid) 70%, var(--bg)); text-align: center; padding-top: 56px; overflow: hidden; }
+      .top .label { font-family: var(--mono); font-size: 0.7rem; font-weight: 500; letter-spacing: 0.22em; text-transform: uppercase; color: var(--clay-ink); }
+      .top h1 { margin-top: 12px; font-family: var(--serif); font-weight: 700; font-size: clamp(2.6rem, 8vw, 4.6rem); line-height: 1; letter-spacing: -0.02em; color: var(--ink); }
+      .top .updated { margin-top: 12px; font-size: 0.92rem; }
+      .top svg { display: block; width: 100%; height: clamp(70px, 10vw, 120px); margin-top: 40px; }
+      .g1 { fill: var(--g1); } .g2 { fill: var(--g2); } .g3 { fill: var(--g3); } .g4 { fill: var(--g4); }
+      .doc { width: min(720px, 100% - 32px); margin: 0 auto; padding: 56px 0 96px; }
+      .doc > p:first-child { font-size: 1.12rem; color: var(--ink); }
+      .doc h2 { font-family: var(--serif); font-weight: 650; font-size: 1.55rem; line-height: 1.2; letter-spacing: -0.01em; color: var(--ink); margin: 44px 0 10px; }
+      .doc p, .doc ul { margin-bottom: 12px; }
+      .doc ul, .doc ol { padding-left: 20px; }
+      .doc li { margin-bottom: 8px; }
+      .doc li::marker { color: var(--clay); }
+      .doc strong { color: var(--ink); font-weight: 600; }
+      .studio { background: var(--g4); color: #f6eddc; }
+      [data-theme='dark'] .studio { background: #15130c; }
+      .studio .in { width: min(1180px, 100% - 32px); margin: 0 auto; display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 14px 24px; padding: 26px 0; font-size: 0.9rem; }
+      .studio a { color: #f6eddc; text-decoration: none; }
+      .studio .mk { font-family: var(--serif); font-style: italic; font-size: 1.4rem; }
+      .studio nav { display: flex; flex-wrap: wrap; gap: 8px 20px; color: rgba(246, 237, 220, 0.7); }
+      .studio nav a { color: inherit; } .studio nav a:hover { color: #f6eddc; }
+    </style>
+  </head>
+  <body>
+    <nav class="nav">
+      <div class="in">
+        <a class="mark" href="welcome/"><img src="icons/icon.svg" alt="" /><b>kiln<span>.</span></b></a>
+        <a class="open" href="./">Open kiln</a>
+      </div>
+    </nav>
+    <header class="top">
+      <p class="label">kiln · Satpura Studio</p>
+      <h1>Delete your account</h1>
+      <p class="updated">How to remove your kiln account and data</p>
+      <svg viewBox="0 0 1440 120" preserveAspectRatio="none" aria-hidden="true">
+          <path class="g1" d="M0,40 Q120,18 250,32 T520,24 Q650,6 780,22 T1040,16 Q1180,2 1300,18 L1440,10 V120 H0 Z" />
+          <path class="g2" d="M0,66 Q140,44 280,60 T560,52 Q700,32 840,50 T1120,42 Q1260,28 1440,44 V120 H0 Z" />
+          <path class="g3" d="M0,90 Q160,70 320,86 T640,78 Q800,62 960,80 T1260,72 Q1350,66 1440,74 V120 H0 Z" />
+          <path class="g4" d="M0,110 Q180,96 360,106 T720,100 Q900,88 1080,102 T1440,96 V120 H0 Z" />
+        </svg>
+    </header>
+    <main class="doc">
+
+      <p>
+        You can delete your kiln account at any time. Deleting it permanently removes your account
+        (email and display name) and everything synced to it: tasks, folders, habits, notes and
+        settings. It can’t be undone.
+      </p>
+
+      <h2>In the app (quickest)</h2>
+      <ol>
+        <li>Open kiln and sign in.</li>
+        <li>Go to <strong>Settings → Danger zone → Delete account</strong>.</li>
+        <li>Confirm. Your account and synced data are deleted straight away.</li>
+      </ol>
+      <p>Want a copy first? Use <strong>Settings → Download a backup</strong> before deleting.</p>
+
+      <h2>Without the app</h2>
+      <p>
+        Email <a href="mailto:satpurastudio@gmail.com?subject=Delete%20my%20kiln%20account">satpurastudio@gmail.com</a>
+        from the address you signed up with, with the subject “Delete my kiln account”. We’ll delete
+        the account and its data within 7 days and reply to confirm.
+      </p>
+
+      <h2>What is deleted, and what isn’t</h2>
+      <ul>
+        <li><strong>Deleted:</strong> your account, email, display name and all synced content.</li>
+        <li>
+          <strong>Not linked to you, so not affected:</strong> the anonymous usage counts described in the
+          <a href="privacy.html">privacy policy</a>. They carry no account, name or email.
+        </li>
+        <li>
+          <strong>Guest mode:</strong> if you never made an account, nothing is on our servers. Your data
+          lives on your device; uninstall the app or clear the site’s data to remove it.
+        </li>
+      </ul>
+
+      <div class="card">
+        <h2 style="margin-top: 0">Questions?</h2>
+        <p style="margin-bottom: 0">
+          Email <a href="mailto:satpurastudio@gmail.com">satpurastudio@gmail.com</a>.
+        </p>
+      </div>
+    </main>
+    <div class="studio">
+      <div class="in">
+        <a class="mk" href="https://www.satpurastudio.com">Made by Satpura Studio ↗</a>
+        <nav>
+          <a href="welcome/">About kiln</a>
+          <a href="privacy.html">Privacy</a>
+          <a href="terms.html">Terms</a>
+          <a href="delete-account.html">Delete account</a>
+          <a href="mailto:satpurastudio@gmail.com">Contact</a>
+          <span>© 2026 Satpura Studio</span>
+        </nav>
+      </div>
+    </div>
+  </body>
+</html>
