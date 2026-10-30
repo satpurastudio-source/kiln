@@ -1,0 +1,5 @@
+# kiln by Satpura Studio
+User-agent: *
+Allow: /
+
+Sitemap: https://kiln.satpurastudio.com/sitemap.xml

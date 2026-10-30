@@ -16,9 +16,9 @@ export default defineConfig({
       includeAssets: ['icons/apple-touch-icon.png', 'icons/icon.svg'],
       manifest: {
         id: './',
-        name: 'kiln — task studio',
+        name: 'kiln',
         short_name: 'kiln',
-        description: 'Shape · fire · ship. A calm, pretty task studio.',
+        description: 'The free to-do app that understands how you talk.',
         start_url: './',
         scope: './',
         display: 'standalone',
