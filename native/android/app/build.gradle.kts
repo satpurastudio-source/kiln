@@ -7,9 +7,9 @@ plugins {
 }
 
 // Same upload key as the old app, so this installs over it and keeps people's data.
-// keystore.properties is gitignored; without it, release builds come out unsigned.
+// keystore.properties is gitignored, here or beside the old project; without it, release builds come out unsigned.
 val keystoreProps = Properties()
-val keystoreFile = rootProject.file("keystore.properties")
+val keystoreFile = listOf("keystore.properties", "../../android/keystore.properties").map(rootProject::file).firstOrNull { it.exists() } ?: rootProject.file("keystore.properties")
 if (keystoreFile.exists()) keystoreFile.inputStream().use { keystoreProps.load(it) }
 
 android {
@@ -63,6 +63,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.17.0")
     implementation("androidx.profileinstaller:profileinstaller:1.4.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2")
 }
