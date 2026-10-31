@@ -19,3 +19,5 @@ native/android/app/build
 native/android/local.properties
 native/android/keystore.properties
 native/android/.kotlin
+native/android/baselineprofile/build
+native/android/*/build

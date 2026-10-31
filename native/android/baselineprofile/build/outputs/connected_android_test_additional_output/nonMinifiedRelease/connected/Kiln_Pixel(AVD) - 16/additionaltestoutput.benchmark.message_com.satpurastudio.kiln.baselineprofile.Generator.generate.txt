@@ -1,6 +1,0 @@
-Generator_generate
-Total run time Ns: 83170475082.
-Baseline profile [results](file://Generator_generate-startup-prof-2026-10-31-18-58-18.txt)
-
-To copy the profile use:
-adb -e pull "/sdcard/Android/media/com.satpurastudio.kiln.baselineprofile/additional_test_output/Generator_generate-startup-prof.txt" .
