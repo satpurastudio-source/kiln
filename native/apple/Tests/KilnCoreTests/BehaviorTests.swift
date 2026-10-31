@@ -70,7 +70,7 @@ final class StateTests: XCTestCase {
 
     func testDeleteFolderAndUndo() {
         var s = state([["id": "t", "projectId": "p", "title": "x", "done": false]], projects: [["id": "p", "name": "P"], ["id": "q", "name": "Q"]])
-        s.view = View(type: "project", projectId: "p")
+        s.view = Screen(type: "project", projectId: "p")
         let folder = s.projects[0]
         s.deleteProject("p")
         XCTAssertEqual(s.view.type, "today")

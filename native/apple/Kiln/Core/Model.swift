@@ -65,11 +65,11 @@ struct Habit: Identifiable, Equatable {
     }
 }
 
-struct View: Equatable {
+struct Screen: Equatable {
     var type: String
     var projectId: String?
     var date: String?
-    static let today = View(type: "today")
+    static let today = Screen(type: "today")
 
     init(type: String, projectId: String? = nil, date: String? = nil) {
         self.type = type
@@ -104,7 +104,7 @@ struct AppState: Equatable {
     var trash: [KTask] = []
     var theme = "light"
     var sound = true
-    var view = View.today
+    var view = Screen.today
     var profile: Item?
     var settings: Item = DEFAULT_SETTINGS
     var onboarded = false
@@ -179,9 +179,9 @@ struct AppState: Equatable {
         s.settings = settings
         // anyone who already has a profile has clearly used the app before
         s.onboarded = data["onboarded"]?.boolean ?? (profile != nil)
-        var view = View.today
+        var view = Screen.today
         if let v = data["view"]?.object, let type = v["type"]?.string {
-            view = View(type: type, projectId: v["projectId"]?.string, date: v["date"]?.string)
+            view = Screen(type: type, projectId: v["projectId"]?.string, date: v["date"]?.string)
         }
         s.view = s.sanitized(view)
         return s
@@ -209,7 +209,7 @@ struct AppState: Equatable {
         Snapshot(projects: projects.map(\.j), tasks: tasks.map(\.j), habits: habits.map(\.j), seedV: 3)
     }
 
-    func sanitized(_ v: View, projects list: [Project]? = nil) -> View {
+    func sanitized(_ v: Screen, projects list: [Project]? = nil) -> Screen {
         if v.type == "project", !(list ?? projects).contains(where: { $0.id == v.projectId }) { return .today }
         return v
     }
@@ -428,7 +428,7 @@ struct AppState: Equatable {
         if clean.isEmpty { return }
         let p = Project(["id": .str(uid()), "name": .str(clean), "color": .str(color), "icon": .str(icon)])
         projects.append(p)
-        view = View(type: "project", projectId: p.id)
+        view = Screen(type: "project", projectId: p.id)
     }
 
     mutating func updateProject(_ id: String, _ patch: Item) {
@@ -512,7 +512,7 @@ struct AppState: Equatable {
 
     // MARK: selectors
 
-    static func inView(due: String?, projectId: String, view: View) -> Bool {
+    static func inView(due: String?, projectId: String, view: Screen) -> Bool {
         switch view.type {
         case "today": return isToday(due) || isOverdue(due)
         case "upcoming", "calendar": return due != nil

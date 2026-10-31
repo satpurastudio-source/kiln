@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Sign-in tokens are tied to this phone's keystore and can't be restored elsewhere. -->
+<full-backup-content>
+    <exclude domain="file" path="session.bin" />
+    <exclude domain="file" path="sync-base.json" />
+</full-backup-content>
