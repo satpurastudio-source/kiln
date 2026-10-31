@@ -21,7 +21,7 @@ stay until the native apps have passed the release process.
 | Android on the emulator | onboarding, add, parse, complete, undo, reorder, restart, Hindi, dark, ambient, rotation, test notification; no crashes |
 | Android 1.0.2 updated in place to 2.0.0 | guest tasks and name carried over, 60 tasks included |
 | macOS | builds and runs; screens viewed in light, dark, Hindi, Urdu; not clicked through |
-| iOS and iPad | compile only. The simulator waits on `sudo xcodebuild -runFirstLaunch` |
+| iOS and iPad | first-run UI test passes on the iPhone 17 and iPad Air simulators (onboarding, parsing, adding tasks); the rest not yet driven |
 | Supabase | a failed login, a row read and a Realtime join all accepted by the live server |
 
 Emulator, same 60 tasks, Mac GPU (old → native): content on screen 4.6–5.0 s → 2.0–2.1 s;
@@ -29,7 +29,9 @@ median scroll frame 22 ms → 17 ms; APK 4.07 MB → 1.95 MB. Android's jank cou
 other way (1 of 579 frames → 8 of 392), so this needs checking on a real phone.
 
 **Before step 4:**
-- [ ] Run `sudo xcodebuild -runFirstLaunch`, then the UI test in `native/apple/UITests`, on iPhone and iPad
+- [ ] Drive the rest of iPhone and iPad the way Android was: reorder, focus, settings, ambient, reminders, dark, Hindi
+- [ ] iOS onboarding: steps overlap and run past the card while changing; make it a plain fade
+- [ ] Add `PrivacyInfo.xcprivacy` (the app uses UserDefaults; App Store uploads need it declared)
 - [ ] Click through the Mac app: keyboard shortcuts, sheets, backup, reminders
 - [ ] Real account: sign up, code, sign in, sync with the web, reset, delete, session carried over from 1.0.2
 - [ ] Reminder after a real reboot; on the Samsung, is scrolling smooth?
