@@ -190,7 +190,7 @@ private fun QuickAddView() {
                         ChipText(t("today"), due == today)
                     }
                     Chip(due == tomorrow, { due = if (due == tomorrow) null else tomorrow }) { ChipText("→ ${t("tomorrow")}", due == tomorrow) }
-                    DueField(due) { due = it }
+                    DueField(due?.takeIf { it != today && it != tomorrow }) { due = it }
                     TimeField(time) { time = it }
                     PRIORITIES.filter { it.first != "none" }.forEach { (id, c) ->
                         Chip(priority == id, { priority = if (priority == id) "none" else id }) {

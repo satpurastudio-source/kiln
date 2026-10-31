@@ -163,7 +163,7 @@ struct QuickAddView: View {
                         Chip(on: due == addDaysStr(1), action: { due = due == addDaysStr(1) ? nil : addDaysStr(1) }) {
                             Text("→ \(t("tomorrow"))")
                         }
-                        DueField(due: $due)
+                        DueField(due: Binding(get: { due == todayStr() || due == addDaysStr(1) ? nil : due }, set: { due = $0 }))
                         TimeField(time: $time)
                         ForEach(PRIORITIES.filter { $0.id != "none" }, id: \.id) { p in
                             Chip(on: priority == p.id, action: { priority = priority == p.id ? "none" : p.id }) {
