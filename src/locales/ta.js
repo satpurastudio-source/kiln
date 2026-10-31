@@ -562,4 +562,7 @@ export default {
   ame_nudges_everything_by_up_to_this_many_pixels_every_3_minutes_0_turns_it_off: 'ஒவ்வொரு 3 நிமிடத்துக்கும் எல்லாவற்றையும் இத்தனை பிக்சல்கள் வரை நகர்த்தும். 0 என்றால் அணைப்பு.',
   ame_reset_to_defaults: 'பழையபடி வை',
   ame_saved_automatically: 'தானாகச் சேமிக்கப்படும்',
+  remindOffer: 'நேரத்தில் நினைவூட்டவா? நினைவூட்டல்களை இயக்குங்கள்.',
+  turnOn: 'இயக்கு',
+  notifAllowThenBack: 'kiln-க்கு அறிவிப்புகளை அனுமதித்துவிட்டுத் திரும்பி வாருங்கள் — நினைவூட்டல்கள் தானாகவே இயங்கும்.',
 }

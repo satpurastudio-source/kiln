@@ -560,5 +560,8 @@
  "ame_from_to": "മുതൽ → വരെ",
  "ame_nudges_everything_by_up_to_this_many_pixels_every_3_minutes_0_turns_it_off": "ഓരോ 3 മിനിറ്റിലും എല്ലാം ഇത്രയും പിക്സൽ വരെ നീക്കും. 0 എന്നാൽ ഓഫ്.",
  "ame_reset_to_defaults": "പഴയപടിയാക്കൂ",
- "ame_saved_automatically": "സ്വയം സേവ് ആകും"
+ "ame_saved_automatically": "സ്വയം സേവ് ആകും",
+ "remindOffer": "സമയത്ത് ഓർമ്മിപ്പിക്കണോ? റിമൈൻഡറുകൾ ഓണാക്കുക.",
+ "turnOn": "ഓണാക്കുക",
+ "notifAllowThenBack": "kiln-ന് അറിയിപ്പുകൾ അനുവദിച്ച് തിരികെ വരൂ — റിമൈൻഡറുകൾ തനിയെ ഓണാകും."
 }

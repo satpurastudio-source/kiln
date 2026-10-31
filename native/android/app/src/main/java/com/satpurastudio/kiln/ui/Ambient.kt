@@ -120,6 +120,16 @@ fun AmbientScreen(customize: Boolean, onExit: () -> Unit) {
                             Right(cfg, now, true, tab, { tab = it }, ((mh.value - clock.value - 330) / (cfg.num("rowSize") + 26)).toInt().coerceIn(1, cfg.int("maxRows")), Modifier.weight(1f))
                         }
                     }
+                } else if (mw < 1000.dp) {
+                    // too narrow to sit side by side without squeezing the tasks (a tablet held upright)
+                    val clock = minOf(cfg.num("clockSize").dp, minOf(mw * 0.5f, mh * 0.36f)).coerceAtLeast(160.dp)
+                    Column(Modifier.fillMaxSize().padding(cfg.num("padding").dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(32.dp)) {
+                        Left(cfg, clock, now, true)
+                        Right(cfg, now, false, tab, { tab = it }, cfg.int("maxRows"), Modifier.weight(1f))
+                    }
+                    if (cfg.flag("showEmber")) {
+                        Box(Modifier.fillMaxSize().padding(20.dp), contentAlignment = if (cfg.str("emberCorner") == "left") Alignment.BottomStart else Alignment.BottomEnd) { Ember(cfg.num("emberSize").dp, now) }
+                    }
                 } else {
                     val pad = cfg.num("padding").dp
                     val clock = minOf(cfg.num("clockSize").dp, minOf(mw * 0.42f, mh - pad * 2 - 170.dp)).coerceAtLeast(160.dp)
@@ -376,6 +386,7 @@ private fun Ember(size: Dp, now: D) {
     val streak = s.insights.streak
     val scale = 0.85f + minOf(streak, 14) * 0.02f
     var line by remember { mutableStateOf("") }
+    val spark = remember { Animatable(1f) }
     var squash by remember { mutableStateOf(false) }
     var blink by remember { mutableStateOf(false) }
     val sx by animateFloatAsState(if (squash) 1.12f else 1f, spring(0.45f))
@@ -397,6 +408,10 @@ private fun Ember(size: Dp, now: D) {
                 transformOrigin = androidx.compose.ui.graphics.TransformOrigin(0.5f, 1f)
             }.tap(label = "Ember") {
                 squash = true
+                if (!s.reducedEffects) scope.launch {
+                    spark.snapTo(0f)
+                    spark.animateTo(1f, tween(550))
+                }
                 val pool = (0..2).map { t("ember_${mood}_$it") }.toMutableList()
                 val overdue = store.state.tasks.count { !it.done && !it.archived && isOverdue(it.due) }
                 if (mood == "worried" && overdue > 0) pool[0] = tn("emberOverdue", overdue)
@@ -408,7 +423,16 @@ private fun Ember(size: Dp, now: D) {
                     line = ""
                 }
             },
-        ) { drawEmber(mood, blink, tok) }
+        ) {
+            drawEmber(mood, blink, tok)
+            // a short burst when you poke Ember; nothing draws the rest of the time
+            val p = spark.value
+            if (p < 1f) for (i in 0 until 7) {
+                val a = i / 7f * 2f * Math.PI.toFloat() - Math.PI.toFloat() / 2
+                val r = this.size.width * 0.55f * p
+                drawCircle(tok.accent2, this.size.width * 0.025f * (1 - 0.7f * p), Offset(this.size.width / 2 + kotlin.math.cos(a) * r, this.size.height * 0.55f + kotlin.math.sin(a) * r - this.size.height * 0.1f * p), 1 - p)
+            }
+        }
     }
 }
 

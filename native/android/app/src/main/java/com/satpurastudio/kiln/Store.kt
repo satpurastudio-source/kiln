@@ -305,7 +305,7 @@ class Store private constructor(context: Context) {
 
     // toasts
 
-    fun toast(message: String, icon: String = "✓", actionLabel: String? = null, sticky: Boolean = false, action: (() -> Unit)? = null) {
+    fun toast(message: String, icon: String = "✓", actionLabel: String? = null, sticky: Boolean = false, holdMs: Long? = null, action: (() -> Unit)? = null) {
         val new = Toast(message, icon, actionLabel, action, sticky)
         // the same message twice in a row just refreshes it; at most 3 on screen,
         // and sticky ones are never pushed out
@@ -317,7 +317,7 @@ class Store private constructor(context: Context) {
         if (sticky) return
         // give undo a fair chance — a reading-speed window, not a blink
         scope.launch {
-            delay(if (action != null) 5000 else 2800)
+            delay(holdMs ?: if (action != null) 5000 else 2800)
             toasts.removeAll { it.id == new.id }
         }
     }
@@ -418,7 +418,7 @@ class Store private constructor(context: Context) {
     fun offerReminders() {
         if (offered || (prefs.string("kiln-reminders") == "1" && Reminders.granted(app))) return
         offered = true
-        toast(t("remindOffer"), "🔔", t("turnOn")) { scope.launch { turnOnReminders() } }
+        toast(t("remindOffer"), "🔔", t("turnOn"), holdMs = 10000) { scope.launch { turnOnReminders() } }
     }
 
     // shared task actions

@@ -112,7 +112,10 @@ struct MainView: View {
         VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .top, spacing: 8) {
                 if !wide {
-                    IconButton(symbol: "line.3.horizontal", size: 16, label: t("openMenu")) { withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { drawer = true } }
+                    IconButton(symbol: "line.3.horizontal", size: 16, label: t("openMenu")) {
+                        hideKeyboard()
+                        withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { drawer = true }
+                    }
                         .padding(.top, 4)
                 }
                 HeaderView(query: $query, focusSearch: focusSearch, openPalette: { palette = true })
@@ -166,6 +169,7 @@ struct MainView: View {
                 .gesture(DragGesture(minimumDistance: 14).onEnded { v in
                     if v.translation.width > 40 {
                         Tips.markSeen("swipe-nav")
+                        hideKeyboard()
                         withAnimation(.spring(response: 0.3, dampingFraction: 0.85)) { drawer = true }
                     }
                 })
@@ -392,6 +396,7 @@ struct SidebarView: View {
                 .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
+            .accessibilityIdentifier("folder-\(p.name)")
             IconButton(symbol: "pencil", size: 11, color: tok.text3, label: t("editFolder")) { onEdit(p) }
         }
         .background(on ? tok.accent.opacity(0.12) : .clear, in: RoundedRectangle(cornerRadius: 9))

@@ -560,5 +560,8 @@
  "ame_from_to": "થી → સુધી",
  "ame_nudges_everything_by_up_to_this_many_pixels_every_3_minutes_0_turns_it_off": "દર 3 મિનિટે બધું આટલા પિક્સેલ સુધી ખસેડે છે. 0 એટલે બંધ.",
  "ame_reset_to_defaults": "પહેલાં જેવું કરો",
- "ame_saved_automatically": "આપોઆપ સેવ થાય છે"
+ "ame_saved_automatically": "આપોઆપ સેવ થાય છે",
+ "remindOffer": "સમયસર યાદ અપાવીએ? રિમાઇન્ડર ચાલુ કરો.",
+ "turnOn": "ચાલુ કરો",
+ "notifAllowThenBack": "kiln માટે સૂચનાઓની મંજૂરી આપો, પછી પાછા આવો — રિમાઇન્ડર આપમેળે ચાલુ થઈ જશે."
 }

@@ -118,6 +118,12 @@ func tick() {
     #endif
 }
 
+func hideKeyboard() {
+    #if os(iOS)
+    UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
+    #endif
+}
+
 func openURL(_ s: String) {
     guard let u = URL(string: s) else { return }
     #if os(iOS)
@@ -205,7 +211,7 @@ final class Reminders {
         Task {
             if optedIn, await granted() { return }
             offered = true
-            store.toast(t("remindOffer"), "🔔", action: (t("turnOn"), { Task { _ = await self.turnOn(store: store) } }))
+            store.toast(t("remindOffer"), "🔔", action: (t("turnOn"), { Task { _ = await self.turnOn(store: store) } }), holdMs: 10000)
         }
     }
 

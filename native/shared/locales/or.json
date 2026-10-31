@@ -560,5 +560,8 @@
  "ame_from_to": "ଠାରୁ → ପର୍ଯ୍ୟନ୍ତ",
  "ame_nudges_everything_by_up_to_this_many_pixels_every_3_minutes_0_turns_it_off": "ପ୍ରତି 3 ମିନିଟରେ ସବୁକିଛି ଏତିକି ପିକ୍ସେଲ ପର୍ଯ୍ୟନ୍ତ ଘୁଞ୍ଚାଏ। 0 ମାନେ ବନ୍ଦ।",
  "ame_reset_to_defaults": "ପୂର୍ବ ପରି କରନ୍ତୁ",
- "ame_saved_automatically": "ନିଜେ ସେଭ୍ ହୁଏ"
+ "ame_saved_automatically": "ନିଜେ ସେଭ୍ ହୁଏ",
+ "remindOffer": "ସମୟରେ ମନେ ପକାଇବା? ରିମାଇଣ୍ଡର ଚାଲୁ କରନ୍ତୁ।",
+ "turnOn": "ଚାଲୁ କରନ୍ତୁ",
+ "notifAllowThenBack": "kiln ପାଇଁ ବିଜ୍ଞପ୍ତିର ଅନୁମତି ଦିଅନ୍ତୁ, ତା’ପରେ ଫେରି ଆସନ୍ତୁ — ରିମାଇଣ୍ଡର ନିଜେ ଚାଲୁ ହୋଇଯିବ।"
 }

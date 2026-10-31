@@ -562,4 +562,7 @@ export default {
   ame_nudges_everything_by_up_to_this_many_pixels_every_3_minutes_0_turns_it_off: 'दर 3 मिनिटांनी सगळं इतक्या पिक्सेलपर्यंत सरकवतं. 0 म्हणजे बंद.',
   ame_reset_to_defaults: 'पूर्वीसारखं करा',
   ame_saved_automatically: 'आपोआप सेव्ह होतं',
+  remindOffer: 'वेळेवर आठवण हवी? रिमाइंडर चालू करा.',
+  turnOn: 'चालू करा',
+  notifAllowThenBack: 'kiln साठी सूचनांना परवानगी द्या आणि परत या — रिमाइंडर आपोआप चालू होतील.',
 }

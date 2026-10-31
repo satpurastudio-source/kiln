@@ -562,4 +562,7 @@ export default {
   ame_nudges_everything_by_up_to_this_many_pixels_every_3_minutes_0_turns_it_off: 'ಪ್ರತಿ 3 ನಿಮಿಷಕ್ಕೆ ಎಲ್ಲವನ್ನೂ ಇಷ್ಟು ಪಿಕ್ಸೆಲ್‌ಗಳವರೆಗೆ ಸರಿಸುತ್ತದೆ. 0 ಇದ್ದರೆ ಆಫ್.',
   ame_reset_to_defaults: 'ಮೊದಲಿನಂತೆ ಮಾಡಿ',
   ame_saved_automatically: 'ತಾನಾಗಿಯೇ ಸೇವ್ ಆಗುತ್ತದೆ',
+  remindOffer: 'ಸಮಯಕ್ಕೆ ನೆನಪಿಸಲೇ? ಜ್ಞಾಪನೆಗಳನ್ನು ಆನ್ ಮಾಡಿ.',
+  turnOn: 'ಆನ್ ಮಾಡಿ',
+  notifAllowThenBack: 'kiln ಗೆ ಅಧಿಸೂಚನೆಗಳನ್ನು ಅನುಮತಿಸಿ, ನಂತರ ಹಿಂತಿರುಗಿ — ಜ್ಞಾಪನೆಗಳು ತಾವಾಗಿಯೇ ಆನ್ ಆಗುತ್ತವೆ.',
 }

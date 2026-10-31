@@ -527,6 +527,7 @@ struct TaskRow: View {
                         .frame(width: 24, height: 40).contentShape(Rectangle())
                         .gesture(grip)
                         .accessibilityLabel(t("dragToReorder"))
+                        .accessibilityIdentifier("grip-\(task.title)")
                 }
                 CheckCircle(checked: done, color: Color(hex: project?.color ?? tok.accentHex), action: toggle)
                 VStack(alignment: .leading, spacing: 4) {

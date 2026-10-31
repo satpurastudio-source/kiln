@@ -255,7 +255,7 @@ final class Store {
 
     // MARK: toasts
 
-    func toast(_ message: String, _ icon: String = "✓", action: (label: String, fn: () -> Void)? = nil, sticky: Bool = false) {
+    func toast(_ message: String, _ icon: String = "✓", action: (label: String, fn: () -> Void)? = nil, sticky: Bool = false, holdMs: Int? = nil) {
         let new = Toast(message: message, icon: icon, actionLabel: action?.label, action: action?.fn, sticky: sticky)
         // the same message twice in a row just refreshes it; at most 3 on screen,
         // and sticky ones are never pushed out
@@ -266,7 +266,7 @@ final class Store {
         if sticky { return }
         // give undo a fair chance — a reading-speed window, not a blink
         Task { [weak self] in
-            try? await Task.sleep(for: .milliseconds(new.action != nil ? 5000 : 2800))
+            try? await Task.sleep(for: .milliseconds(holdMs ?? (new.action != nil ? 5000 : 2800)))
             self?.dismiss(new.id)
         }
     }

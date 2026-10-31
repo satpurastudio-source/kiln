@@ -24,6 +24,7 @@ struct AmbientView: View {
     @State private var tab = "todo"
     @State private var drift = CGSize.zero
     @State private var now = Clock.now
+    @State private var pointer = CGPoint.zero
     #if os(macOS)
     @State private var activity: NSObjectProtocol?
     #endif
@@ -68,7 +69,12 @@ struct AmbientView: View {
             .preferredColorScheme(tok.dark ? .dark : .light)
             .contentShape(Rectangle())
             .onTapGesture { poke() }
-            .onContinuousHover { _ in poke() }
+            .onContinuousHover { phase in
+                poke()
+                if case .active(let at) = phase {
+                    pointer = CGPoint(x: at.x / max(1, g.size.width) * 2 - 1, y: at.y / max(1, g.size.height) * 2 - 1)
+                }
+            }
         }
         .animation(.easeOut(duration: 0.2), value: controls)
         .animation(.spring(response: 0.35, dampingFraction: 0.85), value: editing)
@@ -166,13 +172,23 @@ struct AmbientView: View {
     private func emberView(_ cfg: Item, size: Double) -> some View {
         let s = store.state
         let overdue = s.tasks.filter { !$0.done && !$0.archived && isOverdue($0.due) }.count
-        return EmberView(mood: s.emberMood(focus: store.focus, now: now), streak: s.insights.streak, overdue: overdue, reduced: s.reducedEffects, size: size)
+        return EmberView(mood: s.emberMood(focus: store.focus, now: now), streak: s.insights.streak, overdue: overdue, reduced: s.reducedEffects, size: size, look: cfg.flag("emberEyes") && !s.reducedEffects ? pointer : .zero)
     }
 
     private func wideLayout(_ cfg: Item, size: CGSize) -> some View {
         let pad = cfg.num("padding"), gap = cfg.num("gap")
         let clock = min(cfg.num("clockSize"), min(size.width * 0.42, size.height - pad * 2 - 170))
-        return HStack(alignment: .center, spacing: gap) {
+        // too narrow to sit side by side without squeezing the tasks (a tablet held upright)
+        if size.width < 1000 {
+            return AnyView(VStack(spacing: min(gap, 40)) {
+                left(cfg, clock: max(160, min(cfg.num("clockSize"), min(size.width * 0.5, size.height * 0.36))))
+                right(cfg, compact: false, rows: cfg.int("maxRows"))
+                Spacer(minLength: 0)
+            }
+            .padding(pad)
+            .frame(maxWidth: .infinity, maxHeight: .infinity))
+        }
+        return AnyView(HStack(alignment: .center, spacing: gap) {
             if cfg.str("side") == "left" {
                 left(cfg, clock: max(160, clock))
                 right(cfg, compact: false, rows: cfg.int("maxRows"))
@@ -182,7 +198,7 @@ struct AmbientView: View {
             }
         }
         .padding(pad)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: .infinity))
     }
 
     private func compactLayout(_ cfg: Item, landscape: Bool, size: CGSize) -> some View {
@@ -453,6 +469,9 @@ struct EmberView: View {
     var overdue: Int
     var reduced: Bool
     var size: Double
+    /// Where the pointer is, from -1 to 1 on each axis. Only a Mac has one.
+    var look: CGPoint = .zero
+    @State private var sparkAt: Date?
     @State private var line = ""
     @State private var squash = false
     @State private var blink = false
@@ -472,6 +491,7 @@ struct EmberView: View {
             }
             Canvas { ctx, s in draw(&ctx, s) }
                 .frame(width: size, height: size)
+                .overlay { sparks }
                 .scaleEffect(x: (squash ? 1.12 : 1) * scale, y: (squash ? 0.84 : 1) * scale, anchor: .bottom)
                 .offset(y: bob && !reduced ? -size * 0.02 : 0)
                 .animation(.spring(response: 0.25, dampingFraction: 0.45), value: squash)
@@ -494,8 +514,36 @@ struct EmberView: View {
         }
     }
 
+    /// A short burst when you poke Ember; nothing runs the rest of the time.
+    @ViewBuilder private var sparks: some View {
+        if let sparkAt, !reduced {
+            TimelineView(.animation) { tl in
+                Canvas { ctx, s in
+                    let p = tl.date.timeIntervalSince(sparkAt) / 0.55
+                    guard p < 1 else { return }
+                    ctx.opacity = 1 - p
+                    let c = CGPoint(x: s.width / 2, y: s.height * 0.55)
+                    for i in 0..<7 {
+                        let a = Double(i) / 7 * 2 * .pi - .pi / 2
+                        let r = s.width * 0.55 * p
+                        let d = s.width * 0.05 * (1 - 0.7 * p)
+                        ctx.fill(Path(ellipseIn: CGRect(x: c.x + cos(a) * r - d / 2, y: c.y + sin(a) * r - s.height * 0.1 * p - d / 2, width: d, height: d)), with: .color(tok.accent2))
+                    }
+                }
+            }
+            .allowsHitTesting(false)
+        }
+    }
+
     private func poke() {
         squash = true
+        if !reduced {
+            sparkAt = Date()
+            Task {
+                try? await Task.sleep(for: .milliseconds(600))
+                sparkAt = nil
+            }
+        }
         var pool = (0...2).map { t("ember_\(mood)_\($0)") }
         if mood == "worried", overdue > 0 { pool[0] = tn("emberOverdue", overdue) }
         line = pool.randomElement() ?? ""
@@ -517,7 +565,8 @@ struct EmberView: View {
         ctx.fill(ellipse(11, 17.2, 3.4, 2.6), with: .color(.white.opacity(mood == "celebrate" ? 0.32 : 0.14)))
         let eye = Color(hex: "#1d1612")
         let closed = mood == "proud" || mood == "sleepy" || blink
-        let shift = mood == "worried" ? 0.4 : 0
+        let shift = mood == "worried" ? 0.4 : look.x * 0.55
+        let lift = mood == "worried" ? 0 : look.y * 0.55
         if closed {
             for x in [7.6, 11.2] {
                 var p = Path()
@@ -527,11 +576,11 @@ struct EmberView: View {
             }
         } else {
             let ry = mood == "focus" ? 0.45 : 1.1
-            ctx.fill(ellipse(8.7 + shift, 15.6, 1, ry), with: .color(eye))
-            ctx.fill(ellipse(12.3 + shift, 15.6, 1, ry), with: .color(eye))
+            ctx.fill(ellipse(8.7 + shift, 15.6 + lift, 1, ry), with: .color(eye))
+            ctx.fill(ellipse(12.3 + shift, 15.6 + lift, 1, ry), with: .color(eye))
             if mood != "focus" {
-                ctx.fill(ellipse(9 + shift, 15.2, 0.28, 0.28), with: .color(.white.opacity(0.85)))
-                ctx.fill(ellipse(12.6 + shift, 15.2, 0.28, 0.28), with: .color(.white.opacity(0.85)))
+                ctx.fill(ellipse(9 + shift, 15.2 + lift, 0.28, 0.28), with: .color(.white.opacity(0.85)))
+                ctx.fill(ellipse(12.6 + shift, 15.2 + lift, 0.28, 0.28), with: .color(.white.opacity(0.85)))
             }
         }
         if mood == "proud" || mood == "celebrate" {
@@ -648,6 +697,9 @@ struct AmbientEditor: View {
                         toggle("ame_show_ember", "showEmber")
                         slider("ame_size", "emberSize", 48, 320)
                         seg("ame_corner", "emberCorner", [("left", "ame_bottom_left"), ("right", "ame_bottom_right")])
+                        #if os(macOS)
+                        toggle("ame_eyes_follow_cursor", "emberEyes")
+                        #endif
                     }
                     section(t("ame_night")) {
                         seg("ame_night_mode", "night", [("off", "ame_off"), ("dim", "ame_dim"), ("dark", "ame_dim_dark")])

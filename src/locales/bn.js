@@ -562,4 +562,7 @@ export default {
   ame_nudges_everything_by_up_to_this_many_pixels_every_3_minutes_0_turns_it_off: 'প্রতি 3 মিনিটে সবকিছু এতগুলো পিক্সেল পর্যন্ত সরায়। 0 মানে বন্ধ।',
   ame_reset_to_defaults: 'আগের মতো করুন',
   ame_saved_automatically: 'নিজে থেকে সেভ হয়',
+  remindOffer: 'সময়মতো মনে করিয়ে দেব? রিমাইন্ডার চালু করুন।',
+  turnOn: 'চালু করুন',
+  notifAllowThenBack: 'kiln-এর জন্য নোটিফিকেশনের অনুমতি দিন, তারপর ফিরে আসুন — রিমাইন্ডার নিজে থেকেই চালু হয়ে যাবে।',
 }

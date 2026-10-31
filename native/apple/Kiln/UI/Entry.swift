@@ -321,7 +321,7 @@ struct OnboardingView: View {
                 }
             }
             .id(key)
-            .transition(.asymmetric(insertion: .move(edge: .trailing).combined(with: .opacity), removal: .opacity))
+            .transition(.asymmetric(insertion: .opacity, removal: .identity))
             HStack {
                 HStack(spacing: 6) {
                     ForEach(steps.indices, id: \.self) { i in
@@ -345,7 +345,10 @@ struct OnboardingView: View {
         }
     }
 
-    private func go(_ d: Int) { withAnimation(.easeOut(duration: 0.25)) { step = max(0, step + d) } }
+    private func go(_ d: Int) {
+        hideKeyboard()
+        withAnimation(.easeOut(duration: 0.25)) { step = max(0, step + d) }
+    }
 
     private func next(_ can: Bool, _ last: Bool) {
         guard can else { return }

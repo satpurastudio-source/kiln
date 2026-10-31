@@ -560,5 +560,8 @@
  "ame_from_to": "ਤੋਂ → ਤੱਕ",
  "ame_nudges_everything_by_up_to_this_many_pixels_every_3_minutes_0_turns_it_off": "ਹਰ 3 ਮਿੰਟ ਵਿੱਚ ਸਭ ਕੁਝ ਇੰਨੇ ਪਿਕਸਲ ਤੱਕ ਖਿਸਕਾਉਂਦਾ ਹੈ। 0 ਨਾਲ ਬੰਦ।",
  "ame_reset_to_defaults": "ਪਹਿਲਾਂ ਵਾਂਗ ਕਰੋ",
- "ame_saved_automatically": "ਆਪੇ ਸੇਵ ਹੁੰਦਾ ਹੈ"
+ "ame_saved_automatically": "ਆਪੇ ਸੇਵ ਹੁੰਦਾ ਹੈ",
+ "remindOffer": "ਸਮੇਂ ਸਿਰ ਯਾਦ ਕਰਾਈਏ? ਰਿਮਾਈਂਡਰ ਚਾਲੂ ਕਰੋ।",
+ "turnOn": "ਚਾਲੂ ਕਰੋ",
+ "notifAllowThenBack": "kiln ਲਈ ਸੂਚਨਾਵਾਂ ਦੀ ਇਜਾਜ਼ਤ ਦਿਓ, ਫਿਰ ਵਾਪਸ ਆਓ — ਰਿਮਾਈਂਡਰ ਆਪਣੇ ਆਪ ਚਾਲੂ ਹੋ ਜਾਣਗੇ।"
 }

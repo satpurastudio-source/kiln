@@ -560,5 +560,8 @@
  "ame_from_to": "سے → تک",
  "ame_nudges_everything_by_up_to_this_many_pixels_every_3_minutes_0_turns_it_off": "ہر 3 منٹ میں سب کچھ اتنے پکسلز تک کھسکاتا ہے۔ 0 سے بند۔",
  "ame_reset_to_defaults": "پہلے جیسا کریں",
- "ame_saved_automatically": "خود بخود محفوظ ہوتا ہے"
+ "ame_saved_automatically": "خود بخود محفوظ ہوتا ہے",
+ "remindOffer": "وقت پر یاد دلائیں؟ یاد دہانیاں آن کریں۔",
+ "turnOn": "آن کریں",
+ "notifAllowThenBack": "kiln کے لیے اطلاعات کی اجازت دیں، پھر واپس آئیں — یاد دہانیاں خود بخود آن ہو جائیں گی۔"
 }

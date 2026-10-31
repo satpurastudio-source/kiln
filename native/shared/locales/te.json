@@ -560,5 +560,8 @@
  "ame_from_to": "నుంచి → వరకు",
  "ame_nudges_everything_by_up_to_this_many_pixels_every_3_minutes_0_turns_it_off": "ప్రతి 3 నిమిషాలకు అన్నింటినీ ఇన్ని పిక్సెల్స్ వరకు కదుపుతుంది. 0 అంటే ఆఫ్.",
  "ame_reset_to_defaults": "మునుపటిలా చేయి",
- "ame_saved_automatically": "దానంతటదే సేవ్ అవుతుంది"
+ "ame_saved_automatically": "దానంతటదే సేవ్ అవుతుంది",
+ "remindOffer": "సమయానికి గుర్తు చేయాలా? రిమైండర్లు ఆన్ చేయండి.",
+ "turnOn": "ఆన్ చేయండి",
+ "notifAllowThenBack": "kiln కోసం నోటిఫికేషన్లను అనుమతించి తిరిగి రండి — రిమైండర్లు వాటంతట అవే ఆన్ అవుతాయి."
 }

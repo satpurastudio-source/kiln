@@ -17,6 +17,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -74,6 +75,9 @@ private fun MainScreen(openAmbient: (Boolean) -> Unit) {
     var query by remember { mutableStateOf("") }
     var pendingQuery by remember { mutableStateOf("") }
     val viewKey = store.state.view.key
+    val focusManager = androidx.compose.ui.platform.LocalFocusManager.current
+    // the keyboard would squash the drawer's folder list
+    LaunchedEffect(drawer) { if (drawer) focusManager.clearFocus() }
 
     LaunchedEffect(viewKey) {
         query = pendingQuery
@@ -270,10 +274,11 @@ fun Tip(id: String, text: String) {
     var gone by remember { mutableStateOf(Tips.seen(store, id)) }
     if (gone) return
     Row(
-        Modifier.padding(top = 12.dp).fillMaxWidth().background(tok.accent.copy(alpha = 0.07f), R12).border(1.dp, tok.accent.copy(alpha = 0.2f), R12).padding(start = 12.dp, top = 12.dp, bottom = 12.dp),
+        Modifier.padding(top = 12.dp).fillMaxWidth().background(tok.accent.copy(alpha = 0.07f), R12).border(1.dp, tok.accent.copy(alpha = 0.2f), R12).padding(start = 12.dp, top = 4.dp, bottom = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(9.dp),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        KIcon("Sparkle", 13.dp, tok.accent, Modifier.padding(top = 2.dp))
+        KIcon("Sparkle", 13.dp, tok.accent)
         T(text, tok.ui(13f, c = tok.text2), Modifier.weight(1f))
         IconBtn("X", t("close"), 12.dp, tok.text3) {
             Tips.markSeen(store, id)
@@ -423,7 +428,9 @@ fun ConfettiLayer(trigger: Int) {
         for (b in bits) {
             val x = b.x * size.width + b.vx * time
             val y = size.height * 0.68f + b.vy * time + 1560f * time * time
-            drawCircle(colors[b.color % colors.size], b.size / 2, Offset(x, y), alpha)
+            rotate(b.spin * time * 57.3f, Offset(x, y)) {
+                drawRect(colors[b.color % colors.size], Offset(x - b.size / 2, y - b.size / 3), androidx.compose.ui.geometry.Size(b.size, b.size * 0.66f), alpha)
+            }
         }
     }
 }

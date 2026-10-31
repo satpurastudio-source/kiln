@@ -13,4 +13,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "kiln"
-include(":app")
+include(":app", ":baselineprofile")
