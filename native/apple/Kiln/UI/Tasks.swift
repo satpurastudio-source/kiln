@@ -230,6 +230,7 @@ struct QuickAddView: View {
         }
         title = ""
         priority = s.settings["defaultPriority"]?.string ?? "none"
+        focused = true // return closes the keyboard on iOS; stay put so several can go in a row
         Sound.add()
         if timeValue != nil { Reminders.shared.offer(store: store) }
     }
