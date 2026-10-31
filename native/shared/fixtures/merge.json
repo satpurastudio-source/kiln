@@ -1,0 +1,2515 @@
+{
+ "cases": [
+  {
+   "name": "identical",
+   "base": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "local": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "remote": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "merged": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   }
+  },
+  {
+   "name": "edit on remote only",
+   "base": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "local": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "remote": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "r",
+      "done": false,
+      "updatedAt": 2
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "merged": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "r",
+      "done": false,
+      "updatedAt": 2
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   }
+  },
+  {
+   "name": "edit on local only",
+   "base": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "local": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "l",
+      "done": false,
+      "updatedAt": 2
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "remote": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "merged": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "l",
+      "done": false,
+      "updatedAt": 2
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   }
+  },
+  {
+   "name": "different fields merge",
+   "base": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "local": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "l",
+      "done": false,
+      "updatedAt": 2
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "remote": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 3,
+      "notes": "r"
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "merged": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "l",
+      "done": false,
+      "updatedAt": 3,
+      "notes": "r"
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   }
+  },
+  {
+   "name": "same field newer remote wins",
+   "base": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "local": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "l",
+      "done": false,
+      "updatedAt": 2
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "remote": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "r",
+      "done": false,
+      "updatedAt": 3
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "merged": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "r",
+      "done": false,
+      "updatedAt": 3
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   }
+  },
+  {
+   "name": "same field newer local wins",
+   "base": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "local": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "l",
+      "done": false,
+      "updatedAt": 9
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "remote": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "r",
+      "done": false,
+      "updatedAt": 3
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "merged": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "l",
+      "done": false,
+      "updatedAt": 9
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   }
+  },
+  {
+   "name": "same field tie goes local",
+   "base": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "local": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "l",
+      "done": false,
+      "updatedAt": 3
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "remote": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "r",
+      "done": false,
+      "updatedAt": 3
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "merged": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "l",
+      "done": false,
+      "updatedAt": 3
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   }
+  },
+  {
+   "name": "deleted here edited there",
+   "base": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "local": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "remote": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "r",
+      "done": false,
+      "updatedAt": 2
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "merged": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "r",
+      "done": false,
+      "updatedAt": 2
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   }
+  },
+  {
+   "name": "deleted there edited here",
+   "base": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "local": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "l",
+      "done": false,
+      "updatedAt": 2
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "remote": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "merged": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "l",
+      "done": false,
+      "updatedAt": 2
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   }
+  },
+  {
+   "name": "deleted both",
+   "base": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "local": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "remote": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "merged": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   }
+  },
+  {
+   "name": "added both sides",
+   "base": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "local": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "n1",
+      "projectId": "p",
+      "title": "n1",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "remote": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "n2",
+      "projectId": "p",
+      "title": "n2",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "merged": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "n1",
+      "projectId": "p",
+      "title": "n1",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "n2",
+      "projectId": "p",
+      "title": "n2",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   }
+  },
+  {
+   "name": "same new id both sides",
+   "base": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "local": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "n",
+      "projectId": "p",
+      "title": "l",
+      "done": false,
+      "updatedAt": 5
+     },
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "remote": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "n",
+      "projectId": "p",
+      "title": "r",
+      "done": false,
+      "updatedAt": 6,
+      "notes": "k"
+     },
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "merged": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "n",
+      "projectId": "p",
+      "title": "r",
+      "done": false,
+      "updatedAt": 6,
+      "notes": "k"
+     },
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   }
+  },
+  {
+   "name": "local reorder wins order",
+   "base": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "local": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "remote": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "z",
+      "projectId": "p",
+      "title": "z",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "merged": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "z",
+      "projectId": "p",
+      "title": "z",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   }
+  },
+  {
+   "name": "remote reorder followed",
+   "base": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "local": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "y",
+      "projectId": "p",
+      "title": "y",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "remote": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "merged": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "y",
+      "projectId": "p",
+      "title": "y",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   }
+  },
+  {
+   "name": "orphan rehomed",
+   "base": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     },
+     {
+      "id": "q",
+      "name": "q"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "q",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "local": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     },
+     {
+      "id": "q",
+      "name": "q"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "q",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "n",
+      "projectId": "q",
+      "title": "n",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "remote": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "q",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "merged": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "n",
+      "projectId": "p",
+      "title": "n",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   }
+  },
+  {
+   "name": "habit logs merge key by key",
+   "base": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [],
+    "habits": [
+     {
+      "id": "h",
+      "log": {
+       "d1": true
+      },
+      "updatedAt": 1
+     }
+    ],
+    "seedV": 3
+   },
+   "local": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [],
+    "habits": [
+     {
+      "id": "h",
+      "log": {
+       "d1": true,
+       "d2": true
+      },
+      "updatedAt": 2
+     }
+    ],
+    "seedV": 3
+   },
+   "remote": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [],
+    "habits": [
+     {
+      "id": "h",
+      "log": {
+       "d1": true,
+       "d3": true
+      },
+      "updatedAt": 3
+     }
+    ],
+    "seedV": 3
+   },
+   "merged": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [],
+    "habits": [
+     {
+      "id": "h",
+      "log": {
+       "d1": true,
+       "d2": true,
+       "d3": true
+      },
+      "updatedAt": 3
+     }
+    ],
+    "seedV": 3
+   }
+  },
+  {
+   "name": "unknown keys survive",
+   "base": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "local": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1,
+      "future": {
+       "x": [
+        1,
+        "é",
+        null
+       ]
+      }
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "remote": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1,
+      "other": 2.5
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "merged": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1,
+      "future": {
+       "x": [
+        1,
+        "é",
+        null
+       ]
+      },
+      "other": 2.5
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "c",
+      "projectId": "p",
+      "title": "c",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   }
+  },
+  {
+   "name": "null versus absent",
+   "base": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1,
+      "due": null
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "local": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "remote": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "r",
+      "done": false,
+      "updatedAt": 1,
+      "due": null
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "merged": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "r",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   }
+  },
+  {
+   "name": "seedV max",
+   "base": {
+    "projects": [],
+    "tasks": [],
+    "habits": [],
+    "seedV": 1
+   },
+   "local": {
+    "projects": [],
+    "tasks": [],
+    "habits": [],
+    "seedV": 2
+   },
+   "remote": {
+    "projects": [],
+    "tasks": [],
+    "habits": [],
+    "seedV": 3
+   },
+   "merged": {
+    "projects": [],
+    "tasks": [],
+    "habits": [],
+    "seedV": 3
+   }
+  },
+  {
+   "name": "empty base",
+   "base": {},
+   "local": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "remote": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "merged": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     },
+     {
+      "id": "b",
+      "projectId": "p",
+      "title": "b",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   }
+  },
+  {
+   "name": "folder removed everywhere keeps tasks",
+   "base": {
+    "projects": [
+     {
+      "id": "p",
+      "name": "p"
+     }
+    ],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "local": {
+    "projects": [],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "remote": {
+    "projects": [],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   },
+   "merged": {
+    "projects": [],
+    "tasks": [
+     {
+      "id": "a",
+      "projectId": "p",
+      "title": "a",
+      "done": false,
+      "updatedAt": 1
+     }
+    ],
+    "habits": [],
+    "seedV": 3
+   }
+  }
+ ]
+}

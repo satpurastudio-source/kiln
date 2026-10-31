@@ -1,0 +1,782 @@
+{
+ "now": [
+  2026,
+  10,
+  31,
+  10,
+  30
+ ],
+ "projects": [
+  {
+   "id": "p1",
+   "name": "Getting Started"
+  },
+  {
+   "id": "p2",
+   "name": "Work"
+  },
+  {
+   "id": "p3",
+   "name": "Side Project"
+  },
+  {
+   "id": "p4",
+   "name": "घर"
+  }
+ ],
+ "cases": [
+  {
+   "input": "",
+   "output": {
+    "title": ""
+   }
+  },
+  {
+   "input": "   ",
+   "output": {
+    "title": ""
+   }
+  },
+  {
+   "input": "gym",
+   "output": {
+    "title": "gym"
+   }
+  },
+  {
+   "input": "gym tomorrow 7am !high #fitness",
+   "output": {
+    "title": "gym",
+    "newFolder": "Fitness",
+    "priority": "high",
+    "time": "07:00",
+    "due": "2026-11-01"
+   }
+  },
+  {
+   "input": "pay rent 26 oct 6pm #home",
+   "output": {
+    "title": "pay rent",
+    "newFolder": "Home",
+    "time": "18:00",
+    "due": "2027-10-26"
+   }
+  },
+  {
+   "input": "pay rent friday 5pm !high #work",
+   "output": {
+    "title": "pay rent",
+    "projectId": "p2",
+    "priority": "high",
+    "time": "17:00",
+    "due": "2026-11-06"
+   }
+  },
+  {
+   "input": "Pay rent Friday 5pm !high #work",
+   "output": {
+    "title": "Pay rent",
+    "projectId": "p2",
+    "priority": "high",
+    "time": "17:00",
+    "due": "2026-11-06"
+   }
+  },
+  {
+   "input": "Buy diyas for Diwali nov 6 #personal",
+   "output": {
+    "title": "Buy diyas for Diwali",
+    "newFolder": "Personal",
+    "due": "2026-11-06"
+   }
+  },
+  {
+   "input": "plan my week tomorrow 9am",
+   "output": {
+    "title": "plan my week",
+    "time": "09:00",
+    "due": "2026-11-01"
+   }
+  },
+  {
+   "input": "today",
+   "output": {
+    "title": "today"
+   }
+  },
+  {
+   "input": "tonight call mom",
+   "output": {
+    "title": "call mom",
+    "due": "2026-10-31"
+   }
+  },
+  {
+   "input": "call mom tonight",
+   "output": {
+    "title": "call mom",
+    "due": "2026-10-31"
+   }
+  },
+  {
+   "input": "x day after tomorrow",
+   "output": {
+    "title": "x",
+    "due": "2026-11-02"
+   }
+  },
+  {
+   "input": "x the day after tomorrow",
+   "output": {
+    "title": "x",
+    "due": "2026-11-02"
+   }
+  },
+  {
+   "input": "x overmorrow",
+   "output": {
+    "title": "x",
+    "due": "2026-11-02"
+   }
+  },
+  {
+   "input": "x tmrw",
+   "output": {
+    "title": "x",
+    "due": "2026-11-01"
+   }
+  },
+  {
+   "input": "x tmr",
+   "output": {
+    "title": "x",
+    "due": "2026-11-01"
+   }
+  },
+  {
+   "input": "x next week",
+   "output": {
+    "title": "x",
+    "due": "2026-11-07"
+   }
+  },
+  {
+   "input": "x next month",
+   "output": {
+    "title": "x",
+    "due": "2026-11-30"
+   }
+  },
+  {
+   "input": "x weekend",
+   "output": {
+    "title": "x",
+    "due": "2026-10-31"
+   }
+  },
+  {
+   "input": "x this weekend",
+   "output": {
+    "title": "x",
+    "due": "2026-10-31"
+   }
+  },
+  {
+   "input": "x in 3 days",
+   "output": {
+    "title": "x",
+    "due": "2026-11-03"
+   }
+  },
+  {
+   "input": "x in 2 weeks",
+   "output": {
+    "title": "x",
+    "due": "2026-11-14"
+   }
+  },
+  {
+   "input": "x in 1 wk",
+   "output": {
+    "title": "x",
+    "due": "2026-11-07"
+   }
+  },
+  {
+   "input": "x in 999 weeks",
+   "output": {
+    "title": "x",
+    "due": "2027-10-31"
+   }
+  },
+  {
+   "input": "x 26 oct",
+   "output": {
+    "title": "x",
+    "due": "2027-10-26"
+   }
+  },
+  {
+   "input": "x 26th october",
+   "output": {
+    "title": "x",
+    "due": "2027-10-26"
+   }
+  },
+  {
+   "input": "x 26 of oct",
+   "output": {
+    "title": "x",
+    "due": "2027-10-26"
+   }
+  },
+  {
+   "input": "x 26 oct 2027",
+   "output": {
+    "title": "x",
+    "due": "2027-10-26"
+   }
+  },
+  {
+   "input": "x on 26 oct",
+   "output": {
+    "title": "x",
+    "due": "2027-10-26"
+   }
+  },
+  {
+   "input": "x by 26 oct",
+   "output": {
+    "title": "x",
+    "due": "2027-10-26"
+   }
+  },
+  {
+   "input": "x due 26 oct",
+   "output": {
+    "title": "x",
+    "due": "2027-10-26"
+   }
+  },
+  {
+   "input": "x the 26th of oct",
+   "output": {
+    "title": "x",
+    "due": "2027-10-26"
+   }
+  },
+  {
+   "input": "x oct 26",
+   "output": {
+    "title": "x",
+    "due": "2027-10-26"
+   }
+  },
+  {
+   "input": "x october 26th",
+   "output": {
+    "title": "x",
+    "due": "2027-10-26"
+   }
+  },
+  {
+   "input": "x oct 26, 2027",
+   "output": {
+    "title": "x",
+    "due": "2027-10-26"
+   }
+  },
+  {
+   "input": "x 31 feb",
+   "output": {
+    "title": "x 31 feb"
+   }
+  },
+  {
+   "input": "x feb 31",
+   "output": {
+    "title": "x feb 31"
+   }
+  },
+  {
+   "input": "x 29 feb",
+   "output": {
+    "title": "x 29 feb"
+   }
+  },
+  {
+   "input": "x 5 jan",
+   "output": {
+    "title": "x",
+    "due": "2027-01-05"
+   }
+  },
+  {
+   "input": "x jan 5",
+   "output": {
+    "title": "x",
+    "due": "2027-01-05"
+   }
+  },
+  {
+   "input": "x 26/10",
+   "output": {
+    "title": "x",
+    "due": "2027-10-26"
+   }
+  },
+  {
+   "input": "x 26-10-2026",
+   "output": {
+    "title": "x",
+    "due": "2026-10-26"
+   }
+  },
+  {
+   "input": "x 26/10/27",
+   "output": {
+    "title": "x",
+    "due": "2027-10-26"
+   }
+  },
+  {
+   "input": "x on 26/10",
+   "output": {
+    "title": "x",
+    "due": "2027-10-26"
+   }
+  },
+  {
+   "input": "x by 26-10",
+   "output": {
+    "title": "x",
+    "due": "2027-10-26"
+   }
+  },
+  {
+   "input": "read 1/2 of the book",
+   "output": {
+    "title": "read 1/2 of the book"
+   }
+  },
+  {
+   "input": "x 45/13",
+   "output": {
+    "title": "x 45/13"
+   }
+  },
+  {
+   "input": "x 31/2",
+   "output": {
+    "title": "x 31/2"
+   }
+  },
+  {
+   "input": "x the 30th",
+   "output": {
+    "title": "x",
+    "due": "2026-11-30"
+   }
+  },
+  {
+   "input": "x on the 30th",
+   "output": {
+    "title": "x",
+    "due": "2026-11-30"
+   }
+  },
+  {
+   "input": "x by the 5th",
+   "output": {
+    "title": "x",
+    "due": "2026-11-05"
+   }
+  },
+  {
+   "input": "x 30th",
+   "output": {
+    "title": "x",
+    "due": "2026-11-30"
+   }
+  },
+  {
+   "input": "x 31st",
+   "output": {
+    "title": "x",
+    "due": "2026-10-31"
+   }
+  },
+  {
+   "input": "x 1st",
+   "output": {
+    "title": "x",
+    "due": "2026-11-01"
+   }
+  },
+  {
+   "input": "x the 31st",
+   "output": {
+    "title": "x",
+    "due": "2026-10-31"
+   }
+  },
+  {
+   "input": "x on friday",
+   "output": {
+    "title": "x",
+    "due": "2026-11-06"
+   }
+  },
+  {
+   "input": "x this friday",
+   "output": {
+    "title": "x",
+    "due": "2026-11-06"
+   }
+  },
+  {
+   "input": "x next friday",
+   "output": {
+    "title": "x",
+    "due": "2026-11-13"
+   }
+  },
+  {
+   "input": "x next saturday",
+   "output": {
+    "title": "x",
+    "due": "2026-11-07"
+   }
+  },
+  {
+   "input": "x by mon",
+   "output": {
+    "title": "x",
+    "due": "2026-11-02"
+   }
+  },
+  {
+   "input": "x friday",
+   "output": {
+    "title": "x",
+    "due": "2026-11-06"
+   }
+  },
+  {
+   "input": "x sat",
+   "output": {
+    "title": "x",
+    "due": "2026-11-07"
+   }
+  },
+  {
+   "input": "sat exam prep",
+   "output": {
+    "title": "sat exam prep"
+   }
+  },
+  {
+   "input": "wed plans",
+   "output": {
+    "title": "wed plans"
+   }
+  },
+  {
+   "input": "x thurs",
+   "output": {
+    "title": "x",
+    "due": "2026-11-05"
+   }
+  },
+  {
+   "input": "x tues",
+   "output": {
+    "title": "x",
+    "due": "2026-11-03"
+   }
+  },
+  {
+   "input": "x sun",
+   "output": {
+    "title": "x",
+    "due": "2026-11-01"
+   }
+  },
+  {
+   "input": "x p1",
+   "output": {
+    "title": "x",
+    "priority": "high"
+   }
+  },
+  {
+   "input": "x p2",
+   "output": {
+    "title": "x",
+    "priority": "medium"
+   }
+  },
+  {
+   "input": "x p3",
+   "output": {
+    "title": "x",
+    "priority": "low"
+   }
+  },
+  {
+   "input": "x !1",
+   "output": {
+    "title": "x",
+    "priority": "high"
+   }
+  },
+  {
+   "input": "x !2",
+   "output": {
+    "title": "x",
+    "priority": "medium"
+   }
+  },
+  {
+   "input": "x !3",
+   "output": {
+    "title": "x",
+    "priority": "low"
+   }
+  },
+  {
+   "input": "x !hi",
+   "output": {
+    "title": "x",
+    "priority": "high"
+   }
+  },
+  {
+   "input": "x !med",
+   "output": {
+    "title": "x",
+    "priority": "medium"
+   }
+  },
+  {
+   "input": "x !medium",
+   "output": {
+    "title": "x",
+    "priority": "medium"
+   }
+  },
+  {
+   "input": "x !low",
+   "output": {
+    "title": "x",
+    "priority": "low"
+   }
+  },
+  {
+   "input": "x !HIGH",
+   "output": {
+    "title": "x",
+    "priority": "high"
+   }
+  },
+  {
+   "input": "x 5pm",
+   "output": {
+    "title": "x",
+    "time": "17:00"
+   }
+  },
+  {
+   "input": "x 5 pm",
+   "output": {
+    "title": "x",
+    "time": "17:00"
+   }
+  },
+  {
+   "input": "x 12am",
+   "output": {
+    "title": "x",
+    "time": "00:00"
+   }
+  },
+  {
+   "input": "x 12pm",
+   "output": {
+    "title": "x",
+    "time": "12:00"
+   }
+  },
+  {
+   "input": "x 7:30 am",
+   "output": {
+    "title": "x",
+    "time": "07:30"
+   }
+  },
+  {
+   "input": "x at 14:00",
+   "output": {
+    "title": "x",
+    "time": "14:00"
+   }
+  },
+  {
+   "input": "x 9:05",
+   "output": {
+    "title": "x",
+    "time": "09:05"
+   }
+  },
+  {
+   "input": "x noon",
+   "output": {
+    "title": "x",
+    "time": "12:00"
+   }
+  },
+  {
+   "input": "x at noon",
+   "output": {
+    "title": "x",
+    "time": "12:00"
+   }
+  },
+  {
+   "input": "x midnight",
+   "output": {
+    "title": "x",
+    "time": "00:00"
+   }
+  },
+  {
+   "input": "x 13pm",
+   "output": {
+    "title": "x 13pm"
+   }
+  },
+  {
+   "input": "x 25:00",
+   "output": {
+    "title": "x 25:00"
+   }
+  },
+  {
+   "input": "fix bug #12",
+   "output": {
+    "title": "fix bug #12"
+   }
+  },
+  {
+   "input": "x #work",
+   "output": {
+    "title": "x",
+    "projectId": "p2"
+   }
+  },
+  {
+   "input": "x #wor",
+   "output": {
+    "title": "x",
+    "projectId": "p2"
+   }
+  },
+  {
+   "input": "x #sideproject",
+   "output": {
+    "title": "x",
+    "projectId": "p3"
+   }
+  },
+  {
+   "input": "x #side",
+   "output": {
+    "title": "x",
+    "projectId": "p3"
+   }
+  },
+  {
+   "input": "x #started",
+   "output": {
+    "title": "x",
+    "projectId": "p1"
+   }
+  },
+  {
+   "input": "x #घर",
+   "output": {
+    "title": "x",
+    "projectId": "p4"
+   }
+  },
+  {
+   "input": "x #newfolder",
+   "output": {
+    "title": "x",
+    "newFolder": "Newfolder"
+   }
+  },
+  {
+   "input": "x #नया",
+   "output": {
+    "title": "x ा",
+    "newFolder": "नय"
+   }
+  },
+  {
+   "input": "#work",
+   "output": {
+    "title": "#work"
+   }
+  },
+  {
+   "input": "!high",
+   "output": {
+    "title": "!high"
+   }
+  },
+  {
+   "input": "tomorrow",
+   "output": {
+    "title": "tomorrow"
+   }
+  },
+  {
+   "input": "5pm",
+   "output": {
+    "title": "5pm"
+   }
+  },
+  {
+   "input": "दूध लाना tomorrow 7am",
+   "output": {
+    "title": "दूध लाना",
+    "time": "07:00",
+    "due": "2026-11-01"
+   }
+  },
+  {
+   "input": "मिलना 26 oct",
+   "output": {
+    "title": "मिलना",
+    "due": "2027-10-26"
+   }
+  },
+  {
+   "input": "a  b   c",
+   "output": {
+    "title": "a b c"
+   }
+  },
+  {
+   "input": "x  tomorrow  !low  #work  3pm",
+   "output": {
+    "title": "x",
+    "projectId": "p2",
+    "priority": "low",
+    "time": "15:00",
+    "due": "2026-11-01"
+   }
+  }
+ ]
+}

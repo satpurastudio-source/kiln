@@ -1,0 +1,116 @@
+{
+ "now": [
+  2026,
+  10,
+  31,
+  10,
+  30
+ ],
+ "cases": [
+  {
+   "due": "2026-10-31",
+   "repeat": "daily",
+   "next": "2026-11-01"
+  },
+  {
+   "due": "2026-10-31",
+   "repeat": "weekly",
+   "next": "2026-11-07"
+  },
+  {
+   "due": "2026-10-31",
+   "repeat": "monthly",
+   "next": "2026-11-30"
+  },
+  {
+   "due": "2026-10-26",
+   "repeat": "daily",
+   "next": "2026-10-31"
+  },
+  {
+   "due": "2026-10-26",
+   "repeat": "weekly",
+   "next": "2026-11-02"
+  },
+  {
+   "due": "2026-10-26",
+   "repeat": "monthly",
+   "next": "2026-11-26"
+  },
+  {
+   "due": "2026-01-31",
+   "repeat": "daily",
+   "next": "2026-10-31"
+  },
+  {
+   "due": "2026-01-31",
+   "repeat": "weekly",
+   "next": "2026-10-31"
+  },
+  {
+   "due": "2026-01-31",
+   "repeat": "monthly",
+   "next": "2026-10-31"
+  },
+  {
+   "due": "2026-01-01",
+   "repeat": "daily",
+   "next": "2026-10-31"
+  },
+  {
+   "due": "2026-01-01",
+   "repeat": "weekly",
+   "next": "2026-11-05"
+  },
+  {
+   "due": "2026-01-01",
+   "repeat": "monthly",
+   "next": "2026-11-01"
+  },
+  {
+   "due": "2025-12-31",
+   "repeat": "daily",
+   "next": "2026-10-31"
+  },
+  {
+   "due": "2025-12-31",
+   "repeat": "weekly",
+   "next": "2026-11-04"
+  },
+  {
+   "due": "2025-12-31",
+   "repeat": "monthly",
+   "next": "2026-10-31"
+  },
+  {
+   "due": "2024-02-29",
+   "repeat": "daily",
+   "next": "2026-10-31"
+  },
+  {
+   "due": "2024-02-29",
+   "repeat": "weekly",
+   "next": "2026-11-05"
+  },
+  {
+   "due": "2024-02-29",
+   "repeat": "monthly",
+   "next": "2026-11-29"
+  },
+  {
+   "due": null,
+   "repeat": "daily",
+   "next": "2026-11-01"
+  },
+  {
+   "due": null,
+   "repeat": "weekly",
+   "next": "2026-11-07"
+  },
+  {
+   "due": null,
+   "repeat": "monthly",
+   "next": "2026-11-30"
+  }
+ ]
+}

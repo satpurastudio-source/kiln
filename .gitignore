@@ -8,3 +8,14 @@ supabase/.temp
 *.keystore
 android/keystore.properties
 .DS_Store
+
+# native builds
+native/apple/.build
+native/apple/**/xcuserdata
+native/apple/*.xcodeproj/project.xcworkspace/xcuserdata
+native/android/.gradle
+native/android/build
+native/android/app/build
+native/android/local.properties
+native/android/keystore.properties
+native/android/.kotlin

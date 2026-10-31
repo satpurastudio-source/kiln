@@ -1,0 +1,29 @@
+{
+ "input": "{\"projects\":[{\"id\":\"a\",\"name\":\"A\"},{\"id\":null,\"name\":\"bad\"},{\"id\":\"b\"}],\"tasks\":[{\"id\":\"1\",\"title\":\"x\",\"projectId\":\"a\"},{\"id\":\"2\",\"title\":\"y\",\"projectId\":\"gone\",\"custom\":7},{\"id\":\"3\"},null],\"habits\":[{\"id\":\"h\"},{}]}",
+ "output": {
+  "projects": [
+   {
+    "id": "a",
+    "name": "A"
+   }
+  ],
+  "tasks": [
+   {
+    "id": "1",
+    "title": "x",
+    "projectId": "a"
+   },
+   {
+    "id": "2",
+    "title": "y",
+    "projectId": "a",
+    "custom": 7
+   }
+  ],
+  "habits": [
+   {
+    "id": "h"
+   }
+  ]
+ }
+}
