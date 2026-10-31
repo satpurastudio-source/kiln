@@ -1,5 +1,8 @@
 package com.satpurastudio.kiln.core
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Locale
@@ -23,7 +26,8 @@ val LANGUAGES = listOf(
 
 /** Same words as the web app: shared/locales/\*.json is generated from src/locales. */
 object I18n {
-    var lang = "en"
+    /** Observed: anything showing words redraws in place when this changes. */
+    var lang by mutableStateOf("en")
     /** Reads a locale file; set at startup. Only the languages in use are ever parsed. */
     var loader: (String) -> String? = { null }
     /** Turns a CLDR skeleton into a pattern; set at startup to the platform's. */

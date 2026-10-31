@@ -46,22 +46,19 @@ fun KilnRoot(store: Store, setBars: (Boolean) -> Unit) {
         LocalStore provides store,
         LocalLayoutDirection provides if (language == "ur") LayoutDirection.Rtl else LayoutDirection.Ltr,
     ) {
-        // words are looked up while composing, so a switch repaints everything
-        key(language) {
-            Box(Modifier.fillMaxSize().background(tok.bg)) {
-                Backdrop()
-                when {
-                    !s.onboarded -> OnboardingScreen()
-                    s.profile == null -> LoginScreen()
-                    ambient -> AmbientScreen(ambientCustomize) { ambient = false }
-                    else -> MainScreen { c ->
-                        ambientCustomize = c
-                        ambient = true
-                    }
+        Box(Modifier.fillMaxSize().background(tok.bg)) {
+            Backdrop()
+            when {
+                !s.onboarded -> OnboardingScreen()
+                s.profile == null -> LoginScreen()
+                ambient -> AmbientScreen(ambientCustomize) { ambient = false }
+                else -> MainScreen { c ->
+                    ambientCustomize = c
+                    ambient = true
                 }
-                ConfettiLayer(store.confetti)
-                ToastStack()
             }
+            ConfettiLayer(store.confetti)
+            ToastStack()
         }
     }
 }

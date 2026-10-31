@@ -1,4 +1,5 @@
 import Foundation
+import Observation
 
 struct Language: Identifiable { let code: String, name: String, native: String; var id: String { code } }
 
@@ -18,9 +19,19 @@ let LANGUAGES = [
 ]
 
 /// Same words as the web app: Resources/locales/*.json is generated from src/locales.
+/// Observed: anything showing words redraws in place when this changes.
+@Observable
+final class LanguageState: @unchecked Sendable {
+    var lang = "en"
+}
+
 enum I18n {
+    private static let state = LanguageState()
     nonisolated(unsafe) private static var dicts: [String: [String: String]] = [:]
-    nonisolated(unsafe) static var lang = "en"
+    static var lang: String {
+        get { state.lang }
+        set { state.lang = newValue }
+    }
     nonisolated(unsafe) static var bundle: Bundle = .main
 
     private static func dict(_ code: String) -> [String: String] {

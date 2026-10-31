@@ -23,7 +23,6 @@ struct RootView: View {
         .environment(\.layoutDirection, s.language == "ur" ? .rightToLeft : .leftToRight)
         .preferredColorScheme(s.theme == "dark" ? .dark : .light)
         .tint(tok.accent)
-        .id(s.language) // words are looked up while rendering, so a switch repaints everything
         .animation(.easeOut(duration: 0.3), value: s.theme)
         .background { GeometryReader { g in Color.clear.onAppear { store.windowHeight = g.size.height }.onChange(of: g.size.height) { _, h in store.windowHeight = h } } }
         #if os(macOS)

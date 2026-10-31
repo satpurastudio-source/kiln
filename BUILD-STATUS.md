@@ -1,7 +1,42 @@
 # kiln — Android & iOS build status
 
-Snapshot: **30 October 2026**. Read this first when picking kiln up in a new
+Snapshot: **1 November 2026**. Read this first when picking kiln up in a new
 session. `NEXT-STEPS.md` holds the longer plan (Google/Apple sign-in, TestFlight).
+Ship through `RELEASE-PROCESS.md`, in order.
+
+---
+
+## Native rewrite (branch `native`, in `native/`)
+
+The WebView wrapper is being replaced: SwiftUI for iOS, iPadOS and macOS, Kotlin and
+Compose for Android. How to build it is in `native/README.md`. The Android and iOS
+sections further down describe the old Capacitor apps in `android/` and `ios/`, which
+stay until the native apps have passed the release process.
+
+**Where it is:** step 2 of `RELEASE-PROCESS.md`, not finished.
+
+| Checked | Result |
+|---|---|
+| Logic against fixtures from the real JS (parser, merge, repeats, backup) | Swift 25 tests, Kotlin 19 tests pass |
+| Android on the emulator | onboarding, add, parse, complete, undo, reorder, restart, Hindi, dark, ambient, rotation, test notification; no crashes |
+| Android 1.0.2 updated in place to 2.0.0 | guest tasks and name carried over, 60 tasks included |
+| macOS | builds and runs; screens viewed in light, dark, Hindi, Urdu; not clicked through |
+| iOS and iPad | compile only. The simulator waits on `sudo xcodebuild -runFirstLaunch` |
+| Supabase | a failed login, a row read and a Realtime join all accepted by the live server |
+
+Emulator, same 60 tasks, Mac GPU (old → native): content on screen 4.6–5.0 s → 2.0–2.1 s;
+median scroll frame 22 ms → 17 ms; APK 4.07 MB → 1.95 MB. Android's jank count went the
+other way (1 of 579 frames → 8 of 392), so this needs checking on a real phone.
+
+**Before step 4:**
+- [ ] Run `sudo xcodebuild -runFirstLaunch`, then the UI test in `native/apple/UITests`, on iPhone and iPad
+- [ ] Click through the Mac app: keyboard shortcuts, sheets, backup, reminders
+- [ ] Real account: sign up, code, sign in, sync with the web, reset, delete, session carried over from 1.0.2
+- [ ] Reminder after a real reboot; on the Samsung, is scrolling smooth?
+- [ ] Generate a baseline profile if startup or the first scroll feel slow there
+- [ ] Left out or simplified so far: boot animation (on purpose), Ember's sparks and following eyes, onboarding demos, confetti shapes on Android
+- [ ] Set up the workers.dev deployment (needs a Cloudflare login); it only covers the web app
+- [ ] Afterwards, move `android/keystore.properties` to `native/android/`, then delete `android/` and `ios/`
 
 ---
 
