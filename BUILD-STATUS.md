@@ -4,6 +4,10 @@ Snapshot: **1 November 2026**. Read this first when picking kiln up in a new
 session. `NEXT-STEPS.md` holds the longer plan (Google/Apple sign-in, TestFlight).
 Ship through `RELEASE-PROCESS.md`, in order.
 
+> **Paused on 2 November 2026** to focus on the Business Suite. The live site keeps
+> running from `main`, untouched. To resume, start with "Before step 4" below. The
+> `release-process` branch still needs merging into `main`, which redeploys the site.
+
 ---
 
 ## Native rewrite (branch `native`, in `native/`)
