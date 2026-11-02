@@ -364,18 +364,27 @@ function nextDayOfMonth(day) {
 const NUM = '([\\d\\u0966-\\u096f]{1,2})'
 const toNum = (x) => +String(x).replace(/[०-९]/g, (c) => c.charCodeAt(0) - 0x0966)
 const END = ',?(?=\\s)'
-const BAJE = '(?:baje|bje|bajay|baaje|बजे)'
+const BAJE = '(?:baje|bje|bajay|bajey|bajhe|baaje|बजे)'
 const KO = '(?:\\s+(?:ko|को))?'
-const PART = '(subah|subha|savere|sawere|dopahar|dopehar|dupahar|sham|shaam|raat|सुबह|सवेरे|दोपहर|शाम|रात)'
-const PART_THEN = `(?:${PART}\\s+(?:(?:ko|ke|ki|को|के|की)\\s+)?)?`
+const PART_HI = 'subah|subha|subh|suba|savere|sawere|savera|sawera|dopahar|dopehar|dupahar|dopaher|dophar|dopahr|duphar|sham|shaam|raat|raath|सुबह|सवेरे|सवेरा|दोपहर|शाम|रात'
+// Only safe right next to "baje": "9 baje night", but not "rat poison 9" or "10 morning pages"
+const PART_ANY = `${PART_HI}|morning|mrng|evening|eve|night|nite|afternoon|noon|rat`
+const LINK_BEFORE = '(?:ko|ke|ki|mein|me|mai|main|को|के|की|में)'
+const LINK_AFTER = '(?:\\s+(?:ko|mein|me|mai|main|को|में))?'
+const MINUTES = '(?:[:.](?<min>[0-5]\\d))?'
+// "din mein 2 baje" is daytime, but "2 din mein" means in two days
+const BEFORE_BAJE = `(?:(?<pb>${PART_ANY})(?:\\s+\\k<pb>)?\\s*(?:${LINK_BEFORE}\\s+)?|(?<![\\d\\u0966-\\u096f]\\s)(?<db>din|दिन)\\s+(?:mein|me|ke|में|के)\\s+)?`
+const AFTER_BAJE = `(?:\\s+(?<pa>${PART_ANY})${LINK_AFTER}|\\s+(?<da>din|दिन)\\s+(?:mein|me|में))?`
 const HALF = '\\u0922\\u093c|\\u095d' // ढ़ arrives in either of two Unicode spellings
 const QUARTERS = `(saade|sade|saadhe|sadhe|सा(?:${HALF})े|sawa|sava|सवा|paune|pone|पौने)`
 const WHOLE_HALF = `(dedh|deadh|डे(?:${HALF})|dhai|dhaai|ढाई)`
 const PART_KIND = {
-  subah: 'am', subha: 'am', savere: 'am', sawere: 'am', 'सुबह': 'am', 'सवेरे': 'am',
-  dopahar: 'noon', dopehar: 'noon', dupahar: 'noon', 'दोपहर': 'noon',
-  sham: 'pm', shaam: 'pm', 'शाम': 'pm',
-  raat: 'night', 'रात': 'night',
+  subah: 'am', subha: 'am', subh: 'am', suba: 'am', savere: 'am', sawere: 'am', savera: 'am', sawera: 'am',
+  'सुबह': 'am', 'सवेरे': 'am', 'सवेरा': 'am', morning: 'am', mrng: 'am', breakfast: 'am', nashta: 'am', 'नाश्ता': 'am',
+  dopahar: 'noon', dopehar: 'noon', dupahar: 'noon', dopaher: 'noon', dophar: 'noon', dopahr: 'noon', duphar: 'noon',
+  'दोपहर': 'noon', din: 'noon', 'दिन': 'noon', afternoon: 'noon', noon: 'noon', lunch: 'noon',
+  sham: 'pm', shaam: 'pm', 'शाम': 'pm', evening: 'pm', eve: 'pm', dinner: 'pm',
+  raat: 'night', raath: 'night', rat: 'night', 'रात': 'night', night: 'night', nite: 'night',
 }
 const HI_DOW = {
   somvar: 1, somwar: 1, 'सोमवार': 1,
@@ -405,31 +414,55 @@ function spokenHour(h, kind) {
 }
 const clock = (h, min) => `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`
 
+// Reads the time out of s. Returns the text with it removed, and the time.
 function hinglishTime(s) {
   const kindOf = (p) => PART_KIND[(p || '').toLowerCase()]
-  // sham saade 6 baje · 6:30 baje · 14 baje · 6 baje ko
-  let m = s.match(new RegExp(`\\s(?:at\\s+)?${PART_THEN}(?:${QUARTERS}\\s+)?${NUM}(?::([0-5]\\d))?\\s*${BAJE}${KO}${END}`, 'i'))
+  const done = (m, hour, minute, kind, meridiem) => {
+    let rest = s.slice(0, m.index) + ' ' + s.slice(m.index + m[0].length)
+    if (!kind && !meridiem && hour >= 1 && hour <= 12) {
+      // The part of the day can be further away: "raat ko mummy ko 9 baje call".
+      // It leaves the title only if it's plainly about the time, so "raat ka khana" stays.
+      const far = rest.match(new RegExp(`\\s(${PART_HI})(\\s+(?:ko|mein|me|mai|main|को|में))?(?=\\s)`, 'i'))
+      const hint = rest.match(/\s(morning|evening|night|afternoon|breakfast|nashta|नाश्ता|lunch|dinner)(?=\s)/i)
+      if (far) {
+        kind = kindOf(far[1])
+        const after = rest.slice(far.index + far[0].length)
+        if (far[2] || !after.trim()) rest = rest.slice(0, far.index) + ' ' + after
+      } else if (hint) kind = kindOf(hint[1])
+    }
+    const h = meridiem ? (hour % 12) + (/pm/i.test(meridiem) ? 12 : 0) : spokenHour(hour, kind)
+    return { rest, time: clock(h, minute) }
+  }
+
+  // 9 baje raat · raat ke 9 baje · sham saade 6 baje · 9.30 baje raat ko · din mein 2 baje · 14 baje
+  let m = s.match(new RegExp(`\\s(?:at\\s+)?${BEFORE_BAJE}(?:(?<q>${QUARTERS})\\s+)?(?<n>${NUM})${MINUTES}\\s*${BAJE}(?:\\s*(?<mer>am|pm))?${KO}${AFTER_BAJE}${END}`, 'i'))
   if (m) {
-    const n = toNum(m[3])
-    if (n <= 23 && (!m[2] || (n >= 1 && n <= 12))) {
-      const q = (m[2] || '').toLowerCase()
-      if (/^(sawa|sava|सवा)/.test(q)) return { m, time: clock(spokenHour(n, kindOf(m[1])), 15) }
-      if (/^(sa|सा)/.test(q)) return { m, time: clock(spokenHour(n, kindOf(m[1])), 30) }
-      if (/^(paune|pone|पौने)/.test(q)) return { m, time: clock(spokenHour(n === 1 ? 12 : n - 1, kindOf(m[1])), 45) }
-      return { m, time: clock(spokenHour(n, kindOf(m[1])), m[4] ? +m[4] : 0) }
+    const g = m.groups
+    const n = toNum(g.n)
+    if (n <= 23 && (!g.q || (n >= 1 && n <= 12))) {
+      const kind = kindOf(g.pb || g.db || g.pa || g.da)
+      const q = (g.q || '').toLowerCase()
+      if (/^(sawa|sava|सवा)/.test(q)) return done(m, n, 15, kind, g.mer)
+      if (/^(sa|सा)/.test(q)) return done(m, n, 30, kind, g.mer)
+      if (q) return done(m, n === 1 ? 12 : n - 1, 45, kind, g.mer)
+      return done(m, n, g.min ? +g.min : 0, kind, g.mer)
     }
   }
-  // dedh baje (1:30) · dhai baje (2:30)
-  m = s.match(new RegExp(`\\s(?:at\\s+)?${PART_THEN}${WHOLE_HALF}\\s*${BAJE}${KO}${END}`, 'i'))
-  if (m) return { m, time: clock(spokenHour(/^(de|डे)/i.test(m[2]) ? 1 : 2, kindOf(m[1])), 30) }
-  // subah 7 · sham 6:30 · raat 9pm: a part of the day makes "baje" optional
-  m = s.match(new RegExp(`\\s${PART}\\s+(?:(?:ko|ke|को|के)\\s+)?${NUM}(?::([0-5]\\d))?\\s*(am|pm)?${END}`, 'i'))
+  // dedh baje raat (1:30) · sham dhai baje (2:30)
+  m = s.match(new RegExp(`\\s(?:at\\s+)?${BEFORE_BAJE}(?<half>${WHOLE_HALF})\\s*${BAJE}${KO}${AFTER_BAJE}${END}`, 'i'))
   if (m) {
-    const n = toNum(m[2])
-    if (n >= 1 && n <= 12) {
-      const hour = m[4] ? (n % 12) + (/pm/i.test(m[4]) ? 12 : 0) : spokenHour(n, kindOf(m[1]))
-      return { m, time: clock(hour, m[3] ? +m[3] : 0) }
-    }
+    const g = m.groups
+    return done(m, /^(de|डे)/i.test(g.half) ? 1 : 2, 30, kindOf(g.pb || g.db || g.pa || g.da))
+  }
+  // With a part of the day, "baje" is optional: subah 7 · raat ko 9 · sham 6.30 · raat 9pm
+  m = s.match(new RegExp(`\\s(?<pb>${PART_HI})(?:\\s+\\k<pb>)?\\s+(?:${LINK_BEFORE}\\s+)?(?<n>${NUM})${MINUTES}\\s*(?<mer>am|pm)?${END}`, 'i'))
+  if (m && toNum(m.groups.n) >= 1 && toNum(m.groups.n) <= 12) {
+    return done(m, toNum(m.groups.n), m.groups.min ? +m.groups.min : 0, kindOf(m.groups.pb), m.groups.mer)
+  }
+  // ...and it can come after: 9 raat ko · 6:30 sham · 9pm raat
+  m = s.match(new RegExp(`\\s(?<n>${NUM})${MINUTES}\\s*(?<mer>am|pm)?\\s+(?<pa>${PART_HI})${LINK_AFTER}${END}`, 'i'))
+  if (m && toNum(m.groups.n) >= 1 && toNum(m.groups.n) <= 12) {
+    return done(m, toNum(m.groups.n), m.groups.min ? +m.groups.min : 0, kindOf(m.groups.pa), m.groups.mer)
   }
   return null
 }
@@ -526,7 +559,7 @@ export function parseQuickAdd(raw, projects = []) {
   const spokenTime = hinglishTime(s)
   if (spokenTime) {
     res.time = spokenTime.time
-    remove(spokenTime.m)
+    s = spokenTime.rest
   } else if ((m = s.match(/\s(?:at\s+)?(1[0-2]|0?[1-9])(?::([0-5]\d))?\s*(am|pm)\b/i))) {
     let h = parseInt(m[1], 10) % 12
     if (/pm/i.test(m[3])) h += 12
