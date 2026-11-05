@@ -178,8 +178,8 @@ struct AmbientView: View {
     private func wideLayout(_ cfg: Item, size: CGSize) -> some View {
         let pad = cfg.num("padding"), gap = cfg.num("gap")
         let clock = min(cfg.num("clockSize"), min(size.width * 0.42, size.height - pad * 2 - 170))
-        // too narrow to sit side by side without squeezing the tasks (a tablet held upright)
-        if size.width < 1000 {
+        // too narrow, or upright, to sit side by side without squeezing the tasks (a tablet held upright)
+        if size.width < 1000 || size.height > size.width {
             return AnyView(VStack(spacing: min(gap, 40)) {
                 left(cfg, clock: max(160, min(cfg.num("clockSize"), min(size.width * 0.5, size.height * 0.36))))
                 right(cfg, compact: false, rows: cfg.int("maxRows"))

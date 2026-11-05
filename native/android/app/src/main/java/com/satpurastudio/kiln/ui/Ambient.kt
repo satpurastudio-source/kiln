@@ -120,8 +120,8 @@ fun AmbientScreen(customize: Boolean, onExit: () -> Unit) {
                             Right(cfg, now, true, tab, { tab = it }, ((mh.value - clock.value - 330) / (cfg.num("rowSize") + 26)).toInt().coerceIn(1, cfg.int("maxRows")), Modifier.weight(1f))
                         }
                     }
-                } else if (mw < 1000.dp) {
-                    // too narrow to sit side by side without squeezing the tasks (a tablet held upright)
+                } else if (mw < 1000.dp || mh > mw) {
+                    // too narrow, or upright, to sit side by side without squeezing the tasks (a tablet held upright)
                     val clock = minOf(cfg.num("clockSize").dp, minOf(mw * 0.5f, mh * 0.36f)).coerceAtLeast(160.dp)
                     Column(Modifier.fillMaxSize().padding(cfg.num("padding").dp), horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.spacedBy(32.dp)) {
                         Left(cfg, clock, now, true)

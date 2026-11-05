@@ -3,7 +3,9 @@ import Foundation
 /// Local time, with a seam so tests run at a fixed moment.
 enum Clock {
     nonisolated(unsafe) static var override: Date?
-    static var now: Date { override ?? Date() }
+    /// Moves the running clock, for store screenshots (debug builds, KILN_CLOCK).
+    nonisolated(unsafe) static var offset: TimeInterval = 0
+    static var now: Date { override ?? Date().addingTimeInterval(offset) }
     static var ms: Double { (now.timeIntervalSince1970 * 1000).rounded(.down) }
 }
 

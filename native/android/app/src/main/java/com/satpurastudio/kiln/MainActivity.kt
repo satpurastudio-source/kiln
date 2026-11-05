@@ -23,6 +23,13 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // store screenshots run at a set local time: am start ... --es kiln_clock 2026-11-06T10:20
+        if (applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_DEBUGGABLE != 0) {
+            intent?.getStringExtra("kiln_clock")?.let { at ->
+                runCatching { java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm", java.util.Locale.US).parse(at)!!.time }
+                    .getOrNull()?.let { com.satpurastudio.kiln.core.Clock.offset = it - System.currentTimeMillis() }
+            }
+        }
         enableEdgeToEdge(SystemBarStyle.dark(0), SystemBarStyle.dark(0))
         setContent {
             LaunchedEffect(Unit) {

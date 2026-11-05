@@ -333,7 +333,9 @@ struct Flow: Layout {
         var x: CGFloat = 0, y: CGFloat = 0, line: CGFloat = 0, maxX: CGFloat = 0
         for s in subviews {
             let z = s.sizeThatFits(.unspecified)
-            if x > 0 && x + z.width > width {
+            // half a point of slack: laid out in exactly the width it measured, fractional text
+            // widths (Devanagari especially) could otherwise wrap the last item into a line nobody made room for
+            if x > 0 && x + z.width > width + 0.5 {
                 x = 0
                 y += line + spacing
                 line = 0

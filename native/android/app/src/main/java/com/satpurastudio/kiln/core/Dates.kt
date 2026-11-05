@@ -7,7 +7,9 @@ import java.util.GregorianCalendar
 /** Local time, with a seam so tests run at a fixed moment. */
 object Clock {
     var override: Long? = null
-    val ms: Long get() = override ?: System.currentTimeMillis()
+    /** Moves the running clock, for store screenshots (debug builds, the kiln_clock launch extra). */
+    var offset: Long = 0
+    val ms: Long get() = override ?: (System.currentTimeMillis() + offset)
 }
 
 /** A local date-time, built with `new Date(y, m, d, ...)` semantics: 0-based month, overflow rolls over. */

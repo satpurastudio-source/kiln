@@ -6,6 +6,15 @@ struct KilnApp: App {
     @Environment(\.scenePhase) private var phase
 
     init() {
+        #if DEBUG
+        // Store screenshots run at a set local time, e.g. KILN_CLOCK=2026-11-06T10:20
+        if let at = ProcessInfo.processInfo.environment["KILN_CLOCK"] {
+            let f = DateFormatter()
+            f.locale = Locale(identifier: "en_US_POSIX")
+            f.dateFormat = "yyyy-MM-dd'T'HH:mm"
+            if let d = f.date(from: at) { Clock.offset = d.timeIntervalSinceNow }
+        }
+        #endif
         Fonts.register()
         _store = State(initialValue: Store())
     }

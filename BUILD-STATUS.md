@@ -32,6 +32,12 @@ Emulator, same 60 tasks, Mac GPU, before the startup profile (old → native): c
 median scroll frame 22 ms → 17 ms; APK 4.07 MB → 2.06 MB with the profile. Android's jank count went the
 other way (1 of 579 frames → 8 of 392), so this needs checking on a real phone.
 
+**Store kit (6 Nov 2026):** `native/store/` has the listing text for both stores, the privacy
+answers, and scripts that remake every screenshot. The current screenshots, feature graphic
+and icon are in `~/Downloads/kiln-store-assets/`. Found and fixed while taking them: the iPad
+held upright squeezed the ambient task list to a few letters, and in Hindi a task's folder name
+could wrap under its row (iPhone).
+
 **Before step 4:**
 - [ ] **Anany tests the final Apple build on their own Mac, iPhone and iPad** (open `native/apple/Kiln.xcodeproj`, pick the device, press Run)
 - [ ] Open Apple Developer and Google Play Console accounts; neither exists yet (1 Nov 2026)
