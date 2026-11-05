@@ -396,11 +396,29 @@ fun OnboardingScreen() {
             }
             "capture" -> {
                 title(t("captureTitle"), t("captureSub"))
+                // type naturally → the words become pills → they fold into a filed task, as on the web
                 val first = demo / 3 % 2 == 0
+                val phase = demo % 3
                 val parsed = if (first) Parsed("gym", null, t("p_fitness"), "high", "07:00", addDaysStr(1)) else Parsed("pay rent", null, t("home"), null, "18:00", "2026-10-26")
-                Column(Modifier.fillMaxWidth().card(tok).padding(13.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    T(if (first) "gym tomorrow 7am !high #fitness" else "pay rent 26 oct 6pm #home", tok.mono(13f, c = tok.text))
-                    ParsePills(parsed, label = false)
+                val meta = if (first) "${t("tomorrow")} · ${fmtTime("07:00")}" else "${fmtDue("2026-10-26")} · ${fmtTime("18:00")}"
+                Column(Modifier.fillMaxWidth().card(tok).padding(13.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(7.dp)) {
+                        T("+", tok.ui(14f, FontWeight.SemiBold, tok.accent))
+                        T(if (phase == 2) parsed.title else if (first) "gym tomorrow 7am !high #fitness" else "pay rent 26 oct 6pm #home", tok.mono(13f, c = tok.text), maxLines = 1)
+                        Box(Modifier.size(1.5.dp, 15.dp).background(tok.accent.copy(alpha = if (demo % 2 == 0) 1f else 0.35f)))
+                    }
+                    Box(Modifier.fillMaxWidth().heightIn(min = 38.dp)) {
+                        androidx.compose.animation.AnimatedVisibility(phase == 1, enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.scaleIn(initialScale = 0.85f), exit = androidx.compose.animation.fadeOut()) {
+                            ParsePills(parsed, label = false)
+                        }
+                        androidx.compose.animation.AnimatedVisibility(phase == 2, enter = androidx.compose.animation.fadeIn() + androidx.compose.animation.slideInVertically { it / 3 }, exit = androidx.compose.animation.fadeOut()) {
+                            Row(Modifier.fillMaxWidth().card(tok, RoundedCornerShape(10.dp), tok.raise).padding(horizontal = 10.dp, vertical = 8.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(9.dp)) {
+                                Box(Modifier.size(20.dp).background(tok.accent, CircleShape), contentAlignment = Alignment.Center) { T("✓", tok.ui(11f, FontWeight.Bold, Color.White)) }
+                                T(parsed.title, tok.ui(14.5f, FontWeight.SemiBold))
+                                T(meta, tok.ui(12.5f, c = tok.text3), maxLines = 1)
+                            }
+                        }
+                    }
                 }
                 if (firstRun) {
                     T(t("yourTurn"), tok.ui(13f, FontWeight.Medium, tok.text2))

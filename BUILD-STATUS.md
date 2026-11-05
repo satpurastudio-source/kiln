@@ -39,7 +39,7 @@ other way (1 of 579 frames → 8 of 392), so this needs checking on a real phone
 - [ ] Click through the Mac app: keyboard shortcuts, sheets, backup, reminders
 - [ ] Real account: sign up, code, sign in, sync with the web, reset, delete, session carried over from 1.0.2
 - [ ] Reminder after a real reboot; on the Samsung, is scrolling smooth?
-- [ ] Left out or simplified so far: boot animation (on purpose), Ember's rising embers, onboarding demos. Ember's eyes follow the pointer on Mac only
+- [x] Ember's rising embers and the onboarding typing demo (type, pills, card) now match the web; seen on the iPhone simulator, Android checked by build only. Boot animation stays out on purpose; Ember's eyes follow the pointer on Mac only
 - [x] workers.dev test deployment: https://kiln-test.satpurastudio.workers.dev (`npx wrangler deploy` from a work branch); web only
 - [ ] Afterwards, move `android/keystore.properties` to `native/android/`, then delete `android/` and `ios/`
 

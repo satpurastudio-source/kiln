@@ -39,7 +39,7 @@ final class SmokeTests: XCTestCase {
         shot("02-look")
         tap("Next →")
         tap("Next →")
-        shot("03-capture")
+        for i in 0..<8 { shot("03-capture-\(i)"); usleep(650_000) }
         tap("Next →")
         tap("Next →")
         shot("04-account")
@@ -105,6 +105,8 @@ final class SmokeTests: XCTestCase {
         tap("Open Ambient mode")
         sleep(2)
         shot("14-ambient")
+        usleep(1_500_000)
+        shot("14b-ambient")
         app.tap()
         tap("Exit ambient mode")
         sleep(1)

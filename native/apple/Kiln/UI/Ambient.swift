@@ -492,6 +492,9 @@ struct EmberView: View {
             Canvas { ctx, s in draw(&ctx, s) }
                 .frame(width: size, height: size)
                 .overlay { sparks }
+                .overlay(alignment: .bottom) {
+                    if !reduced && mood != "sleepy" { RisingEmbers(size: size, fast: mood == "celebrate", color: tok.accent2) }
+                }
                 .scaleEffect(x: (squash ? 1.12 : 1) * scale, y: (squash ? 0.84 : 1) * scale, anchor: .bottom)
                 .offset(y: bob && !reduced ? -size * 0.02 : 0)
                 .animation(.spring(response: 0.25, dampingFraction: 0.45), value: squash)
@@ -771,5 +774,42 @@ struct AmbientEditor: View {
         }
         .menuStyle(.borderlessButton)
         .fixedSize()
+    }
+}
+
+/// Four embers drifting up off the flame, as on the web: a slow loop, quicker when Ember
+/// celebrates, none while it sleeps. Fixed sizes, as on the web, so they show on a small Ember too.
+private struct RisingEmbers: View {
+    var size: Double
+    var fast: Bool
+    var color: Color
+    private let offsets: [Double] = [-10, 6, -2, 11]
+    private let delays: [Double] = [0, 1.6, 3.1, 4.5]
+
+    var body: some View {
+        let k = 1.0
+        let rise = 70.0
+        TimelineView(.animation(minimumInterval: 1 / 30)) { tl in
+            Canvas { ctx, s in
+                let now = tl.date.timeIntervalSinceReferenceDate
+                let dur = fast ? 1.4 : 6
+                for i in 0..<4 {
+                    var p = ((now - delays[i]) / dur).truncatingRemainder(dividingBy: 1)
+                    if p < 0 { p += 1 }
+                    let e = 1 - (1 - p) * (1 - p) // ease-out
+                    let alpha = p < 0.12 ? 0.9 * (1 - pow(1 - p / 0.12, 2)) : 0.9 * (1 - (1 - pow(1 - (p - 0.12) / 0.88, 2)))
+                    let drift = (i % 2 == 0 ? -8.0 : 6.0) * k
+                    let d = 4 * k * (1 - 0.8 * e)
+                    let x = s.width / 2 + (offsets[i] + 2) * k + drift * e
+                    let y = s.height - size * 0.48 - 2 * k - rise * e
+                    ctx.opacity = alpha
+                    ctx.fill(Path(ellipseIn: CGRect(x: x - d * 1.5, y: y - d * 1.5, width: d * 3, height: d * 3)), with: .color(color.opacity(0.25)))
+                    ctx.fill(Path(ellipseIn: CGRect(x: x - d / 2, y: y - d / 2, width: d, height: d)), with: .color(color))
+                }
+            }
+        }
+        .frame(width: size, height: size + rise)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
     }
 }

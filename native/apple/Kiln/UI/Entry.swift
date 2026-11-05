@@ -417,23 +417,51 @@ struct OnboardingView: View {
     private var capture: some View {
         VStack(alignment: .leading, spacing: 13) {
             title(t("captureTitle"), t("captureSub"))
+            // type naturally → the words become pills → they fold into a filed task, as on the web
             let ex = [
-                ("gym tomorrow 7am !high #fitness", ["📅 \(t("tomorrow"))", "🕖 \(fmtTime("07:00"))", "⚑ \(t("prio_high"))", "● \(t("p_fitness"))"]),
-                ("pay rent 26 oct 6pm #home", ["📅 \(fmtDate(makeDate(2026, 9, 26), "MMMd"))", "🕕 \(fmtTime("18:00"))", "● \(t("home"))"]),
+                (text: "gym tomorrow 7am !high #fitness", title: "gym", meta: "\(t("tomorrow")) · \(fmtTime("07:00"))",
+                 pills: ["📅 \(t("tomorrow"))", "🕖 \(fmtTime("07:00"))", "⚑ \(t("prio_high"))", "● \(t("p_fitness"))"]),
+                (text: "pay rent 26 oct 6pm #home", title: "pay rent", meta: "\(fmtDate(makeDate(2026, 9, 26), "MMMd")) · \(fmtTime("18:00"))",
+                 pills: ["📅 \(fmtDate(makeDate(2026, 9, 26), "MMMd"))", "🕕 \(fmtTime("18:00"))", "● \(t("home"))"]),
             ][demo / 3 % 2]
-            VStack(alignment: .leading, spacing: 8) {
-                Text(ex.0).font(tok.mono(13)).foregroundStyle(tok.text)
-                Flow(spacing: 6) {
-                    ForEach(ex.1, id: \.self) { p in
-                        Text(p).font(tok.ui(12, .medium)).foregroundStyle(tok.accent).padding(.horizontal, 9).padding(.vertical, 4).background(tok.accent.opacity(0.1), in: Capsule())
+            let phase = demo % 3
+            VStack(alignment: .leading, spacing: 10) {
+                HStack(spacing: 7) {
+                    Text("+").font(tok.ui(14, .semibold)).foregroundStyle(tok.accent)
+                    Text(phase == 2 ? ex.title : ex.text).font(tok.mono(13)).foregroundStyle(tok.text).lineLimit(1)
+                        .transaction { $0.animation = nil }
+                    Rectangle().fill(tok.accent).frame(width: 1.5, height: 15).opacity(demo % 2 == 0 ? 1 : 0.35)
+                }
+                ZStack(alignment: .topLeading) {
+                    if phase == 1 {
+                        Flow(spacing: 6) {
+                            ForEach(Array(ex.pills.enumerated()), id: \.offset) { i, p in DemoPill(text: p, delay: Double(i) * 0.11) }
+                        }
+                        .id("pills\(demo / 3)")
+                        .transition(.opacity)
+                    }
+                    if phase == 2 {
+                        HStack(spacing: 9) {
+                            Image(systemName: "checkmark").font(.system(size: 10, weight: .bold)).foregroundStyle(.white)
+                                .frame(width: 20, height: 20).background(tok.accent, in: Circle())
+                            Text(ex.title).font(tok.ui(14.5, .semibold)).foregroundStyle(tok.text)
+                            Text(ex.meta).font(tok.ui(12.5)).foregroundStyle(tok.text3)
+                            Spacer(minLength: 0)
+                        }
+                        .padding(.horizontal, 10).padding(.vertical, 8)
+                        .background(tok.raise, in: RoundedRectangle(cornerRadius: 10))
+                        .overlay(RoundedRectangle(cornerRadius: 10).stroke(tok.border))
+                        .transition(.asymmetric(insertion: .opacity.combined(with: .offset(y: 8)).combined(with: .scale(scale: 0.96)), removal: .opacity))
                     }
                 }
+                .frame(maxWidth: .infinity, minHeight: 38, alignment: .topLeading)
             }
             .padding(13)
             .frame(maxWidth: .infinity, alignment: .leading)
             .background(tok.panel, in: RoundedRectangle(cornerRadius: 12))
             .overlay(RoundedRectangle(cornerRadius: 12).stroke(tok.border))
-            .animation(.easeOut(duration: 0.3), value: demo / 3 % 2)
+            .animation(.spring(response: 0.35, dampingFraction: 0.82), value: demo)
+            .accessibilityElement(children: .combine)
             if firstRun {
                 Text(t("yourTurn")).font(tok.ui(13, .medium)).foregroundStyle(tok.text2)
                 KField(placeholder: t("firstTaskPh"), text: $firstTask, limit: 140) { go(1) }
@@ -521,5 +549,19 @@ struct OnboardingView: View {
         if !clean.isEmpty { Prefs.set("kiln-pending-name", clean) }
         Prefs.set("kiln-auth-intent", intent)
         store.dispatch { $0.onboarded = true }
+    }
+}
+
+/// One pill in the onboarding demo, popping in a moment after the one before it.
+private struct DemoPill: View {
+    @Environment(\.tok) private var tok
+    var text: String
+    var delay: Double
+    @State private var shown = false
+    var body: some View {
+        Text(text).font(tok.ui(12, .medium)).foregroundStyle(tok.accent).padding(.horizontal, 9).padding(.vertical, 4)
+            .background(tok.accent.opacity(0.1), in: Capsule())
+            .scaleEffect(shown ? 1 : 0.8).offset(y: shown ? 0 : 6).opacity(shown ? 1 : 0)
+            .onAppear { withAnimation(.spring(response: 0.3, dampingFraction: 0.7).delay(delay)) { shown = true } }
     }
 }

@@ -391,6 +391,12 @@ private fun Ember(size: Dp, now: D) {
     var blink by remember { mutableStateOf(false) }
     val sx by animateFloatAsState(if (squash) 1.12f else 1f, spring(0.45f))
     val sy by animateFloatAsState(if (squash) 0.84f else 1f, spring(0.45f))
+    // embers drifting up off the flame, as on the web; none while Ember sleeps
+    val rising = !s.reducedEffects && mood != "sleepy"
+    val riseClock = if (rising) {
+        // 42 s is a whole number of both loops (6 s and 1.4 s), so the wrap is invisible
+        rememberInfiniteTransition(label = "embers").animateFloat(0f, 42f, infiniteRepeatable(tween(42000, easing = LinearEasing)), label = "rise")
+    } else null
     LaunchedEffect(mood, s.reducedEffects) {
         if (mood == "idle" && !s.reducedEffects) while (true) {
             delay((5000..9000).random().toLong())
@@ -425,6 +431,7 @@ private fun Ember(size: Dp, now: D) {
             },
         ) {
             drawEmber(mood, blink, tok)
+            riseClock?.let { drawRisingEmbers(it.value, mood == "celebrate", tok.accent2) }
             // a short burst when you poke Ember; nothing draws the rest of the time
             val p = spark.value
             if (p < 1f) for (i in 0 until 7) {
@@ -433,6 +440,26 @@ private fun Ember(size: Dp, now: D) {
                 drawCircle(tok.accent2, this.size.width * 0.025f * (1 - 0.7f * p), Offset(this.size.width / 2 + kotlin.math.cos(a) * r, this.size.height * 0.55f + kotlin.math.sin(a) * r - this.size.height * 0.1f * p), 1 - p)
             }
         }
+    }
+}
+
+/** Four embers on a slow loop (1.4 s when celebrating). Fixed sizes, as on the web, so they show on a small Ember too. */
+private fun DrawScope.drawRisingEmbers(now: Float, fast: Boolean, color: Color) {
+    val k = density
+    val offsets = floatArrayOf(-10f, 6f, -2f, 11f)
+    val delays = floatArrayOf(0f, 1.6f, 3.1f, 4.5f)
+    val dur = if (fast) 1.4f else 6f
+    for (i in 0 until 4) {
+        var p = ((now - delays[i]) / dur) % 1f
+        if (p < 0) p += 1f
+        val e = 1 - (1 - p) * (1 - p) // ease-out
+        val q = (p - 0.12f) / 0.88f
+        val alpha = if (p < 0.12f) 0.9f * (1 - (1 - p / 0.12f) * (1 - p / 0.12f)) else 0.9f * (1 - q) * (1 - q)
+        val drift = (if (i % 2 == 0) -8f else 6f) * k
+        val d = 4f * k * (1 - 0.8f * e)
+        val c = Offset(size.width / 2 + (offsets[i] + 2) * k + drift * e, size.height * 0.52f - 2 * k - 70f * k * e)
+        drawCircle(color, d * 1.5f, c, alpha * 0.25f)
+        drawCircle(color, d / 2, c, alpha)
     }
 }
 
