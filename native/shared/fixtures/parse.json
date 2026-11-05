@@ -777,6 +777,1067 @@
     "time": "15:00",
     "due": "2026-11-01"
    }
+  },
+  {
+   "input": "mummy ko kal 6 baje call",
+   "output": {
+    "title": "mummy ko call",
+    "time": "18:00",
+    "due": "2026-11-01"
+   }
+  },
+  {
+   "input": "Mummy ko KAL 6 BAJE call",
+   "output": {
+    "title": "Mummy ko call",
+    "time": "18:00",
+    "due": "2026-11-01"
+   }
+  },
+  {
+   "input": "kal subah 7 baje gym",
+   "output": {
+    "title": "gym",
+    "time": "07:00",
+    "due": "2026-11-01"
+   }
+  },
+  {
+   "input": "gym kal subah 7",
+   "output": {
+    "title": "gym",
+    "time": "07:00",
+    "due": "2026-11-01"
+   }
+  },
+  {
+   "input": "rent dena shukravar sham 5 baje",
+   "output": {
+    "title": "rent dena",
+    "time": "17:00",
+    "due": "2026-11-06"
+   }
+  },
+  {
+   "input": "friday ko rent dena",
+   "output": {
+    "title": "rent dena",
+    "due": "2026-11-06"
+   }
+  },
+  {
+   "input": "agle friday ko rent dena",
+   "output": {
+    "title": "rent dena",
+    "due": "2026-11-13"
+   }
+  },
+  {
+   "input": "is friday rent dena",
+   "output": {
+    "title": "rent dena",
+    "due": "2026-11-06"
+   }
+  },
+  {
+   "input": "agle shukravar rent",
+   "output": {
+    "title": "rent",
+    "due": "2026-11-13"
+   }
+  },
+  {
+   "input": "doodh lana aaj",
+   "output": {
+    "title": "doodh lana",
+    "due": "2026-10-31"
+   }
+  },
+  {
+   "input": "aaj raat 9 baje khana",
+   "output": {
+    "title": "khana",
+    "time": "21:00",
+    "due": "2026-10-31"
+   }
+  },
+  {
+   "input": "aaj raat khana",
+   "output": {
+    "title": "khana",
+    "due": "2026-10-31"
+   }
+  },
+  {
+   "input": "report kal tak bhejna",
+   "output": {
+    "title": "report bhejna",
+    "due": "2026-11-01"
+   }
+  },
+  {
+   "input": "kal ki meeting prepare",
+   "output": {
+    "title": "meeting prepare",
+    "due": "2026-11-01"
+   }
+  },
+  {
+   "input": "kal ko bank jaana",
+   "output": {
+    "title": "bank jaana",
+    "due": "2026-11-01"
+   }
+  },
+  {
+   "input": "bank parso",
+   "output": {
+    "title": "bank",
+    "due": "2026-11-02"
+   }
+  },
+  {
+   "input": "bank narso",
+   "output": {
+    "title": "bank",
+    "due": "2026-11-03"
+   }
+  },
+  {
+   "input": "x agle hafte",
+   "output": {
+    "title": "x",
+    "due": "2026-11-07"
+   }
+  },
+  {
+   "input": "x agle week",
+   "output": {
+    "title": "x",
+    "due": "2026-11-07"
+   }
+  },
+  {
+   "input": "x agle mahine",
+   "output": {
+    "title": "x",
+    "due": "2026-11-30"
+   }
+  },
+  {
+   "input": "x 3 din baad",
+   "output": {
+    "title": "x",
+    "due": "2026-11-03"
+   }
+  },
+  {
+   "input": "x 2 din mein",
+   "output": {
+    "title": "x",
+    "due": "2026-11-02"
+   }
+  },
+  {
+   "input": "x 2 hafte baad",
+   "output": {
+    "title": "x",
+    "due": "2026-11-14"
+   }
+  },
+  {
+   "input": "x is weekend",
+   "output": {
+    "title": "x",
+    "due": "2026-10-31"
+   }
+  },
+  {
+   "input": "x sunday ko",
+   "output": {
+    "title": "x",
+    "due": "2026-11-01"
+   }
+  },
+  {
+   "input": "x itwar",
+   "output": {
+    "title": "x",
+    "due": "2026-11-01"
+   }
+  },
+  {
+   "input": "x 1 baje",
+   "output": {
+    "title": "x",
+    "time": "13:00"
+   }
+  },
+  {
+   "input": "x 6 baje",
+   "output": {
+    "title": "x",
+    "time": "18:00"
+   }
+  },
+  {
+   "input": "x 7 baje",
+   "output": {
+    "title": "x",
+    "time": "07:00"
+   }
+  },
+  {
+   "input": "x 12 baje",
+   "output": {
+    "title": "x",
+    "time": "12:00"
+   }
+  },
+  {
+   "input": "x 6baje",
+   "output": {
+    "title": "x",
+    "time": "18:00"
+   }
+  },
+  {
+   "input": "x 6 bje",
+   "output": {
+    "title": "x",
+    "time": "18:00"
+   }
+  },
+  {
+   "input": "x 6 baje ko",
+   "output": {
+    "title": "x",
+    "time": "18:00"
+   }
+  },
+  {
+   "input": "x 6:30 baje",
+   "output": {
+    "title": "x",
+    "time": "18:30"
+   }
+  },
+  {
+   "input": "x 14 baje",
+   "output": {
+    "title": "x",
+    "time": "14:00"
+   }
+  },
+  {
+   "input": "x saade 6 baje",
+   "output": {
+    "title": "x",
+    "time": "18:30"
+   }
+  },
+  {
+   "input": "x sawa 6 baje",
+   "output": {
+    "title": "x",
+    "time": "18:15"
+   }
+  },
+  {
+   "input": "x paune 6 baje",
+   "output": {
+    "title": "x",
+    "time": "17:45"
+   }
+  },
+  {
+   "input": "x paune 1 baje",
+   "output": {
+    "title": "x",
+    "time": "12:45"
+   }
+  },
+  {
+   "input": "x dedh baje",
+   "output": {
+    "title": "x",
+    "time": "13:30"
+   }
+  },
+  {
+   "input": "x dhai baje",
+   "output": {
+    "title": "x",
+    "time": "14:30"
+   }
+  },
+  {
+   "input": "x subah 8 baje",
+   "output": {
+    "title": "x",
+    "time": "08:00"
+   }
+  },
+  {
+   "input": "x subah ke 8 baje",
+   "output": {
+    "title": "x",
+    "time": "08:00"
+   }
+  },
+  {
+   "input": "x sham ko 6 baje",
+   "output": {
+    "title": "x",
+    "time": "18:00"
+   }
+  },
+  {
+   "input": "x shaam saade 6 baje",
+   "output": {
+    "title": "x",
+    "time": "18:30"
+   }
+  },
+  {
+   "input": "x dopahar 2 baje",
+   "output": {
+    "title": "x",
+    "time": "14:00"
+   }
+  },
+  {
+   "input": "x dopahar 12 baje",
+   "output": {
+    "title": "x",
+    "time": "12:00"
+   }
+  },
+  {
+   "input": "x dopahar 11 baje",
+   "output": {
+    "title": "x",
+    "time": "11:00"
+   }
+  },
+  {
+   "input": "x raat 9 baje",
+   "output": {
+    "title": "x",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "x raat 12 baje",
+   "output": {
+    "title": "x",
+    "time": "00:00"
+   }
+  },
+  {
+   "input": "x raat 1 baje",
+   "output": {
+    "title": "x",
+    "time": "01:00"
+   }
+  },
+  {
+   "input": "x raat 9pm",
+   "output": {
+    "title": "x",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "x subah 7am",
+   "output": {
+    "title": "x",
+    "time": "07:00"
+   }
+  },
+  {
+   "input": "x kal 5pm",
+   "output": {
+    "title": "x",
+    "time": "17:00",
+    "due": "2026-11-01"
+   }
+  },
+  {
+   "input": "मम्मी को कल 6 बजे कॉल",
+   "output": {
+    "title": "मम्मी को कॉल",
+    "time": "18:00",
+    "due": "2026-11-01"
+   }
+  },
+  {
+   "input": "किराया शुक्रवार शाम 5 बजे",
+   "output": {
+    "title": "किराया",
+    "time": "17:00",
+    "due": "2026-11-06"
+   }
+  },
+  {
+   "input": "जिम कल सुबह ७ बजे",
+   "output": {
+    "title": "जिम",
+    "time": "07:00",
+    "due": "2026-11-01"
+   }
+  },
+  {
+   "input": "दूध आज",
+   "output": {
+    "title": "दूध",
+    "due": "2026-10-31"
+   }
+  },
+  {
+   "input": "x परसों",
+   "output": {
+    "title": "x",
+    "due": "2026-11-02"
+   }
+  },
+  {
+   "input": "x साढ़े 6 बजे",
+   "output": {
+    "title": "x",
+    "time": "18:30"
+   }
+  },
+  {
+   "input": "x साढ़े 6 बजे",
+   "output": {
+    "title": "x",
+    "time": "18:30"
+   }
+  },
+  {
+   "input": "x ढाई बजे",
+   "output": {
+    "title": "x",
+    "time": "14:30"
+   }
+  },
+  {
+   "input": "x अगले हफ्ते",
+   "output": {
+    "title": "x",
+    "due": "2026-11-07"
+   }
+  },
+  {
+   "input": "x 3 दिन बाद",
+   "output": {
+    "title": "x",
+    "due": "2026-11-03"
+   }
+  },
+  {
+   "input": "call mummy ko 9 baje raat",
+   "output": {
+    "title": "call mummy ko",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "call mummy ko 9 baje raat ko",
+   "output": {
+    "title": "call mummy ko",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "call mummy ko 9 baje raat mein",
+   "output": {
+    "title": "call mummy ko",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "call mummy ko 9 baje rat",
+   "output": {
+    "title": "call mummy ko",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "call mummy ko 9 raat ko",
+   "output": {
+    "title": "call mummy ko",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "call mummy ko 9 raat",
+   "output": {
+    "title": "call mummy ko",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "call mummy ko raat 9",
+   "output": {
+    "title": "call mummy ko",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "call mummy ko raat ko 9",
+   "output": {
+    "title": "call mummy ko",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "call mummy ko raat ke 9 baje",
+   "output": {
+    "title": "call mummy ko",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "call mummy ko raat mein 9 baje",
+   "output": {
+    "title": "call mummy ko",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "call mummy ko raat me 9 baje",
+   "output": {
+    "title": "call mummy ko",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "call mummy ko raatko 9 baje",
+   "output": {
+    "title": "call mummy ko",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "raat ko mummy ko 9 baje call",
+   "output": {
+    "title": "mummy ko call",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "mummy ko 9 baje call raat",
+   "output": {
+    "title": "mummy ko call",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "call mummy kal 9 baje raat",
+   "output": {
+    "title": "call mummy",
+    "time": "21:00",
+    "due": "2026-11-01"
+   }
+  },
+  {
+   "input": "call mummy 9 baje kal raat",
+   "output": {
+    "title": "call mummy",
+    "time": "21:00",
+    "due": "2026-11-01"
+   }
+  },
+  {
+   "input": "call mummy 9 baje aaj raat",
+   "output": {
+    "title": "call mummy",
+    "time": "21:00",
+    "due": "2026-10-31"
+   }
+  },
+  {
+   "input": "x 9 baje night",
+   "output": {
+    "title": "x",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "x night 9 baje",
+   "output": {
+    "title": "x",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "x 9.30 baje raat",
+   "output": {
+    "title": "x",
+    "time": "21:30"
+   }
+  },
+  {
+   "input": "x 9:30 baje raat ko",
+   "output": {
+    "title": "x",
+    "time": "21:30"
+   }
+  },
+  {
+   "input": "x saade 9 baje raat",
+   "output": {
+    "title": "x",
+    "time": "21:30"
+   }
+  },
+  {
+   "input": "x sawa 9 baje raat",
+   "output": {
+    "title": "x",
+    "time": "21:15"
+   }
+  },
+  {
+   "input": "x paune 10 baje raat",
+   "output": {
+    "title": "x",
+    "time": "21:45"
+   }
+  },
+  {
+   "input": "x dedh baje raat",
+   "output": {
+    "title": "x",
+    "time": "01:30"
+   }
+  },
+  {
+   "input": "x 12 baje raat",
+   "output": {
+    "title": "x",
+    "time": "00:00"
+   }
+  },
+  {
+   "input": "x 2 baje raat",
+   "output": {
+    "title": "x",
+    "time": "02:00"
+   }
+  },
+  {
+   "input": "x 9pm raat",
+   "output": {
+    "title": "x",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "x 6 baje sham",
+   "output": {
+    "title": "x",
+    "time": "18:00"
+   }
+  },
+  {
+   "input": "x 6 baje sham ko",
+   "output": {
+    "title": "x",
+    "time": "18:00"
+   }
+  },
+  {
+   "input": "x 6 baje shaam",
+   "output": {
+    "title": "x",
+    "time": "18:00"
+   }
+  },
+  {
+   "input": "x 6 sham",
+   "output": {
+    "title": "x",
+    "time": "18:00"
+   }
+  },
+  {
+   "input": "x sham ke 6",
+   "output": {
+    "title": "x",
+    "time": "18:00"
+   }
+  },
+  {
+   "input": "x sham 6.30",
+   "output": {
+    "title": "x",
+    "time": "18:30"
+   }
+  },
+  {
+   "input": "x 6 baje evening",
+   "output": {
+    "title": "x",
+    "time": "18:00"
+   }
+  },
+  {
+   "input": "x evening 6 baje",
+   "output": {
+    "title": "x",
+    "time": "18:00"
+   }
+  },
+  {
+   "input": "x 3 baje subah",
+   "output": {
+    "title": "x",
+    "time": "03:00"
+   }
+  },
+  {
+   "input": "x 5 baje subah",
+   "output": {
+    "title": "x",
+    "time": "05:00"
+   }
+  },
+  {
+   "input": "x 5 baje savere",
+   "output": {
+    "title": "x",
+    "time": "05:00"
+   }
+  },
+  {
+   "input": "x subah subah 5 baje",
+   "output": {
+    "title": "x",
+    "time": "05:00"
+   }
+  },
+  {
+   "input": "x 5 subah",
+   "output": {
+    "title": "x",
+    "time": "05:00"
+   }
+  },
+  {
+   "input": "x 7am subah",
+   "output": {
+    "title": "x",
+    "time": "07:00"
+   }
+  },
+  {
+   "input": "x 5 baje morning",
+   "output": {
+    "title": "x",
+    "time": "05:00"
+   }
+  },
+  {
+   "input": "x 2 baje dopahar",
+   "output": {
+    "title": "x",
+    "time": "14:00"
+   }
+  },
+  {
+   "input": "x 2 baje dopehar ko",
+   "output": {
+    "title": "x",
+    "time": "14:00"
+   }
+  },
+  {
+   "input": "x 2 dopahar",
+   "output": {
+    "title": "x",
+    "time": "14:00"
+   }
+  },
+  {
+   "input": "x din mein 2 baje",
+   "output": {
+    "title": "x",
+    "time": "14:00"
+   }
+  },
+  {
+   "input": "x din ke 11 baje",
+   "output": {
+    "title": "x",
+    "time": "11:00"
+   }
+  },
+  {
+   "input": "x 2 baje din mein",
+   "output": {
+    "title": "x",
+    "time": "14:00"
+   }
+  },
+  {
+   "input": "x 2 din mein 6 baje",
+   "output": {
+    "title": "x",
+    "time": "18:00",
+    "due": "2026-11-02"
+   }
+  },
+  {
+   "input": "x 3 din baad 9 baje raat",
+   "output": {
+    "title": "x",
+    "time": "21:00",
+    "due": "2026-11-03"
+   }
+  },
+  {
+   "input": "x 6 baje pm",
+   "output": {
+    "title": "x",
+    "time": "18:00"
+   }
+  },
+  {
+   "input": "x 6 baje am",
+   "output": {
+    "title": "x",
+    "time": "06:00"
+   }
+  },
+  {
+   "input": "raat ka khana 9 baje",
+   "output": {
+    "title": "raat ka khana",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "subah ki walk 6 baje",
+   "output": {
+    "title": "subah ki walk",
+    "time": "06:00"
+   }
+  },
+  {
+   "input": "sham gym 6 baje",
+   "output": {
+    "title": "sham gym",
+    "time": "18:00"
+   }
+  },
+  {
+   "input": "dinner 8 baje",
+   "output": {
+    "title": "dinner",
+    "time": "20:00"
+   }
+  },
+  {
+   "input": "8 baje dinner",
+   "output": {
+    "title": "dinner",
+    "time": "20:00"
+   }
+  },
+  {
+   "input": "breakfast 5 baje",
+   "output": {
+    "title": "breakfast",
+    "time": "05:00"
+   }
+  },
+  {
+   "input": "morning walk 5 baje",
+   "output": {
+    "title": "morning walk",
+    "time": "05:00"
+   }
+  },
+  {
+   "input": "night shift 9 baje",
+   "output": {
+    "title": "night shift",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "14 baje raat x",
+   "output": {
+    "title": "x",
+    "time": "14:00"
+   }
+  },
+  {
+   "input": "मम्मी को कॉल 9 बजे रात",
+   "output": {
+    "title": "मम्मी को कॉल",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "मम्मी को कॉल 9 बजे रात को",
+   "output": {
+    "title": "मम्मी को कॉल",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "मम्मी को कॉल रात को 9 बजे",
+   "output": {
+    "title": "मम्मी को कॉल",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "मम्मी को कॉल रात में 9 बजे",
+   "output": {
+    "title": "मम्मी को कॉल",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "मम्मी को कॉल 6 बजे शाम",
+   "output": {
+    "title": "मम्मी को कॉल",
+    "time": "18:00"
+   }
+  },
+  {
+   "input": "मम्मी को कॉल 9 रात",
+   "output": {
+    "title": "मम्मी को कॉल",
+    "time": "21:00"
+   }
+  },
+  {
+   "input": "x 5 बजे सुबह",
+   "output": {
+    "title": "x",
+    "time": "05:00"
+   }
+  },
+  {
+   "input": "x ५ बजे सुबह",
+   "output": {
+    "title": "x",
+    "time": "05:00"
+   }
+  },
+  {
+   "input": "read 10 morning pages",
+   "output": {
+    "title": "read 10 morning pages"
+   }
+  },
+  {
+   "input": "rat poison 9",
+   "output": {
+    "title": "rat poison 9"
+   }
+  },
+  {
+   "input": "3 din raat",
+   "output": {
+    "title": "3 din raat"
+   }
+  },
+  {
+   "input": "raat 45 baje",
+   "output": {
+    "title": "raat 45 baje"
+   }
+  },
+  {
+   "input": "raat 13",
+   "output": {
+    "title": "raat 13"
+   }
+  },
+  {
+   "input": "Kalpana ko call",
+   "output": {
+    "title": "Kalpana ko call"
+   }
+  },
+  {
+   "input": "kal wala kaam",
+   "output": {
+    "title": "kal wala kaam"
+   }
+  },
+  {
+   "input": "Aajtak dekhna",
+   "output": {
+    "title": "Aajtak dekhna"
+   }
+  },
+  {
+   "input": "parsons report",
+   "output": {
+    "title": "parsons report"
+   }
+  },
+  {
+   "input": "subah ka walk",
+   "output": {
+    "title": "subah ka walk"
+   }
+  },
+  {
+   "input": "kal",
+   "output": {
+    "title": "kal"
+   }
+  },
+  {
+   "input": "6 baje",
+   "output": {
+    "title": "6 baje"
+   }
+  },
+  {
+   "input": "x 25 baje",
+   "output": {
+    "title": "x 25 baje"
+   }
+  },
+  {
+   "input": "raat 45 ko",
+   "output": {
+    "title": "raat 45 ko"
+   }
+  },
+  {
+   "input": "saturn sham",
+   "output": {
+    "title": "saturn sham"
+   }
+  },
+  {
+   "input": "this is weekly",
+   "output": {
+    "title": "this is weekly"
+   }
+  },
+  {
+   "input": "buy 2 weeks supply",
+   "output": {
+    "title": "buy 2 weeks supply"
+   }
+  },
+  {
+   "input": "mangal pandey movie",
+   "output": {
+    "title": "mangal pandey movie"
+   }
   }
  ]
 }

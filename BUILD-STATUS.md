@@ -4,9 +4,9 @@ Snapshot: **1 November 2026**. Read this first when picking kiln up in a new
 session. `NEXT-STEPS.md` holds the longer plan (Google/Apple sign-in, TestFlight).
 Ship through `RELEASE-PROCESS.md`, in order.
 
-> **Paused on 2 November 2026** to focus on the Business Suite. The live site keeps
-> running from `main`, untouched. To resume, start with "Before step 4" below. The
-> `release-process` branch still needs merging into `main`, which redeploys the site.
+> **Resumed 6 November 2026** while the Business Suite waits for the Khandwa survey
+> (after Diwali). Hinglish quick add went live on the web on 3 November and is now
+> ported to Swift and Kotlin, with all 260 parser cases passing on both.
 
 ---
 
@@ -21,7 +21,7 @@ stay until the native apps have passed the release process.
 
 | Checked | Result |
 |---|---|
-| Logic against fixtures from the real JS (parser, merge, repeats, backup) | Swift 25 tests, Kotlin 19 tests pass |
+| Logic against fixtures from the real JS (parser incl. Hinglish, merge, repeats, backup) | Swift and Kotlin suites pass, 260 parser cases each |
 | Android on the emulator | onboarding, add, parse, complete, undo, reorder, restart, Hindi, dark, ambient, rotation, test notification; no crashes |
 | Android 1.0.2 updated in place to 2.0.0 | guest tasks and name carried over, 60 tasks included |
 | macOS | builds and runs; screens viewed in light, dark, Hindi, Urdu; not clicked through |
@@ -40,7 +40,7 @@ other way (1 of 579 frames → 8 of 392), so this needs checking on a real phone
 - [ ] Real account: sign up, code, sign in, sync with the web, reset, delete, session carried over from 1.0.2
 - [ ] Reminder after a real reboot; on the Samsung, is scrolling smooth?
 - [ ] Left out or simplified so far: boot animation (on purpose), Ember's rising embers, onboarding demos. Ember's eyes follow the pointer on Mac only
-- [ ] Set up the workers.dev deployment (needs a Cloudflare login); it only covers the web app
+- [x] workers.dev test deployment: https://kiln-test.satpurastudio.workers.dev (`npx wrangler deploy` from a work branch); web only
 - [ ] Afterwards, move `android/keystore.properties` to `native/android/`, then delete `android/` and `ios/`
 
 ---
