@@ -1,0 +1,8 @@
+// Test deployment for step 1 of RELEASE-PROCESS.md. The live site deploys from main to GitHub Pages.
+// Deploy from a work branch: npm run build && npx wrangler deploy
+{
+  "name": "kiln-test",
+  "account_id": "86b8992fa90b63a819043ccdc42174ad",
+  "compatibility_date": "2026-10-01",
+  "assets": { "directory": "./dist", "not_found_handling": "single-page-application" }
+}

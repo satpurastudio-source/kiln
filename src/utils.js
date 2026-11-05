@@ -357,6 +357,167 @@ function nextDayOfMonth(day) {
   return null
 }
 
+// Hinglish and Hindi: "mummy ko kal 6 baje call", "kal subah 7 baje gym",
+// "शुक्रवार शाम 5 बजे किराया". Spoken forms that are safe to read as dates and
+// times. Words after a date or time ("kal ko", "6 baje ko") go with it, but "ko"
+// before one stays in the title, because "mummy ko" is part of the task.
+const NUM = '([\\d\\u0966-\\u096f]{1,2})'
+const toNum = (x) => +String(x).replace(/[०-९]/g, (c) => c.charCodeAt(0) - 0x0966)
+const END = ',?(?=\\s)'
+const BAJE = '(?:baje|bje|bajay|bajey|bajhe|baaje|बजे)'
+const KO = '(?:\\s+(?:ko|को))?'
+const PART_HI = 'subah|subha|subh|suba|savere|sawere|savera|sawera|dopahar|dopehar|dupahar|dopaher|dophar|dopahr|duphar|sham|shaam|raat|raath|सुबह|सवेरे|सवेरा|दोपहर|शाम|रात'
+// Only safe right next to "baje": "9 baje night", but not "rat poison 9" or "10 morning pages"
+const PART_ANY = `${PART_HI}|morning|mrng|evening|eve|night|nite|afternoon|noon|rat`
+const LINK_BEFORE = '(?:ko|ke|ki|mein|me|mai|main|को|के|की|में)'
+const LINK_AFTER = '(?:\\s+(?:ko|mein|me|mai|main|को|में))?'
+const MINUTES = '(?:[:.](?<min>[0-5]\\d))?'
+// "din mein 2 baje" is daytime, but "2 din mein" means in two days
+const BEFORE_BAJE = `(?:(?<pb>${PART_ANY})(?:\\s+\\k<pb>)?\\s*(?:${LINK_BEFORE}\\s+)?|(?<![\\d\\u0966-\\u096f]\\s)(?<db>din|दिन)\\s+(?:mein|me|ke|में|के)\\s+)?`
+const AFTER_BAJE = `(?:\\s+(?<pa>${PART_ANY})${LINK_AFTER}|\\s+(?<da>din|दिन)\\s+(?:mein|me|में))?`
+const HALF = '\\u0922\\u093c|\\u095d' // ढ़ arrives in either of two Unicode spellings
+const QUARTERS = `(saade|sade|saadhe|sadhe|सा(?:${HALF})े|sawa|sava|सवा|paune|pone|पौने)`
+const WHOLE_HALF = `(dedh|deadh|डे(?:${HALF})|dhai|dhaai|ढाई)`
+const PART_KIND = {
+  subah: 'am', subha: 'am', subh: 'am', suba: 'am', savere: 'am', sawere: 'am', savera: 'am', sawera: 'am',
+  'सुबह': 'am', 'सवेरे': 'am', 'सवेरा': 'am', morning: 'am', mrng: 'am', breakfast: 'am', nashta: 'am', 'नाश्ता': 'am',
+  dopahar: 'noon', dopehar: 'noon', dupahar: 'noon', dopaher: 'noon', dophar: 'noon', dopahr: 'noon', duphar: 'noon',
+  'दोपहर': 'noon', din: 'noon', 'दिन': 'noon', afternoon: 'noon', noon: 'noon', lunch: 'noon',
+  sham: 'pm', shaam: 'pm', 'शाम': 'pm', evening: 'pm', eve: 'pm', dinner: 'pm',
+  raat: 'night', raath: 'night', rat: 'night', 'रात': 'night', night: 'night', nite: 'night',
+}
+const HI_DOW = {
+  somvar: 1, somwar: 1, 'सोमवार': 1,
+  mangalvar: 2, mangalwar: 2, 'मंगलवार': 2,
+  budhvar: 3, budhwar: 3, 'बुधवार': 3,
+  guruvar: 4, guruwar: 4, veervar: 4, brihaspativar: 4, 'गुरुवार': 4, 'वीरवार': 4, 'बृहस्पतिवार': 4,
+  shukravar: 5, shukrawar: 5, 'शुक्रवार': 5,
+  shanivar: 6, shaniwar: 6, 'शनिवार': 6,
+  ravivar: 0, raviwar: 0, itwar: 0, itvar: 0, 'रविवार': 0, 'इतवार': 0,
+}
+const HI_DOW_RE = `(${Object.keys(HI_DOW).join('|')})`
+const EN_DOW_FULL = '(monday|tuesday|wednesday|thursday|friday|saturday|sunday)'
+const AFTER_DAY = '(?:\\s+(?:ko|tak|ka|ki|को|तक|का|की))?'
+const NEXT_WORD = '(?:agle|agla|next|अगले|अगला)'
+const WEEK_WORDS = 'hafte|hafta|week|हफ्ते|हफ़्ते|हफ्ता|हफ़्ता'
+const WEEK_WORD = `(?:${WEEK_WORDS})`
+
+// With no part of the day, the hour people usually mean: 1 to 6 is the
+// afternoon or evening, 7 to 11 the morning. The preview shows the result as it's typed.
+function spokenHour(h, kind) {
+  if (h === 0 || h > 12) return h
+  if (kind === 'am') return h
+  if (kind === 'pm') return h === 12 ? 12 : h + 12
+  if (kind === 'noon') return h === 12 ? 12 : h <= 5 ? h + 12 : h
+  if (kind === 'night') return h === 12 ? 0 : h <= 4 ? h : h + 12
+  return h === 12 ? 12 : h <= 6 ? h + 12 : h
+}
+const clock = (h, min) => `${String(h).padStart(2, '0')}:${String(min).padStart(2, '0')}`
+
+// Reads the time out of s. Returns the text with it removed, and the time.
+function hinglishTime(s) {
+  const kindOf = (p) => PART_KIND[(p || '').toLowerCase()]
+  const done = (m, hour, minute, kind, meridiem) => {
+    let rest = s.slice(0, m.index) + ' ' + s.slice(m.index + m[0].length)
+    if (!kind && !meridiem && hour >= 1 && hour <= 12) {
+      // The part of the day can be further away: "raat ko mummy ko 9 baje call".
+      // It leaves the title only if it's plainly about the time, so "raat ka khana" stays.
+      const far = rest.match(new RegExp(`\\s(${PART_HI})(\\s+(?:ko|mein|me|mai|main|को|में))?(?=\\s)`, 'i'))
+      const hint = rest.match(/\s(morning|evening|night|afternoon|breakfast|nashta|नाश्ता|lunch|dinner)(?=\s)/i)
+      if (far) {
+        kind = kindOf(far[1])
+        const after = rest.slice(far.index + far[0].length)
+        if (far[2] || !after.trim()) rest = rest.slice(0, far.index) + ' ' + after
+      } else if (hint) kind = kindOf(hint[1])
+    }
+    const h = meridiem ? (hour % 12) + (/pm/i.test(meridiem) ? 12 : 0) : spokenHour(hour, kind)
+    return { rest, time: clock(h, minute) }
+  }
+
+  // 9 baje raat · raat ke 9 baje · sham saade 6 baje · 9.30 baje raat ko · din mein 2 baje · 14 baje
+  let m = s.match(new RegExp(`\\s(?:at\\s+)?${BEFORE_BAJE}(?:(?<q>${QUARTERS})\\s+)?(?<n>${NUM})${MINUTES}\\s*${BAJE}(?:\\s*(?<mer>am|pm))?${KO}${AFTER_BAJE}${END}`, 'i'))
+  if (m) {
+    const g = m.groups
+    const n = toNum(g.n)
+    if (n <= 23 && (!g.q || (n >= 1 && n <= 12))) {
+      const kind = kindOf(g.pb || g.db || g.pa || g.da)
+      const q = (g.q || '').toLowerCase()
+      if (/^(sawa|sava|सवा)/.test(q)) return done(m, n, 15, kind, g.mer)
+      if (/^(sa|सा)/.test(q)) return done(m, n, 30, kind, g.mer)
+      if (q) return done(m, n === 1 ? 12 : n - 1, 45, kind, g.mer)
+      return done(m, n, g.min ? +g.min : 0, kind, g.mer)
+    }
+  }
+  // dedh baje raat (1:30) · sham dhai baje (2:30)
+  m = s.match(new RegExp(`\\s(?:at\\s+)?${BEFORE_BAJE}(?<half>${WHOLE_HALF})\\s*${BAJE}${KO}${AFTER_BAJE}${END}`, 'i'))
+  if (m) {
+    const g = m.groups
+    return done(m, /^(de|डे)/i.test(g.half) ? 1 : 2, 30, kindOf(g.pb || g.db || g.pa || g.da))
+  }
+  // With a part of the day, "baje" is optional: subah 7 · raat ko 9 · sham 6.30 · raat 9pm
+  m = s.match(new RegExp(`\\s(?<pb>${PART_HI})(?:\\s+\\k<pb>)?\\s+(?:${LINK_BEFORE}\\s+)?(?<n>${NUM})${MINUTES}\\s*(?<mer>am|pm)?${END}`, 'i'))
+  if (m && toNum(m.groups.n) >= 1 && toNum(m.groups.n) <= 12) {
+    return done(m, toNum(m.groups.n), m.groups.min ? +m.groups.min : 0, kindOf(m.groups.pb), m.groups.mer)
+  }
+  // ...and it can come after: 9 raat ko · 6:30 sham · 9pm raat
+  m = s.match(new RegExp(`\\s(?<n>${NUM})${MINUTES}\\s*(?<mer>am|pm)?\\s+(?<pa>${PART_HI})${LINK_AFTER}${END}`, 'i'))
+  if (m && toNum(m.groups.n) >= 1 && toNum(m.groups.n) <= 12) {
+    return done(m, toNum(m.groups.n), m.groups.min ? +m.groups.min : 0, kindOf(m.groups.pa), m.groups.mer)
+  }
+  return null
+}
+
+function nextMonthStr() {
+  const d = new Date()
+  const day = d.getDate()
+  d.setDate(1)
+  d.setMonth(d.getMonth() + 1)
+  // clamp: 31 jan → 28/29 feb, not 3 march
+  d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()))
+  return toDateStr(d)
+}
+
+function upcomingWeekday(target, next) {
+  let off = (target - new Date().getDay() + 7) % 7
+  if (off === 0) off = 7 // a weekday name means the upcoming one, not today
+  if (next && off < 7) off += 7 // "next monday" → a full week out
+  return addDaysStr(off)
+}
+
+function hinglishDate(s) {
+  const find = (p) => s.match(new RegExp(p, 'i'))
+  let m
+  // aaj · aaj raat · aaj tak · aaj ki
+  if ((m = find(`\\s(?:aaj|आज)(?:\\s+(?:raat|रात)${KO})?${AFTER_DAY}${END}`))) return { m, due: todayStr() }
+  // kal · kal tak · kal ki (but "kal wala" points back at yesterday)
+  if ((m = find(`\\s(?:kal|कल)(?!\\s+(?:wala|wali|wale|वाला|वाली|वाले)\\s)${AFTER_DAY}${END}`))) return { m, due: addDaysStr(1) }
+  if ((m = find(`\\s(?:parso|parson|परसों|परसो)${AFTER_DAY}${END}`))) return { m, due: addDaysStr(2) }
+  if ((m = find(`\\s(?:narso|narson|नरसों|नरसो)${AFTER_DAY}${END}`))) return { m, due: addDaysStr(3) }
+  // agle hafte · agle week · next hafte
+  if ((m = find(`\\s${NEXT_WORD}\\s+${WEEK_WORD}(?:\\s+(?:ko|tak|mein|me|को|तक|में))?${END}`))) return { m, due: addDaysStr(7) }
+  // agle mahine · agle month · next mahine
+  if ((m = find(`\\s${NEXT_WORD}\\s+(?:mahine|mahina|month|महीने|महीना)(?:\\s+(?:ko|tak|mein|me|को|तक|में))?${END}`))) return { m, due: nextMonthStr() }
+  // 3 din baad · 2 din mein · 2 hafte baad
+  if ((m = find(`\\s${NUM}\\s+(din|dino|dinon|${WEEK_WORDS}|weeks|hafton|दिन|दिनों|हफ्तों)\\s+(?:baad|bad|mein|me|mai|बाद|में)${END}`))) {
+    const weeks = /^(h|w|ह)/i.test(m[2])
+    return { m, due: addDaysStr(Math.min(365, toNum(m[1]) * (weeks ? 7 : 1))) }
+  }
+  // is weekend · weekend pe
+  if ((m = find(`\\sis\\s+weekend${AFTER_DAY}${END}`)) || (m = find(`\\sweekend\\s+(?:ko|par|pe|tak)${END}`))) {
+    return { m, due: addDaysStr((6 - new Date().getDay() + 7) % 7) }
+  }
+  // agle shukravar · is friday · agle friday ko
+  m = find(`\\s(${NEXT_WORD}|is|इस)\\s+(?:${EN_DOW_FULL}|${HI_DOW_RE})${AFTER_DAY}${END}`)
+  if (m) {
+    const target = m[2] ? DOW[m[2].slice(0, 3).toLowerCase()] : HI_DOW[m[3].toLowerCase()]
+    return { m, due: upcomingWeekday(target, !/^(is|इस)$/i.test(m[1])) }
+  }
+  // shukravar anywhere (the word can't be anything else) · friday ko anywhere
+  if ((m = find(`\\s${HI_DOW_RE}${AFTER_DAY}${END}`))) return { m, due: upcomingWeekday(HI_DOW[m[1].toLowerCase()], false) }
+  if ((m = find(`\\s${EN_DOW_FULL}\\s+(?:ko|tak|को|तक)${END}`))) return { m, due: upcomingWeekday(DOW[m[1].slice(0, 3).toLowerCase()], false) }
+  return null
+}
+
 export function parseQuickAdd(raw, projects = []) {
   const original = (raw || '').trim()
   if (!original) return { title: original }
@@ -394,8 +555,12 @@ export function parseQuickAdd(raw, projects = []) {
     remove(m)
   }
 
-  // --- time: 5pm, 7:30 am, at 14:00, noon, midnight ---
-  if ((m = s.match(/\s(?:at\s+)?(1[0-2]|0?[1-9])(?::([0-5]\d))?\s*(am|pm)\b/i))) {
+  // --- time: 6 baje, sham 5 baje, 5pm, 7:30 am, at 14:00, noon, midnight ---
+  const spokenTime = hinglishTime(s)
+  if (spokenTime) {
+    res.time = spokenTime.time
+    s = spokenTime.rest
+  } else if ((m = s.match(/\s(?:at\s+)?(1[0-2]|0?[1-9])(?::([0-5]\d))?\s*(am|pm)\b/i))) {
     let h = parseInt(m[1], 10) % 12
     if (/pm/i.test(m[3])) h += 12
     res.time = `${String(h).padStart(2, '0')}:${m[2] ?? '00'}`
@@ -416,7 +581,11 @@ export function parseQuickAdd(raw, projects = []) {
   // and weekday forms only count at the end of the phrase (or after on/by/
   // due) so "read 1/2 of the book" or "sat exam prep" stay as titles.
   let dm
-  if ((m = s.match(/\s(today|tonight)\b/i))) {
+  const spokenDate = hinglishDate(s)
+  if (spokenDate) {
+    res.due = spokenDate.due
+    remove(spokenDate.m)
+  } else if ((m = s.match(/\s(today|tonight)\b/i))) {
     res.due = todayStr()
     remove(m)
   } else if ((m = s.match(/\s(?:the\s+)?(day after tomorrow|overmorrow)\b/i))) {
@@ -429,13 +598,7 @@ export function parseQuickAdd(raw, projects = []) {
     res.due = addDaysStr(7)
     remove(m)
   } else if ((m = s.match(/\snext month\b/i))) {
-    const d = new Date()
-    const day = d.getDate()
-    d.setDate(1)
-    d.setMonth(d.getMonth() + 1)
-    // clamp: 31 jan → 28/29 feb, not 3 march
-    d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()))
-    res.due = toDateStr(d)
+    res.due = nextMonthStr()
     remove(m)
   } else if ((m = s.match(/\s(?:this\s+)?weekend\b/i))) {
     const off = (6 - new Date().getDay() + 7) % 7 // upcoming saturday (today if it is one)
@@ -483,11 +646,7 @@ export function parseQuickAdd(raw, projects = []) {
     (m = s.match(new RegExp(`\\s(next\\s+|this\\s+|on\\s+|by\\s+)${WEEKDAY_RE}\\b`, 'i'))) ||
     (m = s.match(new RegExp(`\\s()${WEEKDAY_RE}\\s*$`, 'i')))
   ) {
-    const target = DOW[m[2].toLowerCase().slice(0, 3)]
-    let off = (target - new Date().getDay() + 7) % 7
-    if (off === 0) off = 7 // a weekday name means the upcoming one, not today
-    if (/next/i.test(m[1] || '') && off < 7) off += 7 // "next monday" → a full week out
-    res.due = addDaysStr(off)
+    res.due = upcomingWeekday(DOW[m[2].toLowerCase().slice(0, 3)], /next/i.test(m[1] || ''))
     remove(m)
   }
 
